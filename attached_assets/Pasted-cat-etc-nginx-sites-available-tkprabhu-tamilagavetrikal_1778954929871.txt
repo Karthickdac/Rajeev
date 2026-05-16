@@ -1,0 +1,30 @@
+cat /etc/nginx/sites-available/tkprabhu.tamilagavetrikalagam.com
+
+# Check if it's enabled
+ls -la /etc/nginx/sites-enabled/ | grep tkprabhu
+
+# Check nginx error log for the actual error
+tail -20 /var/log/nginx/error.log
+cat: /etc/nginx/sites-available/tkprabhu.tamilagavetrikalagam.com: No such file or directory
+-rw-r--r--  1 root root 1532 May 16 15:15 tkprabhu.tamilagavetrikalagam.com.conf
+2026/05/16 18:02:21 [warn] 3038956#3038956: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/mysticsinv.automystics.tech.crt"
+2026/05/16 18:02:21 [warn] 3038956#3038956: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/solarnexus.automystics.tech.crt"
+2026/05/16 18:02:21 [warn] 3038956#3038956: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/tkprabhu.tamilagavetrikalagam.com.crt"
+2026/05/16 18:02:21 [warn] 3038956#3038956: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.automystics.com.crt"
+2026/05/16 18:02:21 [warn] 3038956#3038956: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.automystics.com.crt"
+2026/05/16 18:02:21 [warn] 3038956#3038956: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.fitro360.com.crt"
+2026/05/16 18:02:21 [warn] 3038956#3038956: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.fitro360.com.crt"
+2026/05/16 18:02:21 [notice] 3038956#3038956: signal process started
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/ctr.tamilagavetrikalagam.com.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/kalvicore.automystics.tech.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/kuralai.automystics.tech.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/mysticshr.automystics.tech.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/mysticsinv.automystics.tech.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/solarnexus.automystics.tech.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/tkprabhu.tamilagavetrikalagam.com.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.automystics.com.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.automystics.com.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.fitro360.com.crt"
+2026/05/16 18:07:32 [warn] 3055779#3055779: "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.fitro360.com.crt"
+2026/05/16 18:07:32 [notice] 3055779#3055779: signal process started
+root@srv1609330:/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com# 
