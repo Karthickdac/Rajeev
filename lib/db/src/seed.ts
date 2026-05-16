@@ -59,94 +59,6 @@ type PollingPdfBooth = {
   areas: PollingPdfArea[];
 };
 
-// Reads the parsed AC 195 polling-station JSON and bulk-imports it
-// into `polling_stations`, creating panchayat-type wards on the fly
-// for any panchayat name not already present.
-async function importPollingStations() {
-  const jsonPath = path.resolve(__dirname, "../data/ac195-thiruparankundram-polling-stations.json");
-  if (!fs.existsSync(jsonPath)) {
-    console.warn("[seed] polling-station JSON not found, skipping import:", jsonPath);
-    return;
-  }
-  const payload = JSON.parse(fs.readFileSync(jsonPath, "utf8")) as {
-    source: { url: string };
-    booths: PollingPdfBooth[];
-  };
-  const booths = payload.booths ?? [];
-  if (booths.length === 0) return;
-
-  // Existing wards (post-curated-insert) keyed by lowercase name and slug.
-  const existing = await db.select({ id: wardsTable.id, name: wardsTable.name, slug: wardsTable.slug }).from(wardsTable);
-  const wardByLower = new Map<string, number>();
-  for (const w of existing) {
-    if (w.name) wardByLower.set(w.name.toLowerCase().trim(), w.id);
-    if (w.slug) wardByLower.set(w.slug.toLowerCase().trim(), w.id);
-  }
-
-  const ruralZoneRow = await db.select({ id: zonesTable.id }).from(zonesTable).where(eq(zonesTable.slug, "rural"));
-  const ruralZoneId = ruralZoneRow[0]?.id ?? null;
-
-  // Collect every distinct panchayat referenced by the PDF and ensure
-  // a ward row exists for each one.
-  const distinctPanchayats = new Set<string>();
-  for (const b of booths) {
-    for (const a of b.areas) {
-      const key = (a.panchayat ?? a.revenueVillage ?? "").trim();
-      if (key) distinctPanchayats.add(key);
-    }
-  }
-
-  for (const panchayat of distinctPanchayats) {
-    const lower = panchayat.toLowerCase();
-    if (wardByLower.has(lower)) continue;
-    const slug = slugify(panchayat);
-    if (slug && wardByLower.has(slug)) continue;
-    const [created] = await db.insert(wardsTable).values({
-      name: titleCase(panchayat),
-      slug,
-      wardType: "panchayat",
-      zoneId: ruralZoneId,
-      area: "Rural — AC 195",
-      notes: "Auto-created from official AC 195 polling-station list",
-    }).returning({ id: wardsTable.id });
-    wardByLower.set(lower, created.id);
-    if (slug) wardByLower.set(slug, created.id);
-  }
-
-  // Pincode lookup (id by code).
-  const pincodeRows = await db.select({ id: pincodesTable.id, code: pincodesTable.code }).from(pincodesTable);
-  const pincodeIdByCode = new Map(pincodeRows.map((p) => [p.code, p.id] as const));
-
-  // Insert booths.
-  let inserted = 0;
-  for (const b of booths) {
-    const firstArea = b.areas[0];
-    const wardKey = (firstArea?.panchayat ?? firstArea?.revenueVillage ?? "").toLowerCase().trim();
-    const wardId = wardKey ? wardByLower.get(wardKey) ?? null : null;
-    await db.insert(pollingStationsTable).values({
-      boothNo: b.boothNo,
-      slNo: b.slNo,
-      name: b.location.replace(/\s+/g, " ").trim().slice(0, 500),
-      address: b.location.replace(/\s+/g, " ").trim(),
-      wardId,
-      pincode: b.pincode,
-      voterType: b.voterType,
-      rawAreas: JSON.stringify(b.areas),
-      source: payload.source?.url ?? null,
-    }).onConflictDoNothing();
-    inserted++;
-
-    // Attach pincode→ward mapping when both are known.
-    const pincodeId = b.pincode ? pincodeIdByCode.get(b.pincode) : undefined;
-    if (pincodeId && wardId) {
-      await db.insert(pincodeWardsTable).values({ pincodeId, wardId }).onConflictDoNothing();
-    }
-  }
-
-  // Bump ward stats so downstream UIs (counts) reflect the import.
-  await db.execute(sql`SELECT 1`);
-  console.log(`[seed] polling stations imported: ${inserted} booths, ${distinctPanchayats.size} distinct panchayats`);
-}
 
 // ── Tenant leader configurations ─────────────────────────────────────
 // Add a new entry here for each new minister / deployment.
@@ -476,12 +388,6 @@ async function seed() {
     { code: "630102", label: "Ariyakudi" },
     { code: "630311", label: "Koviloor" },
   ]).onConflictDoNothing();
-
-  // 4) Polling stations — bulk import from the parsed PDF JSON.
-  //    Creates a `panchayat`-type ward on the fly for any panchayat
-  //    name that isn't already in the wards table, so every booth
-  //    has a real wardId to link to.
-  await importPollingStations();
 
   console.log("Constituency hierarchy seeded.");
 
