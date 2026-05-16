@@ -1,0 +1,49 @@
+│ 13 │ people-connect-api    │ default     │ 0.0.0   │ fork    │ 2789279  │ 102m   │ 0    │ online    │ 0%       │ 209.7mb  │ root     │ disabled │
+│ 17 │ tkprabhu-api          │ default     │ 0.0.0   │ fork    │ 3050637  │ 0s     │ 0    │ online    │ 0%       │ 13.1mb   │ root     │ disabled │
+└────┴───────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[TAILING] Tailing last 20 lines for [tkprabhu-api] process (change the value with --lines option)
+/root/.pm2/logs/tkprabhu-api-error.log last 20 lines:
+17|tkprabh | (node:3045980) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabh | (node:3046040) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabh | (node:3046088) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabh | (node:3046148) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabh | (node:3046209) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabh | (node:3046269) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabh | (node:3046317) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabh | (node:3046377) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabh | (node:3046437) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabh | (node:3046485) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+
+/root/.pm2/logs/tkprabhu-api-out.log last 20 lines:
+17|tkprabh | listen EADDRINUSE: address already in use :::3001","stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+17|tkprabh | {"level":50,"time":1778954682031,"pid":3046377,"hostname":"srv1609330","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3001","stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+17|tkprabh | {"level":50,"time":1778954682887,"pid":3046437,"hostname":"srv1609330","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3001","stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+17|tkprabh | {"level":50,"time":1778954683770,"pid":3046485,"hostname":"srv1609330","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3001","stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+
+17|tkprabhu-api  | (node:3050637) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+17|tkprabhu-api  | (Use `node --trace-deprecation ...` to show where the warning was created)
+17|tkprabhu-api  | {"level":30,"time":1778954763219,"pid":3050637,"hostname":"srv1609330","port":3001,"msg":"Server listening"}
