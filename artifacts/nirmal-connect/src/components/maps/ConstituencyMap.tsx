@@ -488,7 +488,7 @@ export default function ConstituencyMap({
                         permanent
                         className="ward-centroid-label"
                       >
-                        {primary} <span style={{ opacity: 0.7 }}>· {tr.boundaryNotMapped}</span>
+                        {primary}
                       </Tooltip>
                       <Popup>
                         <div>
@@ -496,7 +496,6 @@ export default function ConstituencyMap({
                           {w.nameTa && (
                             <div className="text-xs" lang="ta">{w.nameTa}</div>
                           )}
-                          <div className="text-xs mt-1 text-amber-700">{tr.boundaryNotMapped}</div>
                         </div>
                       </Popup>
                     </CircleMarker>
