@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Nirmal Connect"
+title = "TK Prabhu Connect"
 version = "1.0.0"
 id = "artifacts/nirmal-connect"
 router = "path"
@@ -12,7 +12,7 @@ version = "1.0.0"
 [[services]]
 name = "web"
 paths = [ "/" ]
-localPort = 23588
+localPort = 8081
 
 [services.development]
 run = "pnpm --filter @workspace/nirmal-connect run dev"
@@ -27,5 +27,5 @@ from = "/*"
 to = "/index.html"
 
 [services.env]
-PORT = "23588"
+PORT = "8081"
 BASE_PATH = "/"
