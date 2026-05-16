@@ -208,7 +208,7 @@ async function seed() {
   // Users
   await db.insert(usersTable).values([
     {
-      email: "admin@nirmalconnect.in",
+      email: "admin@tkprabhu.com",
       name: "Admin User",
       passwordHash: hashPassword("Admin@2024"),
       role: "super_admin",
