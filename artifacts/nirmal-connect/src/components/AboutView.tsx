@@ -6,7 +6,6 @@ import {
   GraduationCap, Facebook, Twitter, Instagram, Youtube,
 } from "lucide-react";
 import type { Language } from "@/lib/i18n";
-import leaderPhoto from "@assets/image_1778085777744.png";
 import { type LeaderConfig, DEFAULT_LEADER_CONFIG } from "@/lib/LeaderConfigContext";
 
 export function createDefaultAboutConfig(lc: LeaderConfig): AboutConfig {
@@ -132,7 +131,7 @@ export function AboutView({ config, lang, embedded = false }: AboutViewProps) {
               <img
                 src={photoSrc}
                 alt={t(config.name, config.nameTa)}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
               />
             </div>
             <h2 className="text-xl font-bold mb-1">{t(config.name, config.nameTa)}</h2>
