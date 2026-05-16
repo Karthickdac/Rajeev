@@ -42,7 +42,7 @@ export const DEFAULT_LEADER_CONFIG: LeaderConfig = {
   addressTa: "அமைச்சர் அலுவலகம், காரைக்குடி, சிவகங்கை மாவட்டம் – 630001, தமிழ்நாடு",
   officeHoursEn: "Monday – Saturday: 9:00 AM – 6:00 PM",
   officeHoursTa: "திங்கள் – சனி: காலை 9:00 – மாலை 6:00",
-  photoUrl: "",
+  photoUrl: "/tkp_profile.jpg",
   siteTitle: "TK Prabhu Connect",
   logoInitial: "T",
   districtEn: "Sivaganga",
