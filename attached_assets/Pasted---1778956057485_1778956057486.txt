@@ -1,0 +1,64 @@
+└────┴───────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+{"error":"Username and password are required"}root@srv1609330:/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com# cd /home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com                                                                  cd /home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com
+
+# 1. Confirm DB is reachable from the server
+psql "postgresql://tkprabhu:tkprabhu@localhost:5432/tkprabhu" -c "SELECT email FROM users LIMIT 1;"
+
+# 2. Confirm PM2 has the DATABASE_URL set
+pm2 env tkprabhu-api | grep DATABASE_URL
+
+# 3. Check latest API logs for any DB errors
+pm2 logs tkprabhu-api --lines 30 --nostream
+
+# 4. Test login on localhost right now
+curl -s -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@tkprabhu.com","password":"Admin@2026"}'
+       email        
+--------------------
+ admin@tkprabhu.com
+(1 row)
+
+[PM2][ERROR] Modules with id tkprabhu-api not found
+[TAILING] Tailing last 30 lines for [tkprabhu-api] process (change the value with --lines option)
+/root/.pm2/logs/tkprabhu-api-error.log last 30 lines:
+5|tkprabhu | (node:3126901) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3126950) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127016) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127069) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127129) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127183) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127237) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127286) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127334) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127394) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127450) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127503) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127557) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127611) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+5|tkprabhu | (node:3127672) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+5|tkprabhu | (Use `node --trace-deprecation ...` to show where the warning was created)
+
+/root/.pm2/logs/tkprabhu-api-out.log last 30 lines:
+5|tkprabhu | stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+5|tkprabhu | {"level":50,"time":1778955947082,"pid":3127450,"hostname":"srv1609330","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3001","stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+5|tkprabhu | {"level":50,"time":1778955947870,"pid":3127503,"hostname":"srv1609330","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3001","stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+5|tkprabhu | {"level":50,"time":1778955948585,"pid":3127557,"hostname":"srv1609330","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3001","stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+5|tkprabhu | {"level":50,"time":1778955949477,"pid":3127611,"hostname":"srv1609330","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3001","stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+5|tkprabhu | {"level":50,"time":1778955950389,"pid":3127672,"hostname":"srv1609330","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3001","stack":"Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/index.ts:31:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3001},"msg":"Error listening on port"}
+
+{"error":"Username and password are required"}root@srv1609330:/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com# 
