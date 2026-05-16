@@ -21,7 +21,7 @@ export default function Events({ lang }: EventsProps) {
     <section className="max-w-7xl mx-auto px-4 py-12">
       <SectionHeader
         title={lang === "ta" ? "நிகழ்வுகள் & பிரசாரங்கள்" : "Events & Campaigns"}
-        subtitle={lang === "ta" ? "வரவிருக்கும் மற்றும் கடந்த நிகழ்வுகள்" : "Upcoming and past events organized by MLA Nirmal Kumar"}
+        subtitle={lang === "ta" ? "வரவிருக்கும் மற்றும் கடந்த நிகழ்வுகள்" : "Upcoming and past events organized by Dr. T.K. Prabhu"}
       />
 
       {isLoading ? (

@@ -201,8 +201,8 @@ const TENANT_CONFIGS: Record<string, object> = {
 };
 
 async function seed() {
-  const TENANT = process.env.TENANT ?? "nirmal";
-  const leaderCfg = TENANT_CONFIGS[TENANT] ?? TENANT_CONFIGS["nirmal"];
+  const TENANT = process.env.TENANT ?? "tkprabhu";
+  const leaderCfg = TENANT_CONFIGS[TENANT] ?? TENANT_CONFIGS["tkprabhu"];
   console.log(`Seeding database for tenant: ${TENANT}`);
 
   // Users
@@ -244,10 +244,10 @@ async function seed() {
   // News
   await db.insert(newsTable).values([
     {
-      title: "50 km Road Construction Completed in Tirupparankundram",
-      titleTa: "திருப்பரங்குன்றத்தில் 50 கி.மீ சாலை கட்டுமானம் நிறைவு",
-      content: "MLA C.T.R. Nirmal Kumar inaugurated 50 km of newly built roads across Tirupparankundram constituency, benefiting thousands of residents. The project was funded under the state infrastructure development scheme.",
-      contentTa: "MLA சி.டி.ஆர். நிர்மல் குமார் திருப்பரங்குன்றம் தொகுதியில் 50 கி.மீ புதிய சாலைகளை திறந்து வைத்தார். இந்த திட்டம் மாநில உள்கட்டமைப்பு மேம்பாட்டு திட்டத்தின் கீழ் நிதியளிக்கப்பட்டது.",
+      title: "50 km Road Construction Completed in Karaikudi",
+      titleTa: "காரைக்குடியில் 50 கி.மீ சாலை கட்டுமானம் நிறைவு",
+      content: "Dr. T.K. Prabhu, Minister of Minerals and Mines, inaugurated 50 km of newly built roads across Karaikudi constituency, benefiting thousands of residents. The project was funded under the state infrastructure development scheme.",
+      contentTa: "கனிமவளம் மற்றும் சுரங்கத்துறை அமைச்சர் டாக்டர் டி.கே. பிரபு காரைக்குடி தொகுதியில் 50 கி.மீ புதிய சாலைகளை திறந்து வைத்தார். இந்த திட்டம் மாநில உள்கட்டமைப்பு மேம்பாட்டு திட்டத்தின் கீழ் நிதியளிக்கப்பட்டது.",
       category: "development",
       featured: true,
       publishedAt: new Date("2025-04-15"),
@@ -255,17 +255,17 @@ async function seed() {
     {
       title: "Free Medical Camp Provides Treatment to 5,000 Residents",
       titleTa: "5,000 மக்களுக்கு இலவச மருத்துவ முகாம்",
-      content: "A mega free medical camp was organized by MLA Nirmal Kumar's office in collaboration with government hospitals. Over 5,000 residents received free consultation, medicines, and diagnostic tests.",
-      contentTa: "MLA நிர்மல் குமாரின் அலுவலகம் அரசு மருத்துவமனைகளுடன் இணைந்து மெகா இலவச மருத்துவ முகாம் ஏற்பாடு செய்தது. 5,000க்கும் மேற்பட்ட மக்கள் இலவச ஆலோசனை, மருந்துகள் பெற்றனர்.",
+      content: "A mega free medical camp was organized by Dr. T.K. Prabhu's office in collaboration with government hospitals. Over 5,000 residents received free consultation, medicines, and diagnostic tests.",
+      contentTa: "டாக்டர் டி.கே. பிரபுவின் அலுவலகம் அரசு மருத்துவமனைகளுடன் இணைந்து மெகா இலவச மருத்துவ முகாம் ஏற்பாடு செய்தது. 5,000க்கும் மேற்பட்ட மக்கள் இலவச ஆலோசனை, மருந்துகள் பெற்றனர்.",
       category: "welfare",
       featured: true,
       publishedAt: new Date("2025-03-20"),
     },
     {
-      title: "New Women's Self-Help Group Launched in Tirupparankundram",
-      titleTa: "திருப்பரங்குன்றத்தில் புதிய மகளிர் சுய உதவி குழு தொடக்கம்",
-      content: "200 women from Tirupparankundram have been enrolled in new self-help groups to promote financial independence and entrepreneurship. MLA Nirmal Kumar handed over seed capital to each group.",
-      contentTa: "திருப்பரங்குன்றத்தில் 200 பெண்கள் நிதி சுதந்திரம் மற்றும் தொழில் முனைவோர்மையை ஊக்குவிக்க புதிய சுய உதவி குழுக்களில் சேர்க்கப்பட்டுள்ளனர்.",
+      title: "New Women's Self-Help Group Launched in Karaikudi",
+      titleTa: "காரைக்குடியில் புதிய மகளிர் சுய உதவி குழு தொடக்கம்",
+      content: "200 women from Karaikudi have been enrolled in new self-help groups to promote financial independence and entrepreneurship. Dr. T.K. Prabhu handed over seed capital to each group.",
+      contentTa: "காரைக்குடியில் 200 பெண்கள் நிதி சுதந்திரம் மற்றும் தொழில் முனைவோர்மையை ஊக்குவிக்க புதிய சுய உதவி குழுக்களில் சேர்க்கப்பட்டுள்ளனர்.",
       category: "welfare",
       featured: true,
       publishedAt: new Date("2025-02-10"),
@@ -273,26 +273,26 @@ async function seed() {
     {
       title: "15 Government Schools Receive Infrastructure Upgrade",
       titleTa: "15 அரசு பள்ளிகளில் கட்டமைப்பு மேம்பாடு",
-      content: "Under the constituency development fund, 15 government schools in Tirupparankundram received new classrooms, toilets, and digital equipment, improving learning conditions for over 8,000 students.",
-      contentTa: "தொகுதி வளர்ச்சி நிதியின் கீழ், திருப்பரங்குன்றத்தில் 15 அரசு பள்ளிகளுக்கு புதிய வகுப்பறைகள், கழிப்பறைகள் மற்றும் டிஜிட்டல் உபகரணங்கள் வழங்கப்பட்டன.",
+      content: "Under the constituency development fund, 15 government schools in Karaikudi received new classrooms, toilets, and digital equipment, improving learning conditions for over 8,000 students.",
+      contentTa: "தொகுதி வளர்ச்சி நிதியின் கீழ், காரைக்குடியில் 15 அரசு பள்ளிகளுக்கு புதிய வகுப்பறைகள், கழிப்பறைகள் மற்றும் டிஜிட்டல் உபகரணங்கள் வழங்கப்பட்டன.",
       category: "education",
       featured: false,
       publishedAt: new Date("2025-01-25"),
     },
     {
-      title: "Drinking Water Project Reaches All 10 Wards",
-      titleTa: "10 வார்டுகளிலும் குடிநீர் திட்டம் நிறைவு",
-      content: "The long-awaited drinking water supply project has been completed across all 10 wards of Tirupparankundram. Households now receive 24/7 clean piped water supply.",
-      contentTa: "நீண்ட காலமாக எதிர்பார்க்கப்பட்ட குடிநீர் வழங்கல் திட்டம் திருப்பரங்குன்றத்தின் அனைத்து 10 வார்டுகளிலும் நிறைவடைந்தது.",
+      title: "Drinking Water Project Reaches All Wards in Karaikudi",
+      titleTa: "காரைக்குடி வார்டுகளிலும் குடிநீர் திட்டம் நிறைவு",
+      content: "The long-awaited drinking water supply project has been completed across all wards of Karaikudi constituency. Households now receive 24/7 clean piped water supply.",
+      contentTa: "நீண்ட காலமாக எதிர்பார்க்கப்பட்ட குடிநீர் வழங்கல் திட்டம் காரைக்குடி தொகுதியின் அனைத்து வார்டுகளிலும் நிறைவடைந்தது.",
       category: "development",
       featured: false,
       publishedAt: new Date("2024-12-15"),
     },
     {
-      title: "Youth Skill Development Centre Inaugurated",
-      titleTa: "இளைஞர் திறன் மேம்பாட்டு மையம் திறப்பு",
-      content: "A new skill development centre offering vocational training in IT, tailoring, and automobile repair was inaugurated in Tirupparankundram. The centre will benefit 500 youth annually.",
-      contentTa: "IT, தையல் மற்றும் வாகன பழுது நீக்கத்தில் தொழிற்பயிற்சி வழங்கும் புதிய திறன் மேம்பாட்டு மையம் திருப்பரங்குன்றத்தில் திறக்கப்பட்டது.",
+      title: "Youth Skill Development Centre Inaugurated in Karaikudi",
+      titleTa: "காரைக்குடியில் இளைஞர் திறன் மேம்பாட்டு மையம் திறப்பு",
+      content: "A new skill development centre offering vocational training in IT, tailoring, and automobile repair was inaugurated in Karaikudi. The centre will benefit 500 youth annually.",
+      contentTa: "IT, தையல் மற்றும் வாகன பழுது நீக்கத்தில் தொழிற்பயிற்சி வழங்கும் புதிய திறன் மேம்பாட்டு மையம் காரைக்குடியில் திறக்கப்பட்டது.",
       category: "employment",
       featured: false,
       publishedAt: new Date("2024-11-30"),
@@ -313,9 +313,9 @@ async function seed() {
     {
       title: "Constituency Meeting & Public Hearing",
       titleTa: "தொகுதி கூட்டம் & பொது விசாரணை",
-      description: "Monthly public hearing where residents can directly present their issues to MLA Nirmal Kumar. All are welcome. No appointment needed.",
-      descriptionTa: "மாதாந்திர பொது விசாரணை - மக்கள் நேரடியாக MLA நிர்மல் குமாரிடம் தங்கள் பிரச்சினைகளை தெரிவிக்கலாம்.",
-      venue: "Town Hall, Tirupparankundram",
+      description: "Monthly public hearing where residents can directly present their issues to Dr. T.K. Prabhu. All are welcome. No appointment needed.",
+      descriptionTa: "மாதாந்திர பொது விசாரணை - மக்கள் நேரடியாக டாக்டர் டி.கே. பிரபுவிடம் தங்கள் பிரச்சினைகளை தெரிவிக்கலாம்.",
+      venue: "Town Hall, Karaikudi",
       eventDate: futureDate1,
       category: "public-hearing",
     },
@@ -324,25 +324,25 @@ async function seed() {
       titleTa: "இலவச சட்ட உதவி முகாம்",
       description: "A free legal aid camp organized in collaboration with the Tamil Nadu Bar Association. Residents can seek legal advice on property, family, and labour matters.",
       descriptionTa: "தமிழ்நாடு வக்கீல் சங்கத்துடன் இணைந்து ஏற்பாடு செய்யப்பட்ட இலவச சட்ட உதவி முகாம்.",
-      venue: "Panchayat Hall, Tirupparankundram",
+      venue: "Panchayat Hall, Karaikudi",
       eventDate: futureDate2,
       category: "welfare",
     },
     {
       title: "Youth Sports Tournament 2025",
       titleTa: "இளைஞர் விளையாட்டு போட்டி 2025",
-      description: "Inter-ward youth sports tournament covering cricket, volleyball, and kabaddi. Open to all youth aged 15–30 from Tirupparankundram constituency.",
+      description: "Inter-ward youth sports tournament covering cricket, volleyball, and kabaddi. Open to all youth aged 15–30 from Karaikudi constituency.",
       descriptionTa: "கிரிக்கெட், கைப்பந்து மற்றும் கபடி உள்ளடக்கிய வார்டு அளவிலான இளைஞர் விளையாட்டு போட்டி.",
-      venue: "Municipal Stadium, Tirupparankundram",
+      venue: "Municipal Stadium, Karaikudi",
       eventDate: futureDate3,
       category: "sports",
     },
     {
-      title: "Tree Plantation Drive – Green Tirupparankundram",
-      titleTa: "மர நடவடிக்கை – பச்சை திருப்பரங்குன்றம்",
-      description: "MLA Nirmal Kumar led a constituency-wide tree plantation drive with volunteers. Over 1,000 saplings were planted across public spaces.",
-      descriptionTa: "MLA நிர்மல் குமார் தன்னார்வலர்களுடன் தொகுதி அளவிலான மர நடவடிக்கையை நடத்தினார்.",
-      venue: "Throughout Tirupparankundram Constituency",
+      title: "Tree Plantation Drive – Green Karaikudi",
+      titleTa: "மர நடவடிக்கை – பச்சை காரைக்குடி",
+      description: "Dr. T.K. Prabhu led a constituency-wide tree plantation drive with volunteers. Over 1,000 saplings were planted across public spaces.",
+      descriptionTa: "டாக்டர் டி.கே. பிரபு தன்னார்வலர்களுடன் தொகுதி அளவிலான மர நடவடிக்கையை நடத்தினார்.",
+      venue: "Throughout Karaikudi Constituency",
       eventDate: pastDate1,
       category: "environment",
     },
@@ -352,25 +352,25 @@ async function seed() {
   const today = new Date();
   await db.insert(activitiesTable).values([
     {
-      title: "Met with residents of Pallapatti Ward on road issues",
-      titleTa: "பள்ளபட்டி வார்டு மக்களை சந்தித்தல் – சாலை பிரச்சினை",
-      description: "Held a direct consultation with Pallapatti ward residents regarding pothole repairs and road widening. Action plan submitted to PWD.",
+      title: "Met with residents of Karaikudi Ward on road issues",
+      titleTa: "காரைக்குடி வார்டு மக்களை சந்தித்தல் – சாலை பிரச்சினை",
+      description: "Held a direct consultation with Karaikudi ward residents regarding pothole repairs and road widening. Action plan submitted to PWD.",
       activityDate: new Date(today.getTime() - 1 * 86400000),
-      location: "Pallapatti Ward, Tirupparankundram",
+      location: "Karaikudi Ward, Karaikudi",
       category: "constituency-work",
     },
     {
-      title: "Inaugurated new community water tank at Velpannaickenpatty",
-      titleTa: "வேல்பண்ணைக்கன்பட்டியில் புதிய நீர் தொட்டி திறப்பு",
-      description: "A 50,000-litre overhead water tank was inaugurated, benefiting 300 households in Velpannaickenpatty with regular water supply.",
+      title: "Inaugurated new community water tank in Karaikudi",
+      titleTa: "காரைக்குடியில் புதிய நீர் தொட்டி திறப்பு",
+      description: "A 50,000-litre overhead water tank was inaugurated, benefiting 300 households in Karaikudi with regular water supply.",
       activityDate: new Date(today.getTime() - 3 * 86400000),
-      location: "Velpannaickenpatty, Tirupparankundram",
+      location: "Karaikudi",
       category: "development",
     },
     {
       title: "Attended Tamil Nadu Legislative Assembly session",
       titleTa: "தமிழ்நாடு சட்டமன்ற கூட்டத்தொடரில் கலந்துகொண்டார்",
-      description: "Represented Tirupparankundram constituency in the assembly session. Raised issues related to Madurai district infrastructure funding.",
+      description: "Represented Karaikudi constituency in the assembly session. Raised issues related to Sivaganga district infrastructure funding.",
       activityDate: new Date(today.getTime() - 5 * 86400000),
       location: "Tamil Nadu Legislative Assembly, Chennai",
       category: "assembly",
@@ -378,9 +378,9 @@ async function seed() {
     {
       title: "Distributed school kits to 200 students",
       titleTa: "200 மாணவர்களுக்கு பள்ளி பைகள் வழங்கல்",
-      description: "School bags, notebooks, and stationery were distributed to 200 students from economically weaker sections in Tirupparankundram government schools.",
+      description: "School bags, notebooks, and stationery were distributed to 200 students from economically weaker sections in Karaikudi government schools.",
       activityDate: new Date(today.getTime() - 7 * 86400000),
-      location: "Govt. School, Tirupparankundram",
+      location: "Govt. School, Karaikudi",
       category: "education",
     },
     {
@@ -388,7 +388,7 @@ async function seed() {
       titleTa: "தொகுதி சாலை திட்டங்களின் முன்னேற்றம் ஆய்வு",
       description: "Conducted a field inspection of ongoing road construction works across 5 wards to ensure quality and timely completion.",
       activityDate: new Date(today.getTime() - 10 * 86400000),
-      location: "Various Wards, Tirupparankundram",
+      location: "Various Wards, Karaikudi",
       category: "development",
     },
     {
@@ -396,7 +396,7 @@ async function seed() {
       titleTa: "TVK கட்சி நடவடிக்கைகள் பற்றிய பொது கூட்டம்",
       description: "Chaired a TVK party coordination meeting to plan upcoming constituency outreach programs and volunteer drives.",
       activityDate: new Date(today.getTime() - 12 * 86400000),
-      location: "TVK Office, Tirupparankundram",
+      location: "TVK Office, Karaikudi",
       category: "party",
     },
   ]).onConflictDoNothing();
@@ -467,7 +467,7 @@ async function seed() {
   await db.delete(galleryTable);
   await db.insert(galleryTable).values([
     {
-      title: "திருப்பரங்குன்றம் சாலை திறப்பு விழா",
+      title: "காரைக்குடி சாலை திறப்பு விழா",
       mediaUrl: "/gallery/1_1778235908020.jpg",
       thumbnailUrl: "/gallery/1_1778235908020.jpg",
       mediaType: "photo",
@@ -475,7 +475,7 @@ async function seed() {
       displayOrder: 1,
     },
     {
-      title: "இலவச மருத்துவ முகாம் – திருப்பரங்குன்றம்",
+      title: "இலவச மருத்துவ முகாம் – காரைக்குடி",
       mediaUrl: "/gallery/2_1778235908021.jpg",
       thumbnailUrl: "/gallery/2_1778235908021.jpg",
       mediaType: "photo",
@@ -515,7 +515,7 @@ async function seed() {
       displayOrder: 6,
     },
     {
-      title: "மர நடவடிக்கை – பச்சை திருப்பரங்குன்றம்",
+      title: "மர நடவடிக்கை – பச்சை காரைக்குடி",
       mediaUrl: "/gallery/7_1778235908019.jpg",
       thumbnailUrl: "/gallery/7_1778235908019.jpg",
       mediaType: "photo",
@@ -527,22 +527,22 @@ async function seed() {
   // FAQs
   await db.insert(faqsTable).values([
     {
-      question: "How do I submit a grievance to MLA Nirmal Kumar's office?",
-      questionTa: "MLA நிர்மல் குமாரின் அலுவலகத்திற்கு புகார் எப்படி அனுப்புவது?",
+      question: "How do I submit a grievance to Dr. T.K. Prabhu's office?",
+      questionTa: "டாக்டர் டி.கே. பிரபுவின் அலுவலகத்திற்கு புகார் எப்படி அனுப்புவது?",
       answer: "You can submit a grievance through the Grievance Portal on this website. Fill in your name, contact number, category, and description of the issue. You will receive a unique ticket number to track the status of your complaint.",
       answerTa: "இந்த வலைத்தளத்தில் உள்ள புகார் மையம் மூலம் புகார் அனுப்பலாம். பெயர், தொலைபேசி, வகை மற்றும் பிரச்சினையின் விவரங்களை பூர்த்தி செய்யுங்கள். உங்கள் புகாரின் நிலையை கண்காணிக்க தனித்துவமான புகார் எண் கிடைக்கும்.",
       order: 1,
     },
     {
-      question: "What are the office hours for MLA Nirmal Kumar's constituency office?",
-      questionTa: "MLA நிர்மல் குமாரின் தொகுதி அலுவலகம் எப்போது திறந்திருக்கும்?",
+      question: "What are the office hours for Dr. T.K. Prabhu's constituency office?",
+      questionTa: "டாக்டர் டி.கே. பிரபுவின் தொகுதி அலுவலகம் எப்போது திறந்திருக்கும்?",
       answer: "The constituency office is open Monday to Saturday, 9:00 AM to 6:00 PM. The office is closed on Sundays and public holidays.",
       answerTa: "தொகுதி அலுவலகம் திங்கள் முதல் சனி வரை, காலை 9:00 மணி முதல் மாலை 6:00 மணி வரை திறந்திருக்கும். ஞாயிறுகள் மற்றும் பொது விடுமுறை நாட்களில் மூடல்.",
       order: 2,
     },
     {
-      question: "How can I become a volunteer for TVK in Tirupparankundram?",
-      questionTa: "திருப்பரங்குன்றத்தில் TVK தன்னார்வலராக எப்படி இணைவது?",
+      question: "How can I become a volunteer for TVK in Karaikudi?",
+      questionTa: "காரைக்குடியில் TVK தன்னார்வலராக எப்படி இணைவது?",
       answer: "Visit the Volunteer page on this website and fill out the registration form with your details. Our team will contact you to guide you through the process.",
       answerTa: "இந்த வலைத்தளத்தில் உள்ள தன்னார்வலர் பக்கத்திற்கு சென்று பதிவு படிவத்தை நிரப்புங்கள். நாங்கள் உங்களை தொடர்பு கொண்டு மேலும் வழிகாட்டுவோம்.",
       order: 3,

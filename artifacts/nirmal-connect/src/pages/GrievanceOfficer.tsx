@@ -322,7 +322,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
     const { default: autoTable } = await import("jspdf-autotable");
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     doc.setFontSize(16);
-    doc.text("Tirupparankundram Constituency — Grievance Report", 14, 15);
+    doc.text("Karaikudi Constituency — Grievance Report", 14, 15);
     doc.setFontSize(9);
     doc.text(`Generated: ${new Date().toLocaleString("en-IN")} | Filters: ${filterStatus || "All"} | ${filterCategory || "All categories"}`, 14, 22);
 

@@ -304,7 +304,7 @@ export default function Grievance({ lang }: GrievanceProps) {
         title={lang === "ta" ? "மக்கள் புகார் மையம்" : "Public Grievance Portal"}
         subtitle={lang === "ta"
           ? "உங்கள் பகுதியில் உள்ள பிரச்சினைகளை நேரடியாக தெரிவியுங்கள்"
-          : "Submit complaints directly to MLA Nirmal Kumar's office and track resolution progress"}
+          : "Submit complaints directly to Dr. T.K. Prabhu's office and track resolution progress"}
       />
 
       <Tabs defaultValue="submit" className="space-y-6">

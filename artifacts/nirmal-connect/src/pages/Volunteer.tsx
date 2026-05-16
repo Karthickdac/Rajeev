@@ -37,7 +37,7 @@ export default function Volunteer({ lang }: VolunteerProps) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: "", phone: "", email: "", ward: "",
-      constituency: "Tirupparankundram", skills: "", message: "",
+      constituency: "Karaikudi", skills: "", message: "",
     },
   });
 
@@ -59,8 +59,8 @@ export default function Volunteer({ lang }: VolunteerProps) {
       <SectionHeader
         title={lang === "ta" ? "தன்னார்வலராக பதிவு செய்யுங்கள்" : "Volunteer Registration"}
         subtitle={lang === "ta"
-          ? "திருப்பரங்குன்றத்தின் வளர்ச்சிக்கு பங்காற்றுங்கள்"
-          : "Join our growing team of volunteers dedicated to serving Tirupparankundram"}
+          ? "காரைக்குடியின் வளர்ச்சிக்கு பங்காற்றுங்கள்"
+          : "Join our growing team of volunteers dedicated to serving Karaikudi"}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">

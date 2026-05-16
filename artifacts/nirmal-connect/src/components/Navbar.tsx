@@ -66,8 +66,8 @@ export function Navbar({ lang, setLang, darkMode, setDarkMode }: NavbarProps) {
           </span>
           <span className="truncate">
             {lang === "ta"
-              ? `${lc.titleTa} – திருப்பரங்குன்றம் தொகுதி, தமிழ்நாடு`
-              : `${lc.titleEn} – Tirupparankundram Constituency, Tamil Nadu`}
+              ? `${lc.titleTa} – ${lc.constituencyTa} தொகுதி, தமிழ்நாடு`
+              : `${lc.titleEn} – ${lc.constituencyEn} Constituency, Tamil Nadu`}
           </span>
         </div>
       </div>

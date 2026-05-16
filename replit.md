@@ -1,6 +1,6 @@
-# Nirmal Connect
+# TK Prabhu Connect
 
-Bilingual (Tamil-default) political leader website + grievance management platform for Hon. C.T.R. Nirmal Kumar (MLA, Tirupparankundram), with TVK red/gold branding.
+Bilingual (Tamil-default) political leader website + grievance management platform for Dr. T.K. Prabhu (Minister of Minerals and Mines, Karaikudi Constituency), with TVK red/gold branding.
 
 ## Run & Operate
 

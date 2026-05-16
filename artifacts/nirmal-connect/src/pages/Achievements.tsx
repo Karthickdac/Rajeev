@@ -24,7 +24,7 @@ export default function Achievements({ lang }: AchievementsProps) {
     <div className="max-w-7xl mx-auto px-4 py-12">
       <SectionHeader
         title={lang === "ta" ? "சாதனைகள்" : "Key Achievements"}
-        subtitle={lang === "ta" ? "திருப்பரங்குன்றம் தொகுதியில் நடந்த முக்கிய சாதனைகள்" : "Major milestones achieved for the Tirupparankundram constituency"}
+        subtitle={lang === "ta" ? "காரைக்குடி தொகுதியில் நடந்த முக்கிய சாதனைகள்" : "Major milestones achieved for the Karaikudi constituency"}
       />
 
       {/* Stats */}
