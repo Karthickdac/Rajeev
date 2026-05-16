@@ -178,8 +178,8 @@ const TENANT_CONFIGS: Record<string, object> = {
   tkprabhu: {
     nameEn: "Dr. T.K. Prabhu",
     nameTa: "டாக்டர் டி.கே. பிரபு",
-    titleEn: "Minister",
-    titleTa: "அமைச்சர்",
+    titleEn: "Minister of Minerals and Mines",
+    titleTa: "கனிமவளம் மற்றும் சுரங்கத்துறை அமைச்சர்",
     constituencyEn: "Karaikudi",
     constituencyTa: "காரைக்குடி",
     partyEn: "Tamilaga Vettri Kazhagam (TVK)",
@@ -405,54 +405,76 @@ async function seed() {
   // staff through Admin → Gallery; we don't ship stock placeholders.
 
   // ── Constituency hierarchy ──────────────────────────────
-  // Real, sourced master data for AC 195 Thiruparankundram. See
-  // lib/db/data/data-sources.md for full provenance of every record.
+  // Karaikudi constituency (AC 194), Sivaganga District.
 
-  // 1) Zones — 5 Madurai Municipal Corporation zones + 1 virtual
-  //    "Rural" zone covering panchayats outside the corporation.
+  // 1) Zones — 5 Karaikudi Municipality zones
   await db.insert(zonesTable).values([
-    { slug: "madurai-east",    name: "Madurai Corporation — East Zone",    nameTa: "மதுரை மாநகராட்சி — கிழக்கு மண்டலம்", type: "corporation", description: "Zone I — East Zone of Madurai Municipal Corporation" },
-    { slug: "madurai-north",   name: "Madurai Corporation — North Zone",   nameTa: "மதுரை மாநகராட்சி — வடக்கு மண்டலம்", type: "corporation", description: "Zone II — North Zone of Madurai Municipal Corporation" },
-    { slug: "madurai-central", name: "Madurai Corporation — Central Zone", nameTa: "மதுரை மாநகராட்சி — மத்திய மண்டலம்", type: "corporation", description: "Zone III — Central Zone of Madurai Municipal Corporation" },
-    { slug: "madurai-south",   name: "Madurai Corporation — South Zone",   nameTa: "மதுரை மாநகராட்சி — தெற்கு மண்டலம்", type: "corporation", description: "Zone IV — South Zone of Madurai Municipal Corporation (covers most AC 195 wards)" },
-    { slug: "madurai-west",    name: "Madurai Corporation — West Zone",    nameTa: "மதுரை மாநகராட்சி — மேற்கு மண்டலம்", type: "corporation", description: "Zone V — West Zone of Madurai Municipal Corporation" },
-    { slug: "rural",           name: "Rural Panchayats",                   nameTa: "ஊரக ஊராட்சிகள்",                  type: "rural",       description: "Village panchayats and revenue villages outside Madurai Corporation" },
+    { slug: "central", name: "Central Zone", nameTa: "மத்திய மண்டலம்",  type: "municipality", description: "Central zone covering Sekkalai, Main Market and town core" },
+    { slug: "north",   name: "North Zone",   nameTa: "வடக்கு மண்டலம்",  type: "municipality", description: "Northern zone toward Kundrakudi and Koviloor" },
+    { slug: "east",    name: "East Zone",    nameTa: "கிழக்கு மண்டலம்", type: "municipality", description: "Eastern zone toward Alagappapuram and Devakottai road" },
+    { slug: "south",   name: "South Zone",   nameTa: "தெற்கு மண்டலம்",  type: "municipality", description: "Southern zone toward Ariyakudi and Soodamanikuppam" },
+    { slug: "west",    name: "West Zone",    nameTa: "மேற்கு மண்டலம்",  type: "municipality", description: "Western zone toward Managiri and Patharakkudi" },
   ]).onConflictDoNothing();
 
   // Resolve zone IDs once for the ward inserts below.
   const zoneRows = await db.select({ id: zonesTable.id, slug: zonesTable.slug }).from(zonesTable);
   const zoneId = (slug: string) => zoneRows.find((z) => z.slug === slug)?.id ?? null;
 
-  // 2) Curated wards — the 10 originally-recognised wards/areas inside
-  //    AC 195. All bilingual names are from Wikipedia / official Tamil
-  //    sources (see data-sources.md); coordinator contacts are filled
-  //    in by staff later via Admin → Constituency & Wards.
+  // 2) 36 wards of Karaikudi Municipality with bilingual names and GPS centroids.
   await db.insert(wardsTable).values([
-    { slug: "tirupparankundram-town", name: "Tirupparankundram Town", nameTa: "திருப்பரங்குன்றம் டவுன்", wardType: "town_panchayat",  zoneId: zoneId("madurai-south"),   area: "Town Panchayat", pincode: "625005", notes: "Constituency headquarters area" },
-    { slug: "pasumalai",              name: "Pasumalai",              nameTa: "பசுமலை",                  wardType: "corporation_ward", zoneId: zoneId("madurai-south"),   area: "South Zone",     pincode: "625004" },
-    { slug: "avaniyapuram",           name: "Avaniyapuram",           nameTa: "அவனியாபுரம்",             wardType: "corporation_ward", zoneId: zoneId("madurai-south"),   area: "South Zone",     pincode: "625012" },
-    { slug: "thirumohur",             name: "Thirumohur",             nameTa: "திருமோகூர்",              wardType: "panchayat",        zoneId: zoneId("rural"),           area: "East Zone",      pincode: "625514" },
-    { slug: "vandiyur",               name: "Vandiyur",               nameTa: "வண்டியூர்",               wardType: "corporation_ward", zoneId: zoneId("madurai-east"),    area: "East Zone",      pincode: "625020" },
-    { slug: "sakkudi",                name: "Sakkudi",                nameTa: "சாக்குடி",                wardType: "panchayat",        zoneId: zoneId("rural"),           area: "West Zone" },
-    { slug: "manalur",                name: "Manalur",                nameTa: "மணலூர்",                  wardType: "panchayat",        zoneId: zoneId("rural"),           area: "West Zone" },
-    { slug: "vellaripatti",           name: "Vellaripatti",           nameTa: "வெள்ளரிப்பட்டி",          wardType: "panchayat",        zoneId: zoneId("rural"),           area: "West Zone" },
-    { slug: "madurai-corp-zone-4",    name: "Madurai Corporation – Zone 4", nameTa: "மதுரை மாநகராட்சி – மண்டலம் 4", wardType: "madurai_corp_zone", zoneId: zoneId("madurai-south"),  area: "Madurai South" },
-    { slug: "madurai-corp-zone-5",    name: "Madurai Corporation – Zone 5", nameTa: "மதுரை மாநகராட்சி – மண்டலம் 5", wardType: "madurai_corp_zone", zoneId: zoneId("madurai-south"),  area: "Madurai South" },
+    // Central Zone
+    { slug: "ward-01-sekkalai",       name: "Ward 1 – Sekkalai",           nameTa: "வார்டு 1 – செக்கலை",              wardType: "municipal", zoneId: zoneId("central"), pincode: "630001", latitude: 10.0780, longitude: 78.7700 },
+    { slug: "ward-02-main-market",    name: "Ward 2 – Main Market",        nameTa: "வார்டு 2 – பிரதான சந்தை",         wardType: "municipal", zoneId: zoneId("central"), pincode: "630001", latitude: 10.0770, longitude: 78.7740 },
+    { slug: "ward-03-old-bus-stand",  name: "Ward 3 – Old Bus Stand",      nameTa: "வார்டு 3 – பழைய பேருந்து நிலையம்",wardType: "municipal", zoneId: zoneId("central"), pincode: "630001", latitude: 10.0760, longitude: 78.7750 },
+    { slug: "ward-04-anna-nagar",     name: "Ward 4 – Anna Nagar",         nameTa: "வார்டு 4 – அண்ணா நகர்",           wardType: "municipal", zoneId: zoneId("central"), pincode: "630001", latitude: 10.0750, longitude: 78.7730 },
+    { slug: "ward-05-gandhi-nagar",   name: "Ward 5 – Gandhi Nagar",       nameTa: "வார்டு 5 – காந்தி நகர்",          wardType: "municipal", zoneId: zoneId("central"), pincode: "630001", latitude: 10.0745, longitude: 78.7720 },
+    { slug: "ward-06-nehru-nagar",    name: "Ward 6 – Nehru Nagar",        nameTa: "வார்டு 6 – நேரு நகர்",            wardType: "municipal", zoneId: zoneId("central"), pincode: "630001", latitude: 10.0765, longitude: 78.7710 },
+    { slug: "ward-07-town-hall",      name: "Ward 7 – Town Hall Area",     nameTa: "வார்டு 7 – டவுன் ஹால் பகுதி",     wardType: "municipal", zoneId: zoneId("central"), pincode: "630001", latitude: 10.0755, longitude: 78.7760 },
+    // North Zone
+    { slug: "ward-08-koviloor",       name: "Ward 8 – Koviloor",           nameTa: "வார்டு 8 – கோவிலூர்",             wardType: "municipal", zoneId: zoneId("north"),   pincode: "630001", latitude: 10.0820, longitude: 78.7620 },
+    { slug: "ward-09-kundrakudi-rd",  name: "Ward 9 – Kundrakudi Road",    nameTa: "வார்டு 9 – குன்றக்குடி சாலை",     wardType: "municipal", zoneId: zoneId("north"),   pincode: "630001", latitude: 10.0860, longitude: 78.7680 },
+    { slug: "ward-10-muthupatti",     name: "Ward 10 – Muthupatti",        nameTa: "வார்டு 10 – முத்துப்பட்டி",        wardType: "municipal", zoneId: zoneId("north"),   pincode: "630001", latitude: 10.0840, longitude: 78.7700 },
+    { slug: "ward-11-rajaji-nagar",   name: "Ward 11 – Rajaji Nagar",      nameTa: "வார்டு 11 – ராஜாஜி நகர்",         wardType: "municipal", zoneId: zoneId("north"),   pincode: "630001", latitude: 10.0830, longitude: 78.7740 },
+    { slug: "ward-12-kavalar-nagar",  name: "Ward 12 – Kavalar Nagar",     nameTa: "வார்டு 12 – காவலர் நகர்",         wardType: "municipal", zoneId: zoneId("north"),   pincode: "630001", latitude: 10.0870, longitude: 78.7720 },
+    { slug: "ward-13-saraswathi",     name: "Ward 13 – Saraswathi Nagar",  nameTa: "வார்டு 13 – சரஸ்வதி நகர்",        wardType: "municipal", zoneId: zoneId("north"),   pincode: "630001", latitude: 10.0850, longitude: 78.7760 },
+    { slug: "ward-14-north-ext",      name: "Ward 14 – North Extension",   nameTa: "வார்டு 14 – வடக்கு விரிவு",        wardType: "municipal", zoneId: zoneId("north"),   pincode: "630001", latitude: 10.0890, longitude: 78.7700 },
+    { slug: "ward-15-puliyampatti",   name: "Ward 15 – Puliyampatti",      nameTa: "வார்டு 15 – புளியம்பட்டி",         wardType: "municipal", zoneId: zoneId("north"),   pincode: "630001", latitude: 10.0800, longitude: 78.7660 },
+    // East Zone
+    { slug: "ward-16-alagappapuram",  name: "Ward 16 – Alagappapuram",     nameTa: "வார்டு 16 – அழகப்பாபுரம்",        wardType: "municipal", zoneId: zoneId("east"),    pincode: "630003", latitude: 10.0790, longitude: 78.7820 },
+    { slug: "ward-17-devakottai-rd",  name: "Ward 17 – Devakottai Road",   nameTa: "வார்டு 17 – தேவகோட்டை சாலை",      wardType: "municipal", zoneId: zoneId("east"),    pincode: "630003", latitude: 10.0770, longitude: 78.7860 },
+    { slug: "ward-18-tamil-nagar",    name: "Ward 18 – Tamil Nagar",       nameTa: "வார்டு 18 – தமிழ் நகர்",          wardType: "municipal", zoneId: zoneId("east"),    pincode: "630003", latitude: 10.0750, longitude: 78.7800 },
+    { slug: "ward-19-arumugam-nagar", name: "Ward 19 – Arumugam Nagar",    nameTa: "வார்டு 19 – அருமுகம் நகர்",       wardType: "municipal", zoneId: zoneId("east"),    pincode: "630003", latitude: 10.0780, longitude: 78.7850 },
+    { slug: "ward-20-mgr-nagar",      name: "Ward 20 – MGR Nagar",         nameTa: "வார்டு 20 – எம்ஜிஆர் நகர்",       wardType: "municipal", zoneId: zoneId("east"),    pincode: "630003", latitude: 10.0740, longitude: 78.7840 },
+    { slug: "ward-21-east-ext",       name: "Ward 21 – East Extension",    nameTa: "வார்டு 21 – கிழக்கு விரிவு",       wardType: "municipal", zoneId: zoneId("east"),    pincode: "630003", latitude: 10.0800, longitude: 78.7880 },
+    { slug: "ward-22-senjakulam",     name: "Ward 22 – Senjakulam",        nameTa: "வார்டு 22 – செஞ்சாக்குளம்",        wardType: "municipal", zoneId: zoneId("east"),    pincode: "630003", latitude: 10.0820, longitude: 78.7820 },
+    { slug: "ward-23-kamarajar",      name: "Ward 23 – Kamarajar Nagar",   nameTa: "வார்டு 23 – காமராஜர் நகர்",       wardType: "municipal", zoneId: zoneId("east"),    pincode: "630003", latitude: 10.0760, longitude: 78.7880 },
+    // South Zone
+    { slug: "ward-24-soodamani",      name: "Ward 24 – Soodamanikuppam",   nameTa: "வார்டு 24 – சூடாமணிக்குப்பம்",    wardType: "municipal", zoneId: zoneId("south"),   pincode: "630002", latitude: 10.0650, longitude: 78.7750 },
+    { slug: "ward-25-ariyakudi-rd",   name: "Ward 25 – Ariyakudi Road",    nameTa: "வார்டு 25 – அரியக்குடி சாலை",     wardType: "municipal", zoneId: zoneId("south"),   pincode: "630002", latitude: 10.0620, longitude: 78.7720 },
+    { slug: "ward-26-kallukatti",     name: "Ward 26 – Kallukatti",        nameTa: "வார்டு 26 – கல்லுக்கட்டி",         wardType: "municipal", zoneId: zoneId("south"),   pincode: "630002", latitude: 10.0680, longitude: 78.7700 },
+    { slug: "ward-27-railway-stn",    name: "Ward 27 – Railway Station",   nameTa: "வார்டு 27 – இரயில் நிலையம்",      wardType: "municipal", zoneId: zoneId("south"),   pincode: "630002", latitude: 10.0700, longitude: 78.7730 },
+    { slug: "ward-28-south-ext",      name: "Ward 28 – South Extension",   nameTa: "வார்டு 28 – தெற்கு விரிவு",        wardType: "municipal", zoneId: zoneId("south"),   pincode: "630002", latitude: 10.0640, longitude: 78.7760 },
+    { slug: "ward-29-palam-nagar",    name: "Ward 29 – Palam Nagar",       nameTa: "வார்டு 29 – பாலம் நகர்",          wardType: "municipal", zoneId: zoneId("south"),   pincode: "630002", latitude: 10.0660, longitude: 78.7800 },
+    { slug: "ward-30-muthu-nagar",    name: "Ward 30 – Muthu Nagar",       nameTa: "வார்டு 30 – முத்து நகர்",          wardType: "municipal", zoneId: zoneId("south"),   pincode: "630002", latitude: 10.0690, longitude: 78.7780 },
+    // West Zone
+    { slug: "ward-31-managiri",       name: "Ward 31 – Managiri",          nameTa: "வார்டு 31 – மணகிரி",              wardType: "municipal", zoneId: zoneId("west"),    pincode: "630001", latitude: 10.0720, longitude: 78.7580 },
+    { slug: "ward-32-patharakkudi",   name: "Ward 32 – Patharakkudi Road", nameTa: "வார்டு 32 – பத்தரக்குடி சாலை",    wardType: "municipal", zoneId: zoneId("west"),    pincode: "630001", latitude: 10.0740, longitude: 78.7600 },
+    { slug: "ward-33-ilangudi-rd",    name: "Ward 33 – Ilangudi Road",     nameTa: "வார்டு 33 – இளங்குடி சாலை",       wardType: "municipal", zoneId: zoneId("west"),    pincode: "630001", latitude: 10.0700, longitude: 78.7610 },
+    { slug: "ward-34-west-ext",       name: "Ward 34 – West Extension",    nameTa: "வார்டு 34 – மேற்கு விரிவு",        wardType: "municipal", zoneId: zoneId("west"),    pincode: "630001", latitude: 10.0760, longitude: 78.7620 },
+    { slug: "ward-35-nehru-colony",   name: "Ward 35 – Nehru Colony",      nameTa: "வார்டு 35 – நேரு காலனி",          wardType: "municipal", zoneId: zoneId("west"),    pincode: "630001", latitude: 10.0780, longitude: 78.7650 },
+    { slug: "ward-36-kaliamman",      name: "Ward 36 – Kaliamman Nagar",   nameTa: "வார்டு 36 – காளியம்மன் நகர்",     wardType: "municipal", zoneId: zoneId("west"),    pincode: "630001", latitude: 10.0720, longitude: 78.7640 },
   ]).onConflictDoNothing();
 
-  // 3) Pincodes — every code that appears in the AC 195 polling-station
-  //    PDF address column. Verified against India Post lookup.
+  // 3) Pincodes — Karaikudi constituency pin codes (Sivaganga District).
   await db.insert(pincodesTable).values([
-    { code: "625004", label: "Pasumalai / Tirupparankundram (south)" },
-    { code: "625005", label: "Tirupparankundram town" },
-    { code: "625006", label: "Thirunagar" },
-    { code: "625008", label: "Vilangudi area" },
-    { code: "625009", label: "Virathanoor / Nedunkulam" },
-    { code: "625012", label: "Avaniyapuram" },
-    { code: "625019", label: "Vadapalanji / Nagamalaipudur" },
-    { code: "625021", label: "Madurai south suburbs" },
-    { code: "625022", label: "Parapathi / Eliyarpathi / Nallur" },
-    { code: "625201", label: "Madurai rural east" },
+    { code: "630001", label: "Karaikudi town centre" },
+    { code: "630002", label: "Karaikudi south / Railway Station area" },
+    { code: "630003", label: "Karaikudi east / Alagappapuram" },
+    { code: "630004", label: "Karaikudi – Devakottai road" },
+    { code: "630301", label: "Kundrakudi" },
+    { code: "630305", label: "Managiri / Patharakkudi area" },
+    { code: "630102", label: "Ariyakudi" },
+    { code: "630311", label: "Koviloor" },
   ]).onConflictDoNothing();
 
   // 4) Polling stations — bulk import from the parsed PDF JSON.
