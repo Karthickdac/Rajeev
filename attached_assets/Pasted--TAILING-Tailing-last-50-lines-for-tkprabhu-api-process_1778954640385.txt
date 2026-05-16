@@ -1,0 +1,27 @@
+
+[TAILING] Tailing last 50 lines for [tkprabhu-api] process (change the value with --lines option)
+/root/.pm2/logs/tkprabhu-api-out.log last 50 lines:
+/root/.pm2/logs/tkprabhu-api-error.log last 50 lines:
+15|tkprabh | (node:3028234) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+15|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+15|tkprabh | Error: DATABASE_URL must be set. Did you forget to provision a database?
+15|tkprabh |     at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/lib/db/src/index.ts:8:9)
+15|tkprabh |     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+15|tkprabh |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+15|tkprabh |     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+15|tkprabh | (node:3034871) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+15|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+15|tkprabh | Error: JWT_SECRET environment variable is required in production
+15|tkprabh |     at resolveJwtSecret (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/lib/auth.ts:9:11)
+15|tkprabh |     at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/lib/auth.ts:17:20)
+15|tkprabh |     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+15|tkprabh |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+15|tkprabh |     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+15|tkprabh | (node:3041348) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+15|tkprabh | (Use `node --trace-deprecation ...` to show where the warning was created)
+15|tkprabh | Error: JWT_SECRET environment variable is required in production
+15|tkprabh |     at resolveJwtSecret (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/lib/auth.ts:9:11)
+15|tkprabh |     at <anonymous> (/home/tamilagavetrikalagam/htdocs/tkprabhu.tamilagavetrikalagam.com/artifacts/api-server/src/lib/auth.ts:17:20)
+15|tkprabh |     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+15|tkprabh |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+15|tkprabh |     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
