@@ -210,7 +210,7 @@ async function seed() {
     {
       email: "admin@tkprabhu.com",
       name: "Admin User",
-      passwordHash: hashPassword("Admin@2024"),
+      passwordHash: hashPassword("Admin@2026"),
       role: "super_admin",
       isActive: "true",
     },
