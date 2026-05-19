@@ -400,8 +400,13 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               .then(r => r.ok ? r.json() as Promise<Assets> : null)
               .catch(() => null),
           ]);
+          // Diagnostic — visible in DevTools so a user can confirm the
+          // backend really did return images / map tiles for this grievance.
+          console.log(`[pdf] ${d.ticketNo}: images=${a?.imageAttachments?.length ?? 0}, nonImages=${a?.nonImageAttachments?.length ?? 0}, mapTiles=${a?.mapTiles?.tiles?.length ?? 0}, skippedImages=${a?.skippedImageCount ?? 0}`);
           records.push({ detail: d, assets: a });
-        } catch { /* skip */ }
+        } catch (err) {
+          console.warn(`[pdf] failed to load grievance ${targets[i].id}:`, err);
+        }
       }
       setExportProgress({ done: targets.length, total: targets.length });
 

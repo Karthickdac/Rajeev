@@ -23,12 +23,30 @@ import { getVoterScopeForUser, resolveScopeBoothIds } from "../lib/voterScope.js
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import { z } from "zod";
 
 const router = Router();
 
-const uploadsDir = path.join(process.cwd(), "uploads", "grievances");
+// Resolve uploads dir relative to this module — NOT process.cwd() —
+// so that the path is stable regardless of how the server is launched
+// (pm2, systemd, dev script, etc.). The bundled output lives in
+// `<api-server>/dist/index.mjs`, so `..` points back to the api-server
+// root, where the uploads folder sits next to dist/.
+// Override with UPLOADS_DIR env var if a different mount is required.
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const defaultUploadsRoot = path.resolve(moduleDir, "..", "uploads");
+const uploadsRoot = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : defaultUploadsRoot;
+const uploadsDir = path.join(uploadsRoot, "grievances");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+try {
+  const count = fs.readdirSync(uploadsDir).length;
+  console.log(`[grievances] uploads dir resolved: ${uploadsDir} (${count} file(s) present)`);
+} catch (err) {
+  console.warn(`[grievances] uploads dir resolved: ${uploadsDir} (not readable: ${(err as Error).message})`);
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
