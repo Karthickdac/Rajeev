@@ -17,7 +17,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import {
   CheckCircle, Search, FileText, Phone, MessageSquare,
   Copy, AlertCircle, TrendingUp, Clock, CheckCheck, Loader2,
-  Paperclip, X,
+  Paperclip, X, Image, Video, Music, FileUp,
 } from "lucide-react";
 import type { Language } from "@/lib/i18n";
 import { submitGrievance, trackGrievance, getGrievanceHeatmap } from "@workspace/api-client-react";
@@ -29,7 +29,7 @@ interface GrievanceProps { lang: Language; }
 
 /** Submit grievance as multipart/form-data when files are attached. */
 async function submitGrievanceWithFiles(
-  data: { name: string; phone: string; category: string; description: string; address?: string | null; ward?: string | null; anonymous?: boolean; areaId?: number | null; pollingStationId?: number | null; latitude?: number | null; longitude?: number | null },
+  data: { name: string; phone: string; category: string; description: string; address?: string | null; ward?: string | null; constituency?: string | null; anonymous?: boolean; areaId?: number | null; pollingStationId?: number | null; latitude?: number | null; longitude?: number | null },
   files: File[]
 ): Promise<{ ticketNo: string }> {
   const fd = new globalThis.FormData();
@@ -39,6 +39,7 @@ async function submitGrievanceWithFiles(
   fd.append("description", data.description);
   if (data.address) fd.append("address", data.address);
   if (data.ward) fd.append("ward", data.ward);
+  if (data.constituency) fd.append("constituency", data.constituency);
   if (data.areaId) fd.append("areaId", String(data.areaId));
   if (data.pollingStationId) fd.append("pollingStationId", String(data.pollingStationId));
   if (data.latitude != null && data.longitude != null) {
@@ -47,7 +48,8 @@ async function submitGrievanceWithFiles(
   }
   fd.append("anonymous", String(data.anonymous ?? false));
   files.forEach((f) => fd.append("attachments", f));
-  const res = await fetch("/api/grievances/submit", { method: "POST", body: fd });
+  const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+  const res = await fetch(`${BASE}/api/grievances/submit`, { method: "POST", body: fd });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error((err as { error?: string }).error ?? "Submit failed");
@@ -640,42 +642,71 @@ export default function Grievance({ lang }: GrievanceProps) {
                       </FormItem>
                     )} />
 
-                    {/* Photo attachments */}
-                    <div className="space-y-2">
+                    {/* ── Attachments: images, videos, audio, documents ── */}
+                    <div className="space-y-3">
                       <p className="text-sm font-medium">
-                        {lang === "ta" ? "புகைப்படங்கள் (விரும்பினால், அதிகபட்சம் 3)" : "Photos (optional, up to 3)"}
+                        {lang === "ta" ? "இணைப்புகள் (விரும்பினால், அதிகபட்சம் 10)" : "Attachments (optional, up to 10 files)"}
                       </p>
-                      <label className="flex items-center gap-2 cursor-pointer border border-dashed rounded-lg p-3 hover:bg-muted/40 transition-colors">
-                        <Paperclip className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm text-muted-foreground">
-                          {lang === "ta" ? "படங்களை தேர்வு செய்யவும்" : "Choose images"}
+                      {/* File type hints */}
+                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1"><Image className="w-3 h-3 text-blue-500" />{lang === "ta" ? "படங்கள்" : "Images"}</span>
+                        <span className="flex items-center gap-1"><Video className="w-3 h-3 text-purple-500" />{lang === "ta" ? "வீடியோ" : "Video"}</span>
+                        <span className="flex items-center gap-1"><Music className="w-3 h-3 text-green-500" />{lang === "ta" ? "ஆடியோ" : "Audio"}</span>
+                        <span className="flex items-center gap-1"><FileText className="w-3 h-3 text-orange-500" />{lang === "ta" ? "ஆவணம்" : "Documents"}</span>
+                      </div>
+                      <label className="flex flex-col items-center gap-2 cursor-pointer border-2 border-dashed rounded-xl p-5 hover:bg-muted/40 transition-colors text-center">
+                        <FileUp className="w-6 h-6 text-muted-foreground" />
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {lang === "ta" ? "கோப்புகளை தேர்வு செய்யவும் அல்லது இங்கே இழுக்கவும்" : "Choose files or drag & drop here"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {lang === "ta" ? "படங்கள், வீடியோ, ஆடியோ, PDF — அதிகபட்சம் 100MB" : "Images, Video, Audio, PDF, DOC — max 100 MB each"}
                         </span>
                         <input
                           data-testid="grievance-attachments"
                           type="file"
-                          accept="image/*,.pdf"
+                          accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
                           multiple
                           className="sr-only"
                           onChange={(e) => {
-                            const picked = Array.from(e.target.files ?? []).slice(0, 3);
-                            setAttachedFiles(picked);
+                            const picked = Array.from(e.target.files ?? []).slice(0, 10);
+                            setAttachedFiles((prev) => {
+                              const combined = [...prev, ...picked];
+                              return combined.slice(0, 10);
+                            });
+                            e.target.value = "";
                           }}
                         />
                       </label>
                       {attachedFiles.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {attachedFiles.map((f, i) => (
-                            <span key={i} className="flex items-center gap-1.5 text-xs bg-muted rounded-full px-3 py-1">
-                              <Paperclip className="w-3 h-3" />{f.name}
-                              <button
-                                type="button"
-                                onClick={() => setAttachedFiles((prev) => prev.filter((_, j) => j !== i))}
-                                className="ml-1 hover:text-destructive"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </span>
-                          ))}
+                        <div className="space-y-2">
+                          {attachedFiles.map((f, i) => {
+                            const isImage = f.type.startsWith("image/");
+                            const isVideo = f.type.startsWith("video/");
+                            const isAudio = f.type.startsWith("audio/");
+                            const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
+                            const Icon = isImage ? Image : isVideo ? Video : isAudio ? Music : FileText;
+                            const iconColor = isImage ? "text-blue-500" : isVideo ? "text-purple-500" : isAudio ? "text-green-500" : "text-orange-500";
+                            return (
+                              <div key={i} className="flex items-center gap-3 bg-muted/50 rounded-lg px-3 py-2">
+                                <Icon className={`w-4 h-4 shrink-0 ${iconColor}`} />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium truncate">{f.name}</p>
+                                  <p className="text-xs text-muted-foreground">{sizeMB} MB</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setAttachedFiles((prev) => prev.filter((_, j) => j !== i))}
+                                  className="shrink-0 hover:text-destructive transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                          <p className="text-xs text-muted-foreground text-right">
+                            {attachedFiles.length}/10 {lang === "ta" ? "கோப்புகள்" : "files"}
+                          </p>
                         </div>
                       )}
                     </div>

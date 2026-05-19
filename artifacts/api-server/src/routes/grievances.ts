@@ -39,9 +39,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const allowed = /jpeg|jpg|png|gif|pdf|doc|docx/;
+    const allowed = /jpeg|jpg|png|gif|webp|pdf|doc|docx|mp4|mov|avi|webm|mkv|mp3|wav|aac|ogg|m4a|opus/;
     cb(null, allowed.test(path.extname(file.originalname).toLowerCase()));
   },
 });
@@ -100,7 +100,7 @@ const AssignBody = z.object({
 });
 
 // POST /api/grievances/submit — public
-router.post("/grievances/submit", upload.array("attachments", 3), async (req, res) => {
+router.post("/grievances/submit", upload.array("attachments", 10), async (req, res) => {
   try {
     const body = SubmitBody.safeParse(req.body);
     if (!body.success) {
