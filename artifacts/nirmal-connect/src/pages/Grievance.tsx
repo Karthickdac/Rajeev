@@ -18,7 +18,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import {
   CheckCircle, Search, FileText, Phone, MessageSquare,
   Copy, AlertCircle, TrendingUp, Clock, CheckCheck, Loader2,
-  Paperclip, X, Image, Video, Music, FileUp,
+  Paperclip, X, Image, Video, Music, FileUp, MapPin, Building2,
 } from "lucide-react";
 import type { Language } from "@/lib/i18n";
 import { submitGrievance, trackGrievance, getGrievanceHeatmap } from "@workspace/api-client-react";
@@ -452,19 +452,27 @@ export default function Grievance({ lang }: GrievanceProps) {
                       <div className="grid grid-cols-2 gap-3">
                         <button
                           type="button"
+                          aria-pressed={complaintScope === "constituency"}
                           onClick={() => { setComplaintScope("constituency"); form.setValue("district", ""); form.setValue("city", ""); }}
-                          className={`rounded-lg border-2 p-3 text-left transition-colors ${complaintScope === "constituency" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
+                          className={`rounded-lg border-2 p-3 text-left transition-colors flex items-start gap-2.5 ${complaintScope === "constituency" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
                         >
-                          <p className="font-semibold text-sm">{lang === "ta" ? "காரைக்குடி தொகுதி" : "Karaikudi Constituency"}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "தொகுதி மக்கள் புகார்" : "Local constituency complaint"}</p>
+                          <MapPin className={`h-5 w-5 mt-0.5 shrink-0 ${complaintScope === "constituency" ? "text-primary" : "text-muted-foreground"}`} />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm">{lang === "ta" ? "தொகுதி புகார்" : "Constituency Complaint"}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "காரைக்குடி" : "Karaikudi"}</p>
+                          </div>
                         </button>
                         <button
                           type="button"
+                          aria-pressed={complaintScope === "state"}
                           onClick={() => { setComplaintScope("state"); form.setValue("ward", ""); form.setValue("areaId", undefined); form.setValue("pollingStationId", undefined); }}
-                          className={`rounded-lg border-2 p-3 text-left transition-colors ${complaintScope === "state" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
+                          className={`rounded-lg border-2 p-3 text-left transition-colors flex items-start gap-2.5 ${complaintScope === "state" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
                         >
-                          <p className="font-semibold text-sm">{lang === "ta" ? "தமிழ்நாடு மாநிலம்" : "Tamil Nadu State"}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "கனிமவளம் / சுரங்க புகார்" : "Minerals & Mines complaint"}</p>
+                          <Building2 className={`h-5 w-5 mt-0.5 shrink-0 ${complaintScope === "state" ? "text-primary" : "text-muted-foreground"}`} />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm">{lang === "ta" ? "அமைச்சர் அலுவலகம்" : "Minister's Office"}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "தமிழ்நாடு முழுவதும்" : "All of Tamil Nadu"}</p>
+                          </div>
                         </button>
                       </div>
                     </div>

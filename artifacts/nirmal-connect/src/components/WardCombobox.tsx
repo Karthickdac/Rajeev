@@ -136,7 +136,7 @@ export default function WardCombobox({
                 <CommandGroup>
                   {options.map((opt) => {
                     const label = lang === "ta" && opt.nameTa ? opt.nameTa : opt.name;
-                    const searchVal = [opt.name, opt.nameTa, opt.area, opt.zoneName].filter(Boolean).join(" ");
+                    const searchVal = [opt.name, opt.nameTa, opt.area, opt.zoneName, opt.zoneNameTa].filter(Boolean).join(" ");
                     return (
                       <CommandItem
                         key={opt.id}
