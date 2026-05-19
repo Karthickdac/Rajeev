@@ -475,26 +475,24 @@ export default function Grievance({ lang }: GrievanceProps) {
                         <FormField control={form.control} name="ward" render={({ field }) => (
                           <FormItem>
                             <FormLabel>{lang === "ta" ? "வார்டு / பகுதி" : "Ward / Area"}</FormLabel>
-                            <FormControl>
-                              <WardCombobox
-                                value={field.value || ""}
-                                onChange={(v) => {
-                                  field.onChange(v);
-                                  form.setValue("areaId", undefined);
-                                  form.setValue("pollingStationId", undefined);
-                                }}
-                                options={wardList}
-                                lang={lang}
-                                placeholder={
-                                  wardList.length === 0
-                                    ? (lang === "ta" ? "வார்டுகள் இல்லை" : "No wards configured")
-                                    : (lang === "ta" ? "வார்டை தேர்ந்தெடுங்கள்" : "Select a ward…")
-                                }
-                                disabled={wardList.length === 0}
-                                triggerClassName="w-full h-10"
-                                className="w-[300px]"
-                              />
-                            </FormControl>
+                            <WardCombobox
+                              value={field.value || ""}
+                              onChange={(v) => {
+                                field.onChange(v);
+                                form.setValue("areaId", undefined);
+                                form.setValue("pollingStationId", undefined);
+                              }}
+                              options={wardList}
+                              lang={lang}
+                              placeholder={
+                                wardList.length === 0
+                                  ? (lang === "ta" ? "வார்டுகள் இல்லை" : "No wards configured")
+                                  : (lang === "ta" ? "வார்டை தேர்ந்தெடுங்கள்" : "Select a ward…")
+                              }
+                              disabled={wardList.length === 0}
+                              triggerClassName="w-full h-10"
+                              className="w-full"
+                            />
                             <FormMessage />
                           </FormItem>
                         )} />
