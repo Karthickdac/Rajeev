@@ -324,18 +324,21 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportProgress, setExportProgress] = useState<{ done: number; total: number } | null>(null);
 
-  async function exportPDF() {
+  async function exportPDF(opts?: { ids?: number[]; ticketHint?: string }) {
     if (exportingPdf) return;
     const items = data?.items ?? [];
-    // If selections exist, export all of them across pages (resolve
-    // IDs not present on the current page by fetching detail).
-    // Otherwise export the current filtered page.
+    // Priority:
+    //   1. explicit ids passed in (per-row / detail-panel download)
+    //   2. checkbox selections (across pages)
+    //   3. current filtered page
     type Target = { id: number; ticketNo?: string; name?: string; category?: string; status?: string; priority?: string; createdAt?: string };
-    const targets: Target[] = selectedIds.size > 0
-      ? Array.from(selectedIds).map(id => {
-          const onPage = items.find(i => i.id === id);
-          return onPage ?? { id };
-        })
+    const sourceIds = opts?.ids
+      ? opts.ids
+      : selectedIds.size > 0
+        ? Array.from(selectedIds)
+        : null;
+    const targets: Target[] = sourceIds
+      ? sourceIds.map(id => items.find(i => i.id === id) ?? { id })
       : items;
     if (targets.length === 0) {
       alert(lang === "ta" ? "ஏற்றுமதி செய்ய புகார்கள் இல்லை" : "No grievances to export");
@@ -648,7 +651,13 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
         doc.setTextColor(0, 0, 0);
       }
 
-      doc.save(`grievances-comprehensive-${new Date().toISOString().slice(0, 10)}.pdf`);
+      const today = new Date().toISOString().slice(0, 10);
+      const filename = records.length === 1
+        ? `${records[0].detail.ticketNo}.pdf`
+        : opts?.ticketHint
+          ? `${opts.ticketHint}.pdf`
+          : `grievances-comprehensive-${today}.pdf`;
+      doc.save(filename);
     } finally {
       setExportingPdf(false);
       setExportProgress(null);
@@ -981,9 +990,24 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                         {new Date(item.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3">
-                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openDetail(item)}>
-                          {lang === "ta" ? "திற" : "Open"}
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openDetail(item)}>
+                            {lang === "ta" ? "திற" : "Open"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            title={lang === "ta" ? "PDF பதிவிறக்கு" : "Download PDF"}
+                            disabled={exportingPdf}
+                            onClick={() => exportPDF({ ids: [item.id], ticketHint: item.ticketNo })}
+                            data-testid={`row-pdf-${item.id}`}
+                          >
+                            {exportingPdf
+                              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              : <FileDown className="w-3.5 h-3.5" />}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1021,7 +1045,24 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
       <Dialog open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-mono">{selected?.ticketNo}</DialogTitle>
+            <div className="flex items-center justify-between gap-3 pr-6">
+              <DialogTitle className="font-mono">{selected?.ticketNo}</DialogTitle>
+              {selected && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1.5 text-xs"
+                  disabled={exportingPdf}
+                  onClick={() => exportPDF({ ids: [selected.id], ticketHint: selected.ticketNo })}
+                  data-testid="detail-download-pdf"
+                >
+                  {exportingPdf
+                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    : <FileDown className="w-3.5 h-3.5" />}
+                  {lang === "ta" ? "PDF" : "Download PDF"}
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           {detailLoading ? (
