@@ -71,7 +71,10 @@ const SubmitBody = z.object({
   ward: z.string().optional().nullable(),
   district: z.string().optional().nullable(),
   constituency: z.string().optional().nullable(),
-  anonymous: z.boolean().optional(),
+  anonymous: z.preprocess(
+    (v) => (typeof v === "string" ? v === "true" || v === "1" : v),
+    z.boolean().optional(),
+  ),
   // optional sub-ward routing scope (cascading dropdowns)
   areaId: z.coerce.number().int().positive().optional().nullable(),
   pollingStationId: z.coerce.number().int().positive().optional().nullable(),

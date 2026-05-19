@@ -48,7 +48,7 @@ async function submitGrievanceWithFiles(
     fd.append("latitude", String(data.latitude));
     fd.append("longitude", String(data.longitude));
   }
-  fd.append("anonymous", String(data.anonymous ?? false));
+  if (data.anonymous) fd.append("anonymous", "true");
   files.forEach((f) => fd.append("attachments", f));
   const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
   const res = await fetch(`${BASE}/api/grievances/submit`, { method: "POST", body: fd });
