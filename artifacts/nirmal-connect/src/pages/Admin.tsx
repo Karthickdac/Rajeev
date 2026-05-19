@@ -278,12 +278,16 @@ function AdminInner({ lang = "ta" }: AdminProps) {
 
   const activeGroupId = visibleNav.find(n => n.id === active)?.group;
 
-  // Ensure active tab is accessible; reset to dashboard if not
+  // Ensure active tab is accessible; reset to dashboard if not.
+  // Runs whenever role, visibleNav, or active changes — so deep-links
+  // (e.g. from clickable KPI tiles) targeting tabs the current role
+  // cannot access fall back gracefully instead of rendering a blank
+  // content area.
   useEffect(() => {
     if (role && !visibleNav.find(n => n.id === active)) {
       setActive("dashboard");
     }
-  }, [role]);
+  }, [role, visibleNav, active]);
 
   async function navigate(id: string) {
     if (id === active) { setSidebarOpen(false); return; }
