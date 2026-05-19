@@ -51,7 +51,7 @@ export const grievancesTable = pgTable("grievances", {
   description: text("description").notNull(),
   address: text("address"),
   ward: text("ward"),
-  constituency: text("constituency").notNull().default("Tirupparankundram"),
+  constituency: text("constituency").notNull().default("Karaikudi"),
   priority: text("priority").notNull().default("Medium"),
   status: text("status").notNull().default("Submitted"),
   anonymous: boolean("anonymous").notNull().default(false),

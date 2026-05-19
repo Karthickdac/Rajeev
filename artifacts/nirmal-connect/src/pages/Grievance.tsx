@@ -89,6 +89,33 @@ const STATUS_TA: Record<string, string> = {
 const CHART_COLORS = ["#CC0000", "#e53e3e", "#fc8181", "#feb2b2", "#fed7d7", "#fff5f5",
   "#FFD700", "#f6c200", "#b7791f", "#975a16", "#1a365d", "#2c7a7b", "#276749", "#553c9a", "#702459"];
 
+const TN_DISTRICTS = [
+  "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore",
+  "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kancheepuram",
+  "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Mayiladuthurai",
+  "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai",
+  "Ramanathapuram", "Ranipet", "Salem", "Sivaganga", "Tenkasi",
+  "Thanjavur", "Theni", "Thoothukudi", "Tiruchirappalli", "Tirunelveli",
+  "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur",
+  "Vellore", "Villupuram", "Virudhunagar",
+];
+
+const TN_DISTRICTS_TA: Record<string, string> = {
+  "Ariyalur": "அரியலூர்", "Chengalpattu": "செங்கல்பட்டு", "Chennai": "சென்னை",
+  "Coimbatore": "கோயம்புத்தூர்", "Cuddalore": "கடலூர்", "Dharmapuri": "தர்மபுரி",
+  "Dindigul": "திண்டுக்கல்", "Erode": "ஈரோடு", "Kallakurichi": "கள்ளக்குறிச்சி",
+  "Kancheepuram": "காஞ்சிபுரம்", "Kanyakumari": "கன்னியாகுமரி", "Karur": "கரூர்",
+  "Krishnagiri": "கிருஷ்ணகிரி", "Madurai": "மதுரை", "Mayiladuthurai": "மயிலாடுதுறை",
+  "Nagapattinam": "நாகப்பட்டினம்", "Namakkal": "நாமக்கல்", "Nilgiris": "நீலகிரி",
+  "Perambalur": "பெரம்பலூர்", "Pudukkottai": "புதுக்கோட்டை",
+  "Ramanathapuram": "இராமநாதபுரம்", "Ranipet": "ராணிப்பேட்டை", "Salem": "சேலம்",
+  "Sivaganga": "சிவகங்கை", "Tenkasi": "தென்காசி", "Thanjavur": "தஞ்சாவூர்",
+  "Theni": "தேனி", "Thoothukudi": "தூத்துக்குடி", "Tiruchirappalli": "திருச்சிராப்பள்ளி",
+  "Tirunelveli": "திருநெல்வேலி", "Tirupathur": "திருப்பத்தூர்", "Tiruppur": "திருப்பூர்",
+  "Tiruvallur": "திருவள்ளூர்", "Tiruvannamalai": "திருவண்ணாமலை", "Tiruvarur": "திருவாரூர்",
+  "Vellore": "வேலூர்", "Villupuram": "விழுப்புரம்", "Virudhunagar": "விருதுநகர்",
+};
+
 const schema = z.object({
   name: z.string().min(2, "Name required"),
   phone: z.string().min(7, "Valid phone required"),
@@ -96,6 +123,8 @@ const schema = z.object({
   description: z.string().min(20, "Provide at least 20 characters"),
   address: z.string().optional(),
   ward: z.string().optional(),
+  district: z.string().optional(),
+  city: z.string().optional(),
   wardId: z.number().int().positive().optional(),
   areaId: z.number().int().positive().optional(),
   pollingStationId: z.number().int().positive().optional(),
@@ -205,6 +234,7 @@ export default function Grievance({ lang }: GrievanceProps) {
   const [isTracking, setIsTracking] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [gps, setGps] = useState<GpsValue | null>(null);
+  const [complaintScope, setComplaintScope] = useState<"constituency" | "state">("constituency");
   const { data: wardList = [] } = useWards();
 
   const form = useForm<FormData>({
@@ -232,15 +262,19 @@ export default function Grievance({ lang }: GrievanceProps) {
 
   const submitMutation = useMutation({
     mutationFn: (data: FormData) => {
+      const isState = complaintScope === "state";
       const payload = {
         name: data.name,
         phone: data.phone,
         category: data.category,
         description: data.description,
-        address: data.address || null,
-        ward: data.ward || null,
-        areaId: data.areaId ?? null,
-        pollingStationId: data.pollingStationId ?? null,
+        address: isState
+          ? [data.city, data.address].filter(Boolean).join(", ") || null
+          : data.address || null,
+        ward: isState ? (data.district || null) : (data.ward || null),
+        constituency: isState ? "Tamil Nadu" : "Karaikudi",
+        areaId: isState ? null : (data.areaId ?? null),
+        pollingStationId: isState ? null : (data.pollingStationId ?? null),
         latitude: gps?.lat ?? null,
         longitude: gps?.lng ?? null,
         anonymous: data.anonymous ?? false,
@@ -407,50 +441,119 @@ export default function Grievance({ lang }: GrievanceProps) {
                       </FormItem>
                     )} />
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField control={form.control} name="ward" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{lang === "ta" ? "வார்டு / பகுதி" : "Ward / Area"}</FormLabel>
-                          <Select
-                            onValueChange={(v) => {
-                              field.onChange(v);
-                              // Reset cascaded selections whenever the parent ward changes
-                              form.setValue("areaId", undefined);
-                              form.setValue("pollingStationId", undefined);
-                            }}
-                            value={field.value || ""}
-                          >
-                            <FormControl>
-                              <SelectTrigger data-testid="grievance-ward">
-                                <SelectValue placeholder={
-                                  wardList.length === 0
-                                    ? (lang === "ta" ? "வார்டுகள் இல்லை" : "No wards configured")
-                                    : (lang === "ta" ? "வார்டை தேர்ந்தெடுங்கள்" : "Select a ward")
-                                } />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {wardList.map((w) => (
-                                <SelectItem key={w.id} value={w.name}>
-                                  {w.name}{w.area ? ` — ${w.area}` : ""}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="address" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{lang === "ta" ? "முகவரி" : "Address"}</FormLabel>
-                          <FormControl><Input data-testid="grievance-address" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                    {/* ── Complaint Scope Toggle ── */}
+                    <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
+                      <p className="text-sm font-semibold">
+                        {lang === "ta" ? "புகார் எங்கிருந்து?" : "Where is this complaint from?"}
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => { setComplaintScope("constituency"); form.setValue("district", ""); form.setValue("city", ""); }}
+                          className={`rounded-lg border-2 p-3 text-left transition-colors ${complaintScope === "constituency" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
+                        >
+                          <p className="font-semibold text-sm">{lang === "ta" ? "காரைக்குடி தொகுதி" : "Karaikudi Constituency"}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "தொகுதி மக்கள் புகார்" : "Local constituency complaint"}</p>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setComplaintScope("state"); form.setValue("ward", ""); form.setValue("areaId", undefined); form.setValue("pollingStationId", undefined); }}
+                          className={`rounded-lg border-2 p-3 text-left transition-colors ${complaintScope === "state" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
+                        >
+                          <p className="font-semibold text-sm">{lang === "ta" ? "தமிழ்நாடு மாநிலம்" : "Tamil Nadu State"}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "கனிமவளம் / சுரங்க புகார்" : "Minerals & Mines complaint"}</p>
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Cascading area + polling-station — only when a ward is chosen */}
-                    {selectedWardId && (areaOptions.length > 0 || boothOptions.length > 0) && (
+                    {/* ── Constituency: Ward + Address ── */}
+                    {complaintScope === "constituency" && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="ward" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{lang === "ta" ? "வார்டு / பகுதி" : "Ward / Area"}</FormLabel>
+                            <Select
+                              onValueChange={(v) => {
+                                field.onChange(v);
+                                form.setValue("areaId", undefined);
+                                form.setValue("pollingStationId", undefined);
+                              }}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger data-testid="grievance-ward">
+                                  <SelectValue placeholder={
+                                    wardList.length === 0
+                                      ? (lang === "ta" ? "வார்டுகள் இல்லை" : "No wards configured")
+                                      : (lang === "ta" ? "வார்டை தேர்ந்தெடுங்கள்" : "Select a ward")
+                                  } />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {wardList.map((w) => (
+                                  <SelectItem key={w.id} value={w.name}>
+                                    {w.name}{w.area ? ` — ${w.area}` : ""}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="address" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{lang === "ta" ? "முகவரி" : "Address"}</FormLabel>
+                            <FormControl><Input data-testid="grievance-address" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                    )}
+
+                    {/* ── State: District + City + Address ── */}
+                    {complaintScope === "state" && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField control={form.control} name="district" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{lang === "ta" ? "மாவட்டம்" : "District"} *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={lang === "ta" ? "மாவட்டத்தை தேர்ந்தெடுங்கள்" : "Select district"} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {TN_DISTRICTS.map((d) => (
+                                    <SelectItem key={d} value={d}>
+                                      {lang === "ta" ? (TN_DISTRICTS_TA[d] ?? d) : d}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="city" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{lang === "ta" ? "நகரம் / ஊர்" : "City / Town"}</FormLabel>
+                              <FormControl><Input placeholder={lang === "ta" ? "நகரம் அல்லது ஊரின் பெயர்" : "City or town name"} {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                        <FormField control={form.control} name="address" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{lang === "ta" ? "முகவரி / இடம்" : "Address / Location"}</FormLabel>
+                            <FormControl><Input placeholder={lang === "ta" ? "தெரு, கிராமம் அல்லது குறிப்பிட்ட இடம்" : "Street, village or specific location"} data-testid="grievance-address" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                    )}
+
+                    {/* Cascading area + polling-station — only when constituency scope and a ward is chosen */}
+                    {complaintScope === "constituency" && selectedWardId && (areaOptions.length > 0 || boothOptions.length > 0) && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {areaOptions.length > 0 && (
                           <FormField control={form.control} name="areaId" render={({ field }) => (

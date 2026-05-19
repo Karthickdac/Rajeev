@@ -69,6 +69,7 @@ const SubmitBody = z.object({
   description: z.string().min(10),
   address: z.string().optional().nullable(),
   ward: z.string().optional().nullable(),
+  district: z.string().optional().nullable(),
   constituency: z.string().optional().nullable(),
   anonymous: z.boolean().optional(),
   // optional sub-ward routing scope (cascading dropdowns)
@@ -157,7 +158,7 @@ router.post("/grievances/submit", upload.array("attachments", 3), async (req, re
       pollingStationId: body.data.pollingStationId ?? null,
       latitude: body.data.latitude ?? null,
       longitude: body.data.longitude ?? null,
-      constituency: body.data.constituency ?? "Tirupparankundram",
+      constituency: body.data.constituency ?? "Karaikudi",
       anonymous: body.data.anonymous ?? false,
       priority: "Medium",
       status: "Submitted",
