@@ -738,22 +738,39 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                 ))}
               </div>
 
-              {/* GPS location */}
-              {detail.latitude != null && detail.longitude != null && (
-                <div className="flex items-center gap-2 text-sm bg-muted/40 rounded-lg px-3 py-2">
-                  <MapPin className="w-4 h-4 text-primary shrink-0" />
-                  <span className="font-mono text-xs text-muted-foreground">{detail.latitude.toFixed(5)}, {detail.longitude.toFixed(5)}</span>
-                  <a
-                    href={`https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-auto flex items-center gap-1 text-xs text-primary hover:underline"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    {lang === "ta" ? "வரைபடத்தில் காண்" : "View on map"}
-                  </a>
-                </div>
-              )}
+              {/* GPS location — always visible so it's obvious when missing */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  {lang === "ta" ? "இடம்" : "Location"}
+                </h4>
+                {detail.latitude != null && detail.longitude != null ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    <iframe
+                      title="grievance-location-map"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${detail.longitude - 0.005}%2C${detail.latitude - 0.003}%2C${detail.longitude + 0.005}%2C${detail.latitude + 0.003}&layer=mapnik&marker=${detail.latitude}%2C${detail.longitude}`}
+                      className="w-full h-56 border-0"
+                      loading="lazy"
+                    />
+                    <div className="flex items-center gap-2 text-sm bg-muted/40 px-3 py-2">
+                      <span className="font-mono text-xs text-muted-foreground">{detail.latitude.toFixed(5)}, {detail.longitude.toFixed(5)}</span>
+                      <a
+                        href={`https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        {lang === "ta" ? "Google வரைபடத்தில் திற" : "Open in Google Maps"}
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic bg-muted/30 rounded-lg px-3 py-2">
+                    {lang === "ta" ? "புகார்தாரர் இடத்தை வழங்கவில்லை" : "No GPS location was provided by the citizen"}
+                  </p>
+                )}
+              </div>
 
               <div>
                 <p className="text-xs text-muted-foreground mb-1">{lang === "ta" ? "விவரம்" : "Description"}</p>
