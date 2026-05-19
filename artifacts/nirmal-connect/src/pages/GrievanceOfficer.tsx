@@ -371,8 +371,16 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
       const generatedAt = new Date().toLocaleString("en-IN");
       const origin = (typeof window !== "undefined" && window.location?.origin) ? window.location.origin : "";
 
+      type MapTiles = {
+        cols: number;
+        rows: number;
+        tileSize: number;
+        tiles: Array<{ col: number; row: number; dataUrl: string }>;
+        markerPx: { x: number; y: number };
+        attribution: string;
+      };
       type Assets = {
-        mapImage: string | null;
+        mapTiles: MapTiles | null;
         latitude: number | null;
         longitude: number | null;
         imageAttachments: Array<{ id: number; fileName: string; fileType: string; dataUrl: string }>;
@@ -546,19 +554,52 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
             M, y,
           );
           y += 5;
-          if (assets?.mapImage) {
-            const mapW = Math.min(contentW, 156);
-            const mapH = 78;
-            y = ensureSpace(y, mapH + 6);
-            try {
-              doc.addImage(assets.mapImage, M, y, mapW, mapH);
-              y += mapH + 4;
-            } catch {
-              doc.setTextColor(120, 120, 120);
-              doc.text("(Static map unavailable)", M, y);
-              doc.setTextColor(0, 0, 0);
-              y += 5;
+          if (assets?.mapTiles && assets.mapTiles.tiles.length > 0) {
+            const mt = assets.mapTiles;
+            const compositePx = { w: mt.cols * mt.tileSize, h: mt.rows * mt.tileSize };
+            // Fit the composite into a 117mm × 78mm box (preserves 3:2 aspect)
+            const maxW = 117, maxH = 78;
+            const scale = Math.min(maxW / compositePx.w, maxH / compositePx.h);
+            const mapW = compositePx.w * scale;
+            const mapH = compositePx.h * scale;
+            const mmPerPx = scale;
+            y = ensureSpace(y, mapH + 10);
+            const mapX = M;
+            const mapY = y;
+            // Border / background so missing tiles don't show white gaps
+            doc.setFillColor(235, 235, 235);
+            doc.rect(mapX, mapY, mapW, mapH, "F");
+            // Place each tile at its (col, row) offset
+            const tileMm = mt.tileSize * mmPerPx;
+            for (const t of mt.tiles) {
+              try {
+                doc.addImage(
+                  t.dataUrl, "PNG",
+                  mapX + t.col * tileMm,
+                  mapY + t.row * tileMm,
+                  tileMm, tileMm,
+                  undefined, "FAST",
+                );
+              } catch {
+                // Tile failed to decode — leave grey background
+              }
             }
+            // Draw the marker (red dot with white halo) on top
+            const mx = mapX + mt.markerPx.x * mmPerPx;
+            const my = mapY + mt.markerPx.y * mmPerPx;
+            doc.setFillColor(255, 255, 255);
+            doc.circle(mx, my, 1.8, "F");
+            doc.setFillColor(220, 38, 38);
+            doc.circle(mx, my, 1.2, "F");
+            // Map border
+            doc.setDrawColor(180, 180, 180);
+            doc.setLineWidth(0.2);
+            doc.rect(mapX, mapY, mapW, mapH);
+            // Attribution
+            doc.setFontSize(6.5); doc.setTextColor(80, 80, 80);
+            doc.text(mt.attribution, mapX + mapW, mapY + mapH + 3, { align: "right" });
+            doc.setTextColor(0, 0, 0);
+            y += mapH + 6;
           } else {
             doc.setTextColor(120, 120, 120);
             doc.text("(Static map preview unavailable — use the link below)", M, y);

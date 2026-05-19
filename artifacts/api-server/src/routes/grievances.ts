@@ -906,8 +906,9 @@ router.get("/grievances/:id/pdf-assets", requireStaff, async (req: AuthRequest, 
           fileType: a.fileType,
           dataUrl: `data:${a.fileType};base64,${buf.toString("base64")}`,
         });
-      } catch {
-        // Missing on disk — count as skipped
+      } catch (err) {
+        // Missing on disk — count as skipped (and log for diagnosis)
+        console.warn(`[grievances] pdf-assets: failed to read attachment ${a.id} at ${filePath}:`, (err as Error).message);
         skippedImages++;
       }
     }
@@ -921,26 +922,86 @@ router.get("/grievances/:id/pdf-assets", requireStaff, async (req: AuthRequest, 
       fileUrl: a.fileUrl,
     }));
 
-    let mapImage: string | null = null;
+    // Compose a static map from raw OpenStreetMap tiles (the old
+    // staticmap.openstreetmap.de service was sunset, so we fetch a
+    // 3×2 tile grid centred on the grievance and let the client render
+    // the marker on top.
+    type MapTiles = {
+      cols: number;
+      rows: number;
+      tileSize: number;            // px per tile (256)
+      tiles: Array<{ col: number; row: number; dataUrl: string }>;
+      markerPx: { x: number; y: number };
+      attribution: string;
+    };
+    let mapTiles: MapTiles | null = null;
     if (grievance.latitude != null && grievance.longitude != null) {
       try {
-        const url = `https://staticmap.openstreetmap.de/staticmap.php?center=${grievance.latitude},${grievance.longitude}&zoom=16&size=600x300&markers=${grievance.latitude},${grievance.longitude},red-pushpin`;
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 6000);
-        const mr = await fetch(url, { signal: ctrl.signal });
-        clearTimeout(t);
-        if (mr.ok) {
-          const ab = await mr.arrayBuffer();
-          const ct = mr.headers.get("content-type") ?? "image/png";
-          mapImage = `data:${ct};base64,${Buffer.from(ab).toString("base64")}`;
+        const lat = grievance.latitude;
+        const lng = grievance.longitude;
+        const z = 16;
+        const n = Math.pow(2, z);
+        const xf = (lng + 180) / 360 * n;
+        const latRad = lat * Math.PI / 180;
+        const yf = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n;
+        const cols = 3, rows = 2;
+        // Anchor tiles so the marker is as close to composite centre as
+        // possible. Using round() (instead of floor) keeps the marker
+        // within ±½ tile of (cols·256/2, rows·256/2).
+        const xa = Math.round(xf - cols / 2);
+        const ya = Math.round(yf - rows / 2);
+        const tileSize = 256;
+        const markerPx = {
+          x: Math.round((xf - xa) * tileSize),
+          y: Math.round((yf - ya) * tileSize),
+        };
+
+        const tileFetches: Array<Promise<{ col: number; row: number; dataUrl: string } | null>> = [];
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const tx = xa + c;
+            const ty = ya + r;
+            if (tx < 0 || ty < 0 || tx >= n || ty >= n) continue;
+            const url = `https://tile.openstreetmap.org/${z}/${tx}/${ty}.png`;
+            tileFetches.push((async () => {
+              const ctrl = new AbortController();
+              const t = setTimeout(() => ctrl.abort(), 6000);
+              try {
+                const tr = await fetch(url, {
+                  signal: ctrl.signal,
+                  headers: { "User-Agent": "NirmalConnect/1.0 (+https://tkprabhu.tamilagavetrikalagam.com; admin@tkprabhu.com)" },
+                });
+                if (!tr.ok) return null;
+                const ab = await tr.arrayBuffer();
+                return {
+                  col: c,
+                  row: r,
+                  dataUrl: `data:image/png;base64,${Buffer.from(ab).toString("base64")}`,
+                };
+              } catch {
+                return null;
+              } finally {
+                clearTimeout(t);
+              }
+            })());
+          }
         }
-      } catch {
-        // Map service unavailable — PDF will fall back to coords + link
+        const fetched = (await Promise.all(tileFetches)).filter((t): t is { col: number; row: number; dataUrl: string } => t !== null);
+        if (fetched.length > 0) {
+          mapTiles = {
+            cols, rows, tileSize,
+            tiles: fetched,
+            markerPx,
+            attribution: "© OpenStreetMap contributors",
+          };
+        }
+      } catch (err) {
+        console.warn("[grievances] pdf-assets: tile composite failed:", (err as Error).message);
       }
     }
 
     res.json({
-      mapImage,
+      mapTiles,
       latitude: grievance.latitude,
       longitude: grievance.longitude,
       imageAttachments,
