@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { SectionHeader } from "@/components/SectionHeader";
+import WardCombobox from "@/components/WardCombobox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -474,31 +475,26 @@ export default function Grievance({ lang }: GrievanceProps) {
                         <FormField control={form.control} name="ward" render={({ field }) => (
                           <FormItem>
                             <FormLabel>{lang === "ta" ? "வார்டு / பகுதி" : "Ward / Area"}</FormLabel>
-                            <Select
-                              onValueChange={(v) => {
-                                field.onChange(v);
-                                form.setValue("areaId", undefined);
-                                form.setValue("pollingStationId", undefined);
-                              }}
-                              value={field.value || ""}
-                            >
-                              <FormControl>
-                                <SelectTrigger data-testid="grievance-ward">
-                                  <SelectValue placeholder={
-                                    wardList.length === 0
-                                      ? (lang === "ta" ? "வார்டுகள் இல்லை" : "No wards configured")
-                                      : (lang === "ta" ? "வார்டை தேர்ந்தெடுங்கள்" : "Select a ward")
-                                  } />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {wardList.map((w) => (
-                                  <SelectItem key={w.id} value={w.name}>
-                                    {w.name}{w.area ? ` — ${w.area}` : ""}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <FormControl>
+                              <WardCombobox
+                                value={field.value || ""}
+                                onChange={(v) => {
+                                  field.onChange(v);
+                                  form.setValue("areaId", undefined);
+                                  form.setValue("pollingStationId", undefined);
+                                }}
+                                options={wardList}
+                                lang={lang}
+                                placeholder={
+                                  wardList.length === 0
+                                    ? (lang === "ta" ? "வார்டுகள் இல்லை" : "No wards configured")
+                                    : (lang === "ta" ? "வார்டை தேர்ந்தெடுங்கள்" : "Select a ward…")
+                                }
+                                disabled={wardList.length === 0}
+                                triggerClassName="w-full h-10"
+                                className="w-[300px]"
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />

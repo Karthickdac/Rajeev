@@ -27,6 +27,7 @@ import {
 } from "@workspace/api-client-react";
 import type { GrievanceListItem } from "@workspace/api-client-react";
 import { useWards } from "@/lib/useWards";
+import WardCombobox from "@/components/WardCombobox";
 
 interface GrievanceOfficerProps { lang: Language; token: string; userRole?: string }
 
@@ -473,20 +474,15 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                 {PRIORITY_OPTS.map((p) => <SelectItem key={p || "all"} value={p || "all"}>{p || (lang === "ta" ? "அனைத்தும்" : "All")}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select
-              value={filterWard || "all"}
-              onValueChange={(v) => { setFilterWard(v === "all" ? "" : v); setPage(1); }}
-            >
-              <SelectTrigger className="w-40 h-8 text-sm">
-                <SelectValue placeholder={lang === "ta" ? "வார்டு" : "Ward"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{lang === "ta" ? "அனைத்தும்" : "All wards"}</SelectItem>
-                {wardList.map((w) => (
-                  <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <WardCombobox
+              value={filterWard}
+              onChange={(v) => { setFilterWard(v); setPage(1); }}
+              options={wardList}
+              lang={lang}
+              includeAll
+              triggerClassName="w-44 h-8 text-sm"
+              className="w-[260px]"
+            />
             <Select
               value={filterConstituency || "all"}
               onValueChange={(v) => { setFilterConstituency(v === "all" ? "" : v); setPage(1); }}
