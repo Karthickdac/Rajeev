@@ -1030,7 +1030,7 @@ router.get("/grievances/:id/pdf-assets", requireStaff, async (req: AuthRequest, 
               try {
                 const tr = await fetch(url, {
                   signal: ctrl.signal,
-                  headers: { "User-Agent": "NirmalConnect/1.0 (+https://tkprabhu.tamilagavetrikalagam.com; admin@tkprabhu.com)" },
+                  headers: { "User-Agent": "TKPrabhuConnect/1.0 (+https://tkprabhu.tamilagavetrikalagam.com; admin@tkprabhu.com)" },
                 });
                 if (!tr.ok) return null;
                 const ab = await tr.arrayBuffer();

@@ -779,7 +779,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
         doc.rect(0, 0, pageW, HEADER_H, "F");
         doc.setTextColor(255, 255, 255);
         doc.setFont("helvetica", "bold"); doc.setFontSize(13);
-        doc.text("Nirmal Connect — Grievance Report", M, 9);
+        doc.text("TK Prabhu Connect — Grievance Report", M, 9);
         doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
         doc.text("Office of Dr. T.K. Prabhu, Minister of Minerals & Mines", M, 14);
         doc.setFontSize(7.5);
