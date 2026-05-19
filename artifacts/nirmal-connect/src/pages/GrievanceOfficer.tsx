@@ -618,11 +618,34 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
           y += 6;
         }
 
-        // Attached Photos
-        if (assets && assets.imageAttachments.length > 0) {
+        // Attachments section — ALWAYS rendered so the PDF clearly shows
+        // whether photos were absent vs. failed to embed.
+        const imgCount = assets?.imageAttachments?.length ?? 0;
+        const nonImgCount = assets?.nonImageAttachments?.length ?? 0;
+        const skipCount = assets?.skippedImageCount ?? 0;
+        if (!assets) {
+          y = ensureSpace(y, 10);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
+          doc.text("Attachments", M, y); y += 5;
+          doc.setFont("helvetica", "italic"); doc.setFontSize(9);
+          doc.setTextColor(120, 120, 120);
+          doc.text("Could not load attachments from server.", M, y);
+          doc.setTextColor(0, 0, 0); doc.setFont("helvetica", "normal");
+          y += 6;
+        } else if (imgCount === 0 && nonImgCount === 0) {
+          y = ensureSpace(y, 10);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
+          doc.text("Attachments", M, y); y += 5;
+          doc.setFont("helvetica", "italic"); doc.setFontSize(9);
+          doc.setTextColor(120, 120, 120);
+          doc.text("No attachments were uploaded with this grievance.", M, y);
+          doc.setTextColor(0, 0, 0); doc.setFont("helvetica", "normal");
+          y += 6;
+        }
+        if (assets && imgCount > 0) {
           y = ensureSpace(y, 50);
           doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
-          doc.text(`Attached photos (${assets.imageAttachments.length}${assets.skippedImageCount ? ` of ${assets.imageAttachments.length + assets.skippedImageCount}` : ""})`, M, y);
+          doc.text(`Attached photos (${imgCount}${skipCount ? ` of ${imgCount + skipCount}` : ""})`, M, y);
           y += 5;
           const cols = 2;
           const gap = 4;
