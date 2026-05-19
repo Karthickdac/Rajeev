@@ -17,11 +17,14 @@ router.get("/wards", async (_req, res) => {
         slug: wardsTable.slug,
         wardType: wardsTable.wardType,
         zoneId: wardsTable.zoneId,
+        zoneName: zonesTable.name,
+        zoneNameTa: zonesTable.nameTa,
         area: wardsTable.area,
         pincode: wardsTable.pincode,
       })
       .from(wardsTable)
-      .orderBy(asc(wardsTable.name));
+      .leftJoin(zonesTable, eq(wardsTable.zoneId, zonesTable.id))
+      .orderBy(asc(zonesTable.name), asc(wardsTable.name));
     res.json(rows);
   } catch (err) {
     console.error("[site] wards list:", err);

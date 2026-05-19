@@ -11,7 +11,10 @@ import type { Language } from "@/lib/i18n";
 export interface WardOption {
   id: number;
   name: string;
+  nameTa?: string | null;
   area?: string | null;
+  zoneName?: string | null;
+  zoneNameTa?: string | null;
 }
 
 interface WardComboboxProps {
@@ -44,12 +47,29 @@ export default function WardCombobox({
   const ph = placeholder ?? (lang === "ta" ? "வார்டை தேர்ந்தெடுங்கள்" : "Select ward…");
   const allLbl = allLabel ?? (lang === "ta" ? "அனைத்தும்" : "All wards");
   const searchPh = lang === "ta" ? "தேட தட்டச்சு செய்யவும்…" : "Type to search…";
-  const emptyMsg = lang === "ta" ? "வார்டு கிடைக்கவில்லை" : "No ward found";
+  const emptyMsg = lang === "ta" ? "கிடைக்கவில்லை" : "No results found";
 
   const displayLabel =
     !value
-      ? includeAll ? allLbl : ph
-      : options.find((o) => o.name === value)?.name ?? value;
+      ? (includeAll ? allLbl : ph)
+      : (() => {
+          const opt = options.find((o) => o.name === value);
+          if (!opt) return value;
+          const name = lang === "ta" && opt.nameTa ? opt.nameTa : opt.name;
+          const zone = lang === "ta" && opt.zoneNameTa ? opt.zoneNameTa : opt.zoneName;
+          return zone ? `${name} — ${zone}` : name;
+        })();
+
+  // Group options by zone; ungrouped wards go under a fallback group
+  const grouped = options.reduce<Record<string, WardOption[]>>((acc, opt) => {
+    const key = (lang === "ta" && opt.zoneNameTa ? opt.zoneNameTa : opt.zoneName) ?? (lang === "ta" ? "பிற பகுதிகள்" : "Other Areas");
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(opt);
+    return acc;
+  }, {});
+
+  const groupEntries = Object.entries(grouped);
+  const isGrouped = groupEntries.length > 1;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,34 +90,68 @@ export default function WardCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className={cn("p-0", className ?? "w-[260px]")}
+        className={cn("p-0", className ?? "w-[280px]")}
         align="start"
       >
         <Command>
           <CommandInput placeholder={searchPh} className="h-9" />
           <CommandList>
             <CommandEmpty>{emptyMsg}</CommandEmpty>
-            <CommandGroup>
-              {includeAll && (
+
+            {/* "All" reset option */}
+            {includeAll && (
+              <CommandGroup>
                 <CommandItem
-                  value=""
+                  value="__all__"
                   onSelect={() => { onChange(""); setOpen(false); }}
                 >
                   <Check className={cn("mr-2 h-4 w-4", !value ? "opacity-100" : "opacity-0")} />
                   {allLbl}
                 </CommandItem>
-              )}
-              {options.map((opt) => (
-                <CommandItem
-                  key={opt.id}
-                  value={opt.name + (opt.area ? ` ${opt.area}` : "")}
-                  onSelect={() => { onChange(opt.name); setOpen(false); }}
-                >
-                  <Check className={cn("mr-2 h-4 w-4", value === opt.name ? "opacity-100" : "opacity-0")} />
-                  {opt.name}{opt.area ? <span className="ml-1 text-xs text-muted-foreground">— {opt.area}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+              </CommandGroup>
+            )}
+
+            {isGrouped
+              ? groupEntries.map(([groupName, wards]) => (
+                  <CommandGroup key={groupName} heading={groupName}>
+                    {wards.map((opt) => {
+                      const label = lang === "ta" && opt.nameTa ? opt.nameTa : opt.name;
+                      const searchVal = [opt.name, opt.nameTa, opt.area, opt.zoneName, opt.zoneNameTa]
+                        .filter(Boolean).join(" ");
+                      return (
+                        <CommandItem
+                          key={opt.id}
+                          value={searchVal}
+                          onSelect={() => { onChange(opt.name); setOpen(false); }}
+                        >
+                          <Check className={cn("mr-2 h-4 w-4 shrink-0", value === opt.name ? "opacity-100" : "opacity-0")} />
+                          <span>{label}</span>
+                          {opt.area && <span className="ml-1.5 text-xs text-muted-foreground truncate">— {opt.area}</span>}
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                ))
+              : (
+                <CommandGroup>
+                  {options.map((opt) => {
+                    const label = lang === "ta" && opt.nameTa ? opt.nameTa : opt.name;
+                    const searchVal = [opt.name, opt.nameTa, opt.area, opt.zoneName].filter(Boolean).join(" ");
+                    return (
+                      <CommandItem
+                        key={opt.id}
+                        value={searchVal}
+                        onSelect={() => { onChange(opt.name); setOpen(false); }}
+                      >
+                        <Check className={cn("mr-2 h-4 w-4 shrink-0", value === opt.name ? "opacity-100" : "opacity-0")} />
+                        <span>{label}</span>
+                        {opt.area && <span className="ml-1.5 text-xs text-muted-foreground truncate">— {opt.area}</span>}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              )
+            }
           </CommandList>
         </Command>
       </PopoverContent>
