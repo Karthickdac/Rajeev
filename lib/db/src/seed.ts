@@ -62,31 +62,8 @@ type PollingPdfBooth = {
 
 // ── Tenant leader configurations ─────────────────────────────────────
 // Add a new entry here for each new minister / deployment.
-// TENANT env var selects which config to seed (default: "nirmal").
+// TENANT env var selects which config to seed (default: "tkprabhu").
 const TENANT_CONFIGS: Record<string, object> = {
-  nirmal: {
-    nameEn: "C.T.R. Nirmal Kumar",
-    nameTa: "சி.டி.ஆர். நிர்மல் குமார்",
-    titleEn: "Minister of Energy Resources and Law",
-    titleTa: "மின்சக்தி மற்றும் சட்டத்துறை அமைச்சர்",
-    constituencyEn: "Tirupparankundram",
-    constituencyTa: "திருப்பரங்குன்றம்",
-    partyEn: "Tamilaga Vettri Kazhagam (TVK)",
-    partyTa: "தமிழக வெற்றி கழகம் (TVK)",
-    partyShort: "TVK",
-    phone: "+91 (Contact Office)",
-    whatsapp: "919876543210",
-    email: "office@nirmalconnect.in",
-    addressEn: "Minister's Office, Tirupparankundram, Madurai – 625005, Tamil Nadu",
-    addressTa: "அமைச்சர் அலுவலகம், திருப்பரங்குன்றம், மதுரை – 625005, தமிழ்நாடு",
-    officeHoursEn: "Monday – Saturday: 9:00 AM – 6:00 PM",
-    officeHoursTa: "திங்கள் – சனி: காலை 9:00 – மாலை 6:00",
-    photoUrl: "",
-    siteTitle: "Nirmal Connect",
-    logoInitial: "N",
-    districtEn: "Madurai",
-    districtTa: "மதுரை",
-  },
   tkprabhu: {
     nameEn: "Dr. T.K. Prabhu",
     nameTa: "டாக்டர் டி.கே. பிரபு",
