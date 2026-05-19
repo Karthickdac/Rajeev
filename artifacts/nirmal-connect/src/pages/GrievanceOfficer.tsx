@@ -383,7 +383,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
         mapTiles: MapTiles | null;
         latitude: number | null;
         longitude: number | null;
-        imageAttachments: Array<{ id: number; fileName: string; fileType: string; dataUrl: string }>;
+        imageAttachments: Array<{ id: number; fileName: string; fileType: string; kind?: "JPEG" | "PNG" | "WEBP"; dataUrl: string; sizeBytes?: number }>;
         nonImageAttachments?: Array<{ id: number; fileName: string; fileType: string; fileSize: number | null; fileUrl: string }>;
         nonImageCount: number;
         skippedImageCount?: number;
@@ -628,16 +628,32 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
           const gap = 4;
           const imgW = (contentW - gap * (cols - 1)) / cols;
           const imgH = imgW * 0.7;
+          let embedSuccesses = 0;
+          let embedFailures = 0;
           for (let k = 0; k < assets.imageAttachments.length; k++) {
             const att = assets.imageAttachments[k];
             const col = k % cols;
             const x = M + col * (imgW + gap);
             if (col === 0) y = ensureSpace(y, imgH + 8);
+            const fmt: "JPEG" | "PNG" | "WEBP" = att.kind ?? formatFromMime(att.fileType);
             try {
-              doc.addImage(att.dataUrl, formatFromMime(att.fileType), x, y, imgW, imgH, undefined, "FAST");
-            } catch {
-              doc.setDrawColor(200); doc.rect(x, y, imgW, imgH);
-              doc.setFontSize(8); doc.text("Image unavailable", x + 2, y + imgH / 2);
+              doc.addImage(att.dataUrl, fmt, x, y, imgW, imgH);
+              embedSuccesses++;
+            } catch (err) {
+              embedFailures++;
+              console.warn(`[pdf] addImage failed for "${att.fileName}" (${fmt}):`, err);
+              // Visible placeholder so the user can SEE that something failed
+              doc.setFillColor(254, 226, 226);
+              doc.rect(x, y, imgW, imgH, "F");
+              doc.setDrawColor(220, 38, 38);
+              doc.setLineWidth(0.3);
+              doc.rect(x, y, imgW, imgH);
+              doc.setTextColor(153, 27, 27);
+              doc.setFontSize(9); doc.setFont("helvetica", "bold");
+              doc.text("Image could not be embedded", x + imgW / 2, y + imgH / 2 - 2, { align: "center" });
+              doc.setFont("helvetica", "normal"); doc.setFontSize(7);
+              doc.text(`(${fmt}, ${att.sizeBytes ? Math.round(att.sizeBytes / 1024) + " KB" : "size unknown"})`, x + imgW / 2, y + imgH / 2 + 3, { align: "center" });
+              doc.setTextColor(0, 0, 0);
             }
             doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
             const cap = doc.splitTextToSize(att.fileName, imgW);
@@ -646,6 +662,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               y += imgH + 8;
             }
           }
+          console.log(`[pdf] ${detail.ticketNo}: embedded ${embedSuccesses}/${assets.imageAttachments.length} photos (${embedFailures} failed)`);
         }
 
         // Non-image attachments with clickable "open" links

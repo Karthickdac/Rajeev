@@ -907,29 +907,54 @@ router.get("/grievances/:id/pdf-assets", requireStaff, async (req: AuthRequest, 
       .where(eq(grievanceAttachmentsTable.grievanceId, id))
       .orderBy(grievanceAttachmentsTable.createdAt);
 
-    const imageAttachments: Array<{ id: number; fileName: string; fileType: string; dataUrl: string }> = [];
+    // Detect image kind from magic bytes (more reliable than MIME),
+    // and normalise to the labels jsPDF expects.
+    function detectImageKind(buf: Buffer): "JPEG" | "PNG" | "WEBP" | null {
+      if (buf.length < 12) return null;
+      if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "JPEG";
+      if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return "PNG";
+      if (buf.slice(0, 4).toString() === "RIFF" && buf.slice(8, 12).toString() === "WEBP") return "WEBP";
+      return null;
+    }
+
+    const imageAttachments: Array<{ id: number; fileName: string; fileType: string; kind: "JPEG" | "PNG" | "WEBP"; dataUrl: string; sizeBytes: number }> = [];
     let skippedImages = 0;
+    const MAX_BYTES = 12 * 1024 * 1024;  // 12 MB — large enough for modern phone photos
+    const MAX_IMAGES = 20;
     for (const a of attachments) {
       if (!a.fileType.startsWith("image/")) continue;
-      if (imageAttachments.length >= 8) { skippedImages++; continue; }
+      if (imageAttachments.length >= MAX_IMAGES) {
+        console.warn(`[grievances] pdf-assets: image cap reached (${MAX_IMAGES}); skipping attachment ${a.id}`);
+        skippedImages++; continue;
+      }
       const filename = a.fileUrl.replace(/^\/uploads\/grievances\//, "");
       const filePath = path.join(uploadsDir, filename);
       try {
         const buf = await fs.promises.readFile(filePath);
-        // Cap each image at ~2MB to keep PDF size reasonable
-        if (buf.length > 2 * 1024 * 1024) { skippedImages++; continue; }
+        if (buf.length > MAX_BYTES) {
+          console.warn(`[grievances] pdf-assets: attachment ${a.id} too large (${buf.length} bytes > ${MAX_BYTES}); skipping`);
+          skippedImages++; continue;
+        }
+        const kind = detectImageKind(buf);
+        if (!kind) {
+          console.warn(`[grievances] pdf-assets: attachment ${a.id} (${a.fileType}) is not a recognised image format; skipping`);
+          skippedImages++; continue;
+        }
+        const normalisedMime = kind === "JPEG" ? "image/jpeg" : kind === "PNG" ? "image/png" : "image/webp";
         imageAttachments.push({
           id: a.id,
           fileName: a.fileName,
-          fileType: a.fileType,
-          dataUrl: `data:${a.fileType};base64,${buf.toString("base64")}`,
+          fileType: normalisedMime,
+          kind,
+          dataUrl: `data:${normalisedMime};base64,${buf.toString("base64")}`,
+          sizeBytes: buf.length,
         });
       } catch (err) {
-        // Missing on disk — count as skipped (and log for diagnosis)
         console.warn(`[grievances] pdf-assets: failed to read attachment ${a.id} at ${filePath}:`, (err as Error).message);
         skippedImages++;
       }
     }
+    console.log(`[grievances] pdf-assets: grievance ${id} — total attachments=${attachments.length}, images embedded=${imageAttachments.length}, skipped=${skippedImages}`);
     const nonImageList = attachments.filter(a => !a.fileType.startsWith("image/"));
     const nonImageCount = nonImageList.length;
     const nonImageAttachments = nonImageList.map(a => ({
