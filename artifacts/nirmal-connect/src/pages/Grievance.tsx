@@ -24,6 +24,7 @@ import type { Language } from "@/lib/i18n";
 import { submitGrievance, trackGrievance, getGrievanceHeatmap } from "@workspace/api-client-react";
 import type { GrievanceTrackResponse } from "@workspace/api-client-react";
 import { useWards } from "@/lib/useWards";
+import { getConstituenciesForDistrict } from "@/lib/tn-constituencies";
 import GpsPicker, { type GpsValue } from "@/components/GpsPicker";
 
 interface GrievanceProps { lang: Language; }
@@ -127,7 +128,7 @@ const schema = z.object({
   address: z.string().optional(),
   ward: z.string().optional(),
   district: z.string().optional(),
-  city: z.string().optional(),
+  assemblyConstituency: z.string().optional(),
   wardId: z.number().int().positive().optional(),
   areaId: z.number().int().positive().optional(),
   pollingStationId: z.number().int().positive().optional(),
@@ -272,7 +273,7 @@ export default function Grievance({ lang }: GrievanceProps) {
         category: data.category,
         description: data.description,
         address: isState
-          ? [data.city, data.address].filter(Boolean).join(", ") || null
+          ? [data.assemblyConstituency, data.address].filter(Boolean).join(" — ") || null
           : data.address || null,
         ward: isState ? (data.district || null) : (data.ward || null),
         constituency: isState ? "Tamil Nadu" : "Karaikudi",
@@ -406,6 +407,43 @@ export default function Grievance({ lang }: GrievanceProps) {
               <CardContent>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    {/* ── Complaint Scope Toggle (top of form) ── */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold">
+                        {lang === "ta" ? "புகார் வகை" : "Complaint Type"} *
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          aria-pressed={complaintScope === "constituency"}
+                          onClick={() => { setComplaintScope("constituency"); form.setValue("district", ""); form.setValue("assemblyConstituency", ""); }}
+                          className={`rounded-lg border-2 p-3 text-left transition-colors flex items-start gap-2.5 ${complaintScope === "constituency" ? "border-orange-500 bg-orange-50 dark:bg-orange-950/30" : "border-border hover:border-orange-300"}`}
+                        >
+                          <MapPin className={`h-5 w-5 mt-0.5 shrink-0 ${complaintScope === "constituency" ? "text-orange-600" : "text-muted-foreground"}`} />
+                          <div className="min-w-0">
+                            <p className={`font-semibold text-sm ${complaintScope === "constituency" ? "text-orange-700 dark:text-orange-400" : ""}`}>
+                              {lang === "ta" ? "தொகுதி புகார்" : "Constituency Complaint"}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "காரைக்குடி" : "Karaikudi"}</p>
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          aria-pressed={complaintScope === "state"}
+                          onClick={() => { setComplaintScope("state"); form.setValue("ward", ""); form.setValue("areaId", undefined); form.setValue("pollingStationId", undefined); }}
+                          className={`rounded-lg border-2 p-3 text-left transition-colors flex items-start gap-2.5 ${complaintScope === "state" ? "border-orange-500 bg-orange-50 dark:bg-orange-950/30" : "border-border hover:border-orange-300"}`}
+                        >
+                          <Building2 className={`h-5 w-5 mt-0.5 shrink-0 ${complaintScope === "state" ? "text-orange-600" : "text-muted-foreground"}`} />
+                          <div className="min-w-0">
+                            <p className={`font-semibold text-sm ${complaintScope === "state" ? "text-orange-700 dark:text-orange-400" : ""}`}>
+                              {lang === "ta" ? "அமைச்சர் அலுவலகம்" : "Minister's Office"}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "தமிழ்நாடு முழுவதும்" : "All of Tamil Nadu"}</p>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField control={form.control} name="name" render={({ field }) => (
                         <FormItem>
@@ -444,38 +482,7 @@ export default function Grievance({ lang }: GrievanceProps) {
                       </FormItem>
                     )} />
 
-                    {/* ── Complaint Scope Toggle ── */}
-                    <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
-                      <p className="text-sm font-semibold">
-                        {lang === "ta" ? "புகார் எங்கிருந்து?" : "Where is this complaint from?"}
-                      </p>
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          aria-pressed={complaintScope === "constituency"}
-                          onClick={() => { setComplaintScope("constituency"); form.setValue("district", ""); form.setValue("city", ""); }}
-                          className={`rounded-lg border-2 p-3 text-left transition-colors flex items-start gap-2.5 ${complaintScope === "constituency" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
-                        >
-                          <MapPin className={`h-5 w-5 mt-0.5 shrink-0 ${complaintScope === "constituency" ? "text-primary" : "text-muted-foreground"}`} />
-                          <div className="min-w-0">
-                            <p className="font-semibold text-sm">{lang === "ta" ? "தொகுதி புகார்" : "Constituency Complaint"}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "காரைக்குடி" : "Karaikudi"}</p>
-                          </div>
-                        </button>
-                        <button
-                          type="button"
-                          aria-pressed={complaintScope === "state"}
-                          onClick={() => { setComplaintScope("state"); form.setValue("ward", ""); form.setValue("areaId", undefined); form.setValue("pollingStationId", undefined); }}
-                          className={`rounded-lg border-2 p-3 text-left transition-colors flex items-start gap-2.5 ${complaintScope === "state" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
-                        >
-                          <Building2 className={`h-5 w-5 mt-0.5 shrink-0 ${complaintScope === "state" ? "text-primary" : "text-muted-foreground"}`} />
-                          <div className="min-w-0">
-                            <p className="font-semibold text-sm">{lang === "ta" ? "அமைச்சர் அலுவலகம்" : "Minister's Office"}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "தமிழ்நாடு முழுவதும்" : "All of Tamil Nadu"}</p>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
+                    {/* (scope selector moved to top of form) */}
 
                     {/* ── Constituency: Ward + Address ── */}
                     {complaintScope === "constituency" && (
@@ -521,7 +528,10 @@ export default function Grievance({ lang }: GrievanceProps) {
                           <FormField control={form.control} name="district" render={({ field }) => (
                             <FormItem>
                               <FormLabel>{lang === "ta" ? "மாவட்டம்" : "District"} *</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                              <Select
+                                onValueChange={(v) => { field.onChange(v); form.setValue("assemblyConstituency", ""); }}
+                                value={field.value || ""}
+                              >
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder={lang === "ta" ? "மாவட்டத்தை தேர்ந்தெடுங்கள்" : "Select district"} />
@@ -538,13 +548,38 @@ export default function Grievance({ lang }: GrievanceProps) {
                               <FormMessage />
                             </FormItem>
                           )} />
-                          <FormField control={form.control} name="city" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{lang === "ta" ? "நகரம் / ஊர்" : "City / Town"}</FormLabel>
-                              <FormControl><Input placeholder={lang === "ta" ? "நகரம் அல்லது ஊரின் பெயர்" : "City or town name"} {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
+                          <FormField control={form.control} name="assemblyConstituency" render={({ field }) => {
+                            const district = form.watch("district") || "";
+                            const constituencies = getConstituenciesForDistrict(district);
+                            return (
+                              <FormItem>
+                                <FormLabel>{lang === "ta" ? "சட்டமன்றத் தொகுதி" : "Assembly Constituency"}</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value || ""}
+                                  disabled={!district || constituencies.length === 0}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder={
+                                        !district
+                                          ? (lang === "ta" ? "முதலில் மாவட்டத்தை தேர்வு செய்யவும்" : "Select district first")
+                                          : (lang === "ta" ? "தொகுதி தேர்வு செய்யவும்" : "Select constituency")
+                                      } />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {constituencies.map((c) => (
+                                      <SelectItem key={c.name} value={c.name}>
+                                        {lang === "ta" ? c.nameTa : c.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }} />
                         </div>
                         <FormField control={form.control} name="address" render={({ field }) => (
                           <FormItem>
