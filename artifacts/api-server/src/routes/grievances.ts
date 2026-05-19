@@ -911,7 +911,15 @@ router.get("/grievances/:id/pdf-assets", requireStaff, async (req: AuthRequest, 
         skippedImages++;
       }
     }
-    const nonImageCount = attachments.filter(a => !a.fileType.startsWith("image/")).length;
+    const nonImageList = attachments.filter(a => !a.fileType.startsWith("image/"));
+    const nonImageCount = nonImageList.length;
+    const nonImageAttachments = nonImageList.map(a => ({
+      id: a.id,
+      fileName: a.fileName,
+      fileType: a.fileType,
+      fileSize: a.fileSize,
+      fileUrl: a.fileUrl,
+    }));
 
     let mapImage: string | null = null;
     if (grievance.latitude != null && grievance.longitude != null) {
@@ -936,6 +944,7 @@ router.get("/grievances/:id/pdf-assets", requireStaff, async (req: AuthRequest, 
       latitude: grievance.latitude,
       longitude: grievance.longitude,
       imageAttachments,
+      nonImageAttachments,
       nonImageCount,
       skippedImageCount: skippedImages,
     });

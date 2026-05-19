@@ -362,43 +362,26 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
-      const M = 14; // margin
+      const M = 14;
       const contentW = pageW - M * 2;
+      const HEADER_H = 22;        // red banner height
+      const CONTENT_TOP = 30;     // first usable y below banner
+      const FOOTER_Y = pageH - 8;
+      const FOOTER_LIMIT = pageH - 14;
+      const generatedAt = new Date().toLocaleString("en-IN");
+      const origin = (typeof window !== "undefined" && window.location?.origin) ? window.location.origin : "";
 
-      // ── Cover / summary page ──────────────────────────────────────
-      doc.setFillColor(201, 24, 30);
-      doc.rect(0, 0, pageW, 28, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(16);
-      doc.text("Karaikudi Constituency — Comprehensive Grievance Report", M, 12);
-      doc.setFontSize(10);
-      doc.text("Office of Dr. T.K. Prabhu, Minister of Minerals & Mines", M, 20);
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(9);
-      doc.text(`Generated: ${new Date().toLocaleString("en-IN")}`, M, 36);
-      doc.text(`Grievances in report: ${targets.length}${selectedIds.size > 0 ? " (selected)" : " (current filter)"}`, M, 41);
-      const filterSummary = [
-        filterStatus && `Status: ${filterStatus}`,
-        filterCategory && `Category: ${filterCategory}`,
-        filterPriority && `Priority: ${filterPriority}`,
-        filterWard && `Ward: ${filterWard}`,
-        filterConstituency && `Constituency: ${filterConstituency}`,
-        filterDateFrom && `From: ${filterDateFrom}`,
-        filterDateTo && `To: ${filterDateTo}`,
-      ].filter(Boolean).join("  |  ") || "No filters applied";
-      doc.text(`Filters: ${filterSummary}`, M, 46);
-
-      // Fetch detail + assets for every target up-front so the cover
-      // table always shows real ticket numbers (even for off-page
-      // selections) and to avoid re-renders mid-build.
       type Assets = {
         mapImage: string | null;
         latitude: number | null;
         longitude: number | null;
         imageAttachments: Array<{ id: number; fileName: string; fileType: string; dataUrl: string }>;
+        nonImageAttachments?: Array<{ id: number; fileName: string; fileType: string; fileSize: number | null; fileUrl: string }>;
         nonImageCount: number;
         skippedImageCount?: number;
       };
+
+      // Fetch all details + assets up-front
       const records: Array<{ detail: StaffGrievanceDetail; assets: Assets | null }> = [];
       for (let i = 0; i < targets.length; i++) {
         setExportProgress({ done: i, total: targets.length });
@@ -410,9 +393,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               .catch(() => null),
           ]);
           records.push({ detail: d, assets: a });
-        } catch {
-          // skip individual failures silently
-        }
+        } catch { /* skip */ }
       }
       setExportProgress({ done: targets.length, total: targets.length });
 
@@ -421,146 +402,181 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
         return;
       }
 
-      // Cover summary table built from real detail data
-      autoTable(doc, {
-        startY: 54,
-        head: [["#", "Ticket", "Petitioner", "Category", "Status", "Priority", "Filed"]],
-        body: records.map(({ detail: d }, i) => [
-          String(i + 1),
-          d.ticketNo,
-          d.anonymous ? "(Anonymous)" : d.name,
-          d.category,
-          d.status,
-          d.priority,
-          new Date(d.createdAt).toLocaleDateString("en-IN"),
-        ]),
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [201, 24, 30] },
-        alternateRowStyles: { fillColor: [248, 248, 248] },
-      });
-
-      // Detect image format from MIME for jsPDF.addImage()
       const formatFromMime = (mime: string): "JPEG" | "PNG" | "WEBP" => {
         if (mime.includes("png")) return "PNG";
         if (mime.includes("webp")) return "WEBP";
         return "JPEG";
       };
 
-      // ── Per-grievance detail pages ────────────────────────────────
+      // Color tables for status pills (RGB)
+      const STATUS_RGB: Record<string, [number, number, number]> = {
+        "Submitted":    [59, 130, 246],
+        "Under Review": [202, 138, 4],
+        "Assigned":     [147, 51, 234],
+        "In Progress":  [234, 88, 12],
+        "Resolved":     [22, 163, 74],
+        "Closed":       [75, 85, 99],
+      };
+      const PRIORITY_RGB: Record<string, [number, number, number]> = {
+        "Low":    [107, 114, 128],
+        "Medium": [59, 130, 246],
+        "High":   [234, 88, 12],
+        "Urgent": [220, 38, 38],
+      };
+      const CATEGORY_RGB: [number, number, number] = [55, 65, 81];
+
+      // Draw a coloured pill at (x, y) and return its right edge.
+      function drawPill(x: number, y: number, label: string, rgb: [number, number, number]): number {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        const padX = 3;
+        const w = doc.getTextWidth(label) + padX * 2;
+        const h = 5.5;
+        doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+        doc.roundedRect(x, y, w, h, 1.4, 1.4, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.text(label, x + padX, y + h - 1.6);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "normal");
+        return x + w;
+      }
+
+      // Track which grievance owns which page range so the post-process
+      // pass can stamp the right ticket # on the header/footer.
+      const pageRanges: Array<{ ticketNo: string; firstPage: number; lastPage: number }> = [];
+      const moveToNewPage = () => {
+        doc.addPage();
+        if (pageRanges.length) pageRanges[pageRanges.length - 1].lastPage = doc.getNumberOfPages();
+        return CONTENT_TOP;
+      };
+      const ensureSpace = (y: number, needed: number): number => {
+        if (y + needed > FOOTER_LIMIT) return moveToNewPage();
+        return y;
+      };
+
+      // ── Render each grievance ────────────────────────────────────
       for (let i = 0; i < records.length; i++) {
         const { detail, assets } = records[i];
 
-        doc.addPage();
-        let y = M;
-
-        // Header band per grievance
-        doc.setFillColor(30, 58, 138);
-        doc.rect(0, 0, pageW, 18, "F");
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(13);
-        doc.text(`#${i + 1} of ${targets.length}  ·  ${detail.ticketNo}`, M, 8);
-        doc.setFontSize(9);
-        doc.text(`${detail.category}  ·  ${detail.status}  ·  ${detail.priority} priority`, M, 14);
-        doc.setTextColor(0, 0, 0);
-        y = 24;
-
-        // Petitioner & meta block (two-column)
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text("Petitioner", M, y);
-        doc.text("Location & Meta", M + contentW / 2, y);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        y += 5;
-        const left = [
-          `Name: ${detail.anonymous ? "(Anonymous)" : detail.name}`,
-          `Phone: ${detail.anonymous ? "—" : detail.phone}`,
-          `Email: ${detail.email || "—"}`,
-          `Voter: ${detail.voter ? `${detail.voter.fullName} (${detail.voter.epicNumber})` : "Not linked"}`,
-          `Booth: ${detail.voter?.boothNo ? `#${detail.voter.boothNo} ${detail.voter.boothName ?? ""}` : "—"}`,
-        ];
-        const right = [
-          `Ward: ${detail.ward || "—"}`,
-          `Constituency: ${detail.constituency}`,
-          `Address: ${detail.address || "—"}`,
-          `Filed: ${new Date(detail.createdAt).toLocaleString("en-IN")}`,
-          `Resolved: ${detail.resolvedAt ? new Date(detail.resolvedAt).toLocaleString("en-IN") : "—"}`,
-        ];
-        const rowH = 4.5;
-        for (let r = 0; r < Math.max(left.length, right.length); r++) {
-          if (left[r])  doc.text(doc.splitTextToSize(left[r],  contentW / 2 - 2), M, y + r * rowH);
-          if (right[r]) doc.text(doc.splitTextToSize(right[r], contentW / 2 - 2), M + contentW / 2, y + r * rowH);
+        if (i === 0) {
+          // First grievance uses page 1 (already created by jsPDF)
+          pageRanges.push({ ticketNo: detail.ticketNo, firstPage: 1, lastPage: 1 });
+        } else {
+          doc.addPage();
+          pageRanges.push({
+            ticketNo: detail.ticketNo,
+            firstPage: doc.getNumberOfPages(),
+            lastPage: doc.getNumberOfPages(),
+          });
         }
-        y += Math.max(left.length, right.length) * rowH + 4;
 
-        // Description — paginate long descriptions across pages so they
-        // never collide with the location block below.
-        doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-        if (y > pageH - 30) { doc.addPage(); y = M; }
-        doc.text("Description", M, y);
+        let y = CONTENT_TOP;
+
+        // Status pills row
+        const statusRgb = STATUS_RGB[detail.status] ?? [107, 114, 128];
+        const priorityRgb = PRIORITY_RGB[detail.priority] ?? [107, 114, 128];
+        let pillX = M;
+        pillX = drawPill(pillX, y, detail.status, statusRgb) + 3;
+        pillX = drawPill(pillX, y, `${detail.priority} priority`, priorityRgb) + 3;
+        drawPill(pillX, y, detail.category, CATEGORY_RGB);
+        y += 9;
+
+        // District derived from constituency (no district column in schema)
+        const district = detail.constituency === "Karaikudi" ? "Sivaganga" : "—";
+
+        // Petitioner & filing details table
+        autoTable(doc, {
+          startY: y,
+          head: [["Field", "Value"]],
+          body: [
+            ["Name",          detail.anonymous ? "(Anonymous)" : detail.name],
+            ["Phone",         detail.anonymous ? "—" : detail.phone],
+            ["Email",         detail.email || "—"],
+            ["Filed",         new Date(detail.createdAt).toLocaleString("en-IN")],
+            ["Last updated",  new Date(detail.updatedAt).toLocaleString("en-IN")],
+            ["Resolved",      detail.resolvedAt ? new Date(detail.resolvedAt).toLocaleString("en-IN") : "—"],
+            ["Scope",         detail.constituency === "Tamil Nadu" ? "Tamil Nadu State (Minerals & Mines)" : "Karaikudi Constituency"],
+            ["District",      district],
+            ["Constituency",  detail.constituency],
+            ["Ward",          detail.ward || "—"],
+            ["Address",       detail.address || "—"],
+            ["Linked voter",  detail.voter ? `${detail.voter.fullName} (EPIC: ${detail.voter.epicNumber})${detail.voter.boothNo ? ` — Booth #${detail.voter.boothNo}${detail.voter.boothName ? " " + detail.voter.boothName : ""}` : ""}` : "Not linked"],
+          ],
+          styles: { fontSize: 8.5, cellPadding: 1.6, valign: "top" },
+          headStyles: { fillColor: [201, 24, 30], fontSize: 9 },
+          columnStyles: { 0: { cellWidth: 36, fontStyle: "bold" }, 1: { cellWidth: contentW - 36 } },
+          margin: { left: M, right: M, top: CONTENT_TOP, bottom: 14 },
+          didDrawPage: () => {
+            if (pageRanges.length) pageRanges[pageRanges.length - 1].lastPage = doc.getNumberOfPages();
+          },
+        });
+        y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+        // Description (paginated)
+        y = ensureSpace(y, 10);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
+        doc.text("Grievance description", M, y);
         y += 5;
-        doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9.5);
         const descLines = doc.splitTextToSize(detail.description || "—", contentW - 4);
-        const lineH = 4.2;
-        let descIdx = 0;
-        while (descIdx < descLines.length) {
-          const remaining = pageH - M - y - 4;
+        const lineH = 4.4;
+        let idx = 0;
+        while (idx < descLines.length) {
+          const remaining = FOOTER_LIMIT - y - 4;
           const fitLines = Math.max(1, Math.floor(remaining / lineH));
-          const chunk = descLines.slice(descIdx, descIdx + fitLines);
+          const chunk = descLines.slice(idx, idx + fitLines);
           doc.setFillColor(246, 246, 246);
-          doc.rect(M, y - 3.5, contentW, chunk.length * lineH + 4, "F");
+          doc.rect(M, y - 3.6, contentW, chunk.length * lineH + 4, "F");
           doc.text(chunk, M + 2, y);
-          descIdx += chunk.length;
+          idx += chunk.length;
           y += chunk.length * lineH + 4;
-          if (descIdx < descLines.length) { doc.addPage(); y = M; }
+          if (idx < descLines.length) y = moveToNewPage();
         }
         y += 2;
 
-        // Location block (map + coords)
-        doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-        doc.text("Location", M, y);
-        y += 5;
-        doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+        // GPS Location
         if (detail.latitude != null && detail.longitude != null) {
+          y = ensureSpace(y, 100);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
+          doc.text("GPS Location", M, y);
+          y += 5;
+          doc.setFont("helvetica", "normal"); doc.setFontSize(9.5);
           doc.text(
-            `Latitude: ${detail.latitude.toFixed(6)}    Longitude: ${detail.longitude.toFixed(6)}`,
+            `Latitude: ${detail.latitude.toFixed(6)}     Longitude: ${detail.longitude.toFixed(6)}`,
             M, y,
           );
-          y += 4;
+          y += 5;
+          if (assets?.mapImage) {
+            const mapW = Math.min(contentW, 156);
+            const mapH = 78;
+            y = ensureSpace(y, mapH + 6);
+            try {
+              doc.addImage(assets.mapImage, M, y, mapW, mapH);
+              y += mapH + 4;
+            } catch {
+              doc.setTextColor(120, 120, 120);
+              doc.text("(Static map unavailable)", M, y);
+              doc.setTextColor(0, 0, 0);
+              y += 5;
+            }
+          } else {
+            doc.setTextColor(120, 120, 120);
+            doc.text("(Static map preview unavailable — use the link below)", M, y);
+            doc.setTextColor(0, 0, 0);
+            y += 5;
+          }
           const mapsUrl = `https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`;
           doc.setTextColor(30, 58, 138);
           doc.textWithLink("Open in Google Maps →", M, y, { url: mapsUrl });
           doc.setTextColor(0, 0, 0);
-          y += 4;
-          if (assets?.mapImage) {
-            const mapW = Math.min(contentW, 140);
-            const mapH = mapW * 0.5;
-            if (y + mapH > pageH - M) { doc.addPage(); y = M; }
-            try {
-              doc.addImage(assets.mapImage, M, y, mapW, mapH);
-              y += mapH + 5;
-            } catch {
-              doc.text("(Static map unavailable)", M, y); y += 5;
-            }
-          } else {
-            doc.setTextColor(120, 120, 120);
-            doc.text("(Static map preview unavailable — use the link above)", M, y);
-            doc.setTextColor(0, 0, 0);
-            y += 5;
-          }
-        } else {
-          doc.setTextColor(120, 120, 120);
-          doc.text("No GPS location was provided by the citizen.", M, y);
-          doc.setTextColor(0, 0, 0);
-          y += 5;
+          y += 6;
         }
-        y += 2;
 
-        // Embedded image attachments
+        // Attached Photos
         if (assets && assets.imageAttachments.length > 0) {
-          if (y > pageH - 60) { doc.addPage(); y = M; }
-          doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-          doc.text(`Photo evidence (${assets.imageAttachments.length})`, M, y);
+          y = ensureSpace(y, 50);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
+          doc.text(`Attached photos (${assets.imageAttachments.length}${assets.skippedImageCount ? ` of ${assets.imageAttachments.length + assets.skippedImageCount}` : ""})`, M, y);
           y += 5;
           const cols = 2;
           const gap = 4;
@@ -570,14 +586,14 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
             const att = assets.imageAttachments[k];
             const col = k % cols;
             const x = M + col * (imgW + gap);
-            if (col === 0 && y + imgH > pageH - M - 6) { doc.addPage(); y = M; }
+            if (col === 0) y = ensureSpace(y, imgH + 8);
             try {
               doc.addImage(att.dataUrl, formatFromMime(att.fileType), x, y, imgW, imgH, undefined, "FAST");
             } catch {
               doc.setDrawColor(200); doc.rect(x, y, imgW, imgH);
               doc.setFontSize(8); doc.text("Image unavailable", x + 2, y + imgH / 2);
             }
-            doc.setFont("helvetica", "normal"); doc.setFontSize(7);
+            doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
             const cap = doc.splitTextToSize(att.fileName, imgW);
             doc.text(cap.slice(0, 1), x, y + imgH + 3);
             if (col === cols - 1 || k === assets.imageAttachments.length - 1) {
@@ -585,44 +601,33 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
             }
           }
         }
-        if (assets && assets.nonImageCount > 0) {
-          if (y > pageH - 14) { doc.addPage(); y = M; }
-          doc.setFontSize(8); doc.setTextColor(80, 80, 80);
-          doc.text(
-            `+ ${assets.nonImageCount} non-image attachment(s) — view in admin portal.`,
-            M, y,
-          );
-          doc.setTextColor(0, 0, 0);
+
+        // Non-image attachments with clickable "open" links
+        const nonImg = assets?.nonImageAttachments ?? [];
+        if (nonImg.length > 0) {
+          y = ensureSpace(y, 12);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+          doc.text(`Other attachments (${nonImg.length})`, M, y);
           y += 5;
+          doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+          for (const att of nonImg) {
+            y = ensureSpace(y, 5);
+            const sizeKb = att.fileSize ? ` · ${Math.max(1, Math.round(att.fileSize / 1024))} KB` : "";
+            const label = `• ${att.fileName} (${att.fileType}${sizeKb})  `;
+            doc.text(label, M, y);
+            const linkX = M + doc.getTextWidth(label);
+            doc.setTextColor(30, 58, 138);
+            doc.textWithLink("open", linkX, y, { url: origin + att.fileUrl });
+            doc.setTextColor(0, 0, 0);
+            y += 4.5;
+          }
+          y += 2;
         }
 
-        // Remarks
-        if (detail.remarks.length > 0) {
-          if (y > pageH - 30) { doc.addPage(); y = M; }
-          doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-          doc.text(`Remarks (${detail.remarks.length})`, M, y);
-          y += 4;
-          autoTable(doc, {
-            startY: y,
-            head: [["When", "Author", "Visibility", "Remark"]],
-            body: detail.remarks.map(r => [
-              new Date(r.createdAt).toLocaleString("en-IN"),
-              r.authorName,
-              r.isPublic ? "Public" : "Internal",
-              r.remark,
-            ]),
-            styles: { fontSize: 8, cellWidth: "wrap" },
-            columnStyles: { 3: { cellWidth: contentW - 80 } },
-            headStyles: { fillColor: [30, 58, 138] },
-            margin: { left: M, right: M },
-          });
-          y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
-        }
-
-        // Status timeline
+        // Status Timeline
         if (detail.statusLog.length > 0) {
-          if (y > pageH - 30) { doc.addPage(); y = M; }
-          doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+          y = ensureSpace(y, 18);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
           doc.text(`Status timeline (${detail.statusLog.length})`, M, y);
           y += 4;
           autoTable(doc, {
@@ -634,28 +639,84 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               `${s.fromStatus ?? "—"} → ${s.toStatus}`,
               s.note ?? "",
             ]),
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [30, 58, 138] },
-            margin: { left: M, right: M },
+            styles: { fontSize: 8, cellPadding: 1.4 },
+            headStyles: { fillColor: [201, 24, 30] },
+            margin: { left: M, right: M, top: CONTENT_TOP, bottom: 14 },
+            didDrawPage: () => {
+              if (pageRanges.length) pageRanges[pageRanges.length - 1].lastPage = doc.getNumberOfPages();
+            },
+          });
+          y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+        }
+
+        // Remarks
+        if (detail.remarks.length > 0) {
+          y = ensureSpace(y, 18);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
+          doc.text(`Remarks (${detail.remarks.length})`, M, y);
+          y += 4;
+          autoTable(doc, {
+            startY: y,
+            head: [["When", "Author", "Visibility", "Remark"]],
+            body: detail.remarks.map(r => [
+              new Date(r.createdAt).toLocaleString("en-IN"),
+              r.authorName,
+              r.isPublic ? "Public" : "Internal",
+              r.remark,
+            ]),
+            styles: { fontSize: 8, cellPadding: 1.4, valign: "top" },
+            columnStyles: { 3: { cellWidth: contentW - 80 } },
+            headStyles: { fillColor: [201, 24, 30] },
+            margin: { left: M, right: M, top: CONTENT_TOP, bottom: 14 },
+            didDrawPage: () => {
+              if (pageRanges.length) pageRanges[pageRanges.length - 1].lastPage = doc.getNumberOfPages();
+            },
           });
         }
+
+        // Make sure the range covers the final page reached
+        pageRanges[pageRanges.length - 1].lastPage = doc.getNumberOfPages();
       }
 
-      // ── Page numbers ──────────────────────────────────────────────
+      // ── Post-process: branded header + footer on every page ──────
       const pageCount = doc.getNumberOfPages();
+      const findTicket = (page: number) => {
+        const r = pageRanges.find(rg => page >= rg.firstPage && page <= rg.lastPage);
+        return r?.ticketNo ?? "";
+      };
       for (let p = 1; p <= pageCount; p++) {
         doc.setPage(p);
+        const ticket = findTicket(p);
+
+        // Red header band
+        doc.setFillColor(201, 24, 30);
+        doc.rect(0, 0, pageW, HEADER_H, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+        doc.text("Nirmal Connect — Grievance Report", M, 9);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+        doc.text("Office of Dr. T.K. Prabhu, Minister of Minerals & Mines", M, 14);
+        doc.setFontSize(7.5);
+        doc.text(`Generated: ${generatedAt}  ·  Confidential`, M, 19);
+        // Ticket # top-right
+        doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+        doc.text(ticket, pageW - M, 9, { align: "right" });
+        doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
+        doc.text("Ticket #", pageW - M, 14, { align: "right" });
+        doc.setTextColor(0, 0, 0);
+
+        // Footer: ticket# · page X of Y
         doc.setFontSize(8); doc.setTextColor(120, 120, 120);
-        doc.text(`Page ${p} of ${pageCount}`, pageW - M, pageH - 6, { align: "right" });
-        doc.text("Confidential — Office of Dr. T.K. Prabhu", M, pageH - 6);
+        const footerText = `${ticket} · page ${p} of ${pageCount}`;
+        doc.text(footerText, pageW / 2, FOOTER_Y, { align: "center" });
         doc.setTextColor(0, 0, 0);
       }
 
       const today = new Date().toISOString().slice(0, 10);
       const filename = records.length === 1
-        ? `${records[0].detail.ticketNo}.pdf`
+        ? `grievance-${records[0].detail.ticketNo}.pdf`
         : opts?.ticketHint
-          ? `${opts.ticketHint}.pdf`
+          ? `grievance-${opts.ticketHint}.pdf`
           : `grievances-comprehensive-${today}.pdf`;
       doc.save(filename);
     } finally {
@@ -751,7 +812,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
             variant="outline"
             size="sm"
             className="gap-1.5 h-8"
-            onClick={exportPDF}
+            onClick={() => exportPDF()}
             disabled={exportingPdf}
             data-testid="export-comprehensive-pdf"
             title={
