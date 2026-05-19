@@ -294,8 +294,11 @@ export default function Grievance({ lang }: GrievanceProps) {
       setAttachedFiles([]);
       setGps(null);
     },
-    onError: () => {
-      form.setError("root", { message: lang === "ta" ? "சேவை தடைபட்டது. மீண்டும் முயற்சிக்கவும்." : "Service error. Please try again." });
+    onError: (err: unknown) => {
+      const detail = err instanceof Error ? err.message : String(err ?? "");
+      const baseMsg = lang === "ta" ? "சேவை தடைபட்டது. மீண்டும் முயற்சிக்கவும்." : "Service error. Please try again.";
+      form.setError("root", { message: detail ? `${baseMsg} (${detail})` : baseMsg });
+      if (typeof console !== "undefined") console.error("[grievance submit] failed:", err);
     },
   });
 
