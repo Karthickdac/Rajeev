@@ -321,35 +321,338 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
     URL.revokeObjectURL(url);
   }
 
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportProgress, setExportProgress] = useState<{ done: number; total: number } | null>(null);
+
   async function exportPDF() {
-    const { default: jsPDF } = await import("jspdf");
-    const { default: autoTable } = await import("jspdf-autotable");
-    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    doc.setFontSize(16);
-    doc.text("Karaikudi Constituency — Grievance Report", 14, 15);
-    doc.setFontSize(9);
-    doc.text(`Generated: ${new Date().toLocaleString("en-IN")} | Filters: ${filterStatus || "All"} | ${filterCategory || "All categories"}`, 14, 22);
+    if (exportingPdf) return;
+    const items = data?.items ?? [];
+    // If selections exist, export all of them across pages (resolve
+    // IDs not present on the current page by fetching detail).
+    // Otherwise export the current filtered page.
+    type Target = { id: number; ticketNo?: string; name?: string; category?: string; status?: string; priority?: string; createdAt?: string };
+    const targets: Target[] = selectedIds.size > 0
+      ? Array.from(selectedIds).map(id => {
+          const onPage = items.find(i => i.id === id);
+          return onPage ?? { id };
+        })
+      : items;
+    if (targets.length === 0) {
+      alert(lang === "ta" ? "ஏற்றுமதி செய்ய புகார்கள் இல்லை" : "No grievances to export");
+      return;
+    }
+    if (targets.length > 50) {
+      const ok = confirm(
+        lang === "ta"
+          ? `${targets.length} புகார்களை ஏற்றுமதி செய்ய சில நிமிடங்கள் ஆகலாம். தொடரவா?`
+          : `Exporting ${targets.length} grievances may take a few minutes. Continue?`
+      );
+      if (!ok) return;
+    }
 
-    const rows = (data?.items ?? []).map(g => [
-      g.ticketNo,
-      g.name,
-      g.category,
-      g.status,
-      g.priority,
-      g.ward ?? "",
-      new Date(g.createdAt).toLocaleDateString("en-IN"),
-    ]);
+    setExportingPdf(true);
+    setExportProgress({ done: 0, total: targets.length });
 
-    autoTable(doc, {
-      startY: 27,
-      head: [["Ticket #", "Petitioner", "Category", "Status", "Priority", "Ward", "Filed On"]],
-      body: rows,
-      styles: { fontSize: 7.5 },
-      headStyles: { fillColor: [30, 58, 138] },
-      alternateRowStyles: { fillColor: [245, 247, 250] },
-    });
+    try {
+      const { default: jsPDF } = await import("jspdf");
+      const { default: autoTable } = await import("jspdf-autotable");
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const M = 14; // margin
+      const contentW = pageW - M * 2;
 
-    doc.save(`grievances-${new Date().toISOString().slice(0, 10)}.pdf`);
+      // ── Cover / summary page ──────────────────────────────────────
+      doc.setFillColor(201, 24, 30);
+      doc.rect(0, 0, pageW, 28, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.text("Karaikudi Constituency — Comprehensive Grievance Report", M, 12);
+      doc.setFontSize(10);
+      doc.text("Office of Dr. T.K. Prabhu, Minister of Minerals & Mines", M, 20);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(9);
+      doc.text(`Generated: ${new Date().toLocaleString("en-IN")}`, M, 36);
+      doc.text(`Grievances in report: ${targets.length}${selectedIds.size > 0 ? " (selected)" : " (current filter)"}`, M, 41);
+      const filterSummary = [
+        filterStatus && `Status: ${filterStatus}`,
+        filterCategory && `Category: ${filterCategory}`,
+        filterPriority && `Priority: ${filterPriority}`,
+        filterWard && `Ward: ${filterWard}`,
+        filterConstituency && `Constituency: ${filterConstituency}`,
+        filterDateFrom && `From: ${filterDateFrom}`,
+        filterDateTo && `To: ${filterDateTo}`,
+      ].filter(Boolean).join("  |  ") || "No filters applied";
+      doc.text(`Filters: ${filterSummary}`, M, 46);
+
+      // Fetch detail + assets for every target up-front so the cover
+      // table always shows real ticket numbers (even for off-page
+      // selections) and to avoid re-renders mid-build.
+      type Assets = {
+        mapImage: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        imageAttachments: Array<{ id: number; fileName: string; fileType: string; dataUrl: string }>;
+        nonImageCount: number;
+        skippedImageCount?: number;
+      };
+      const records: Array<{ detail: StaffGrievanceDetail; assets: Assets | null }> = [];
+      for (let i = 0; i < targets.length; i++) {
+        setExportProgress({ done: i, total: targets.length });
+        try {
+          const [d, a] = await Promise.all([
+            fetchStaffDetail(targets[i].id, token),
+            fetch(`/api/grievances/${targets[i].id}/pdf-assets`, { headers: makeAuthHeaders(token) })
+              .then(r => r.ok ? r.json() as Promise<Assets> : null)
+              .catch(() => null),
+          ]);
+          records.push({ detail: d, assets: a });
+        } catch {
+          // skip individual failures silently
+        }
+      }
+      setExportProgress({ done: targets.length, total: targets.length });
+
+      if (records.length === 0) {
+        alert(lang === "ta" ? "எந்த புகாரும் ஏற்றப்படவில்லை" : "Could not load any grievance details");
+        return;
+      }
+
+      // Cover summary table built from real detail data
+      autoTable(doc, {
+        startY: 54,
+        head: [["#", "Ticket", "Petitioner", "Category", "Status", "Priority", "Filed"]],
+        body: records.map(({ detail: d }, i) => [
+          String(i + 1),
+          d.ticketNo,
+          d.anonymous ? "(Anonymous)" : d.name,
+          d.category,
+          d.status,
+          d.priority,
+          new Date(d.createdAt).toLocaleDateString("en-IN"),
+        ]),
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [201, 24, 30] },
+        alternateRowStyles: { fillColor: [248, 248, 248] },
+      });
+
+      // Detect image format from MIME for jsPDF.addImage()
+      const formatFromMime = (mime: string): "JPEG" | "PNG" | "WEBP" => {
+        if (mime.includes("png")) return "PNG";
+        if (mime.includes("webp")) return "WEBP";
+        return "JPEG";
+      };
+
+      // ── Per-grievance detail pages ────────────────────────────────
+      for (let i = 0; i < records.length; i++) {
+        const { detail, assets } = records[i];
+
+        doc.addPage();
+        let y = M;
+
+        // Header band per grievance
+        doc.setFillColor(30, 58, 138);
+        doc.rect(0, 0, pageW, 18, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(13);
+        doc.text(`#${i + 1} of ${targets.length}  ·  ${detail.ticketNo}`, M, 8);
+        doc.setFontSize(9);
+        doc.text(`${detail.category}  ·  ${detail.status}  ·  ${detail.priority} priority`, M, 14);
+        doc.setTextColor(0, 0, 0);
+        y = 24;
+
+        // Petitioner & meta block (two-column)
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("Petitioner", M, y);
+        doc.text("Location & Meta", M + contentW / 2, y);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        y += 5;
+        const left = [
+          `Name: ${detail.anonymous ? "(Anonymous)" : detail.name}`,
+          `Phone: ${detail.anonymous ? "—" : detail.phone}`,
+          `Email: ${detail.email || "—"}`,
+          `Voter: ${detail.voter ? `${detail.voter.fullName} (${detail.voter.epicNumber})` : "Not linked"}`,
+          `Booth: ${detail.voter?.boothNo ? `#${detail.voter.boothNo} ${detail.voter.boothName ?? ""}` : "—"}`,
+        ];
+        const right = [
+          `Ward: ${detail.ward || "—"}`,
+          `Constituency: ${detail.constituency}`,
+          `Address: ${detail.address || "—"}`,
+          `Filed: ${new Date(detail.createdAt).toLocaleString("en-IN")}`,
+          `Resolved: ${detail.resolvedAt ? new Date(detail.resolvedAt).toLocaleString("en-IN") : "—"}`,
+        ];
+        const rowH = 4.5;
+        for (let r = 0; r < Math.max(left.length, right.length); r++) {
+          if (left[r])  doc.text(doc.splitTextToSize(left[r],  contentW / 2 - 2), M, y + r * rowH);
+          if (right[r]) doc.text(doc.splitTextToSize(right[r], contentW / 2 - 2), M + contentW / 2, y + r * rowH);
+        }
+        y += Math.max(left.length, right.length) * rowH + 4;
+
+        // Description — paginate long descriptions across pages so they
+        // never collide with the location block below.
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+        if (y > pageH - 30) { doc.addPage(); y = M; }
+        doc.text("Description", M, y);
+        y += 5;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+        const descLines = doc.splitTextToSize(detail.description || "—", contentW - 4);
+        const lineH = 4.2;
+        let descIdx = 0;
+        while (descIdx < descLines.length) {
+          const remaining = pageH - M - y - 4;
+          const fitLines = Math.max(1, Math.floor(remaining / lineH));
+          const chunk = descLines.slice(descIdx, descIdx + fitLines);
+          doc.setFillColor(246, 246, 246);
+          doc.rect(M, y - 3.5, contentW, chunk.length * lineH + 4, "F");
+          doc.text(chunk, M + 2, y);
+          descIdx += chunk.length;
+          y += chunk.length * lineH + 4;
+          if (descIdx < descLines.length) { doc.addPage(); y = M; }
+        }
+        y += 2;
+
+        // Location block (map + coords)
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+        doc.text("Location", M, y);
+        y += 5;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+        if (detail.latitude != null && detail.longitude != null) {
+          doc.text(
+            `Latitude: ${detail.latitude.toFixed(6)}    Longitude: ${detail.longitude.toFixed(6)}`,
+            M, y,
+          );
+          y += 4;
+          const mapsUrl = `https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`;
+          doc.setTextColor(30, 58, 138);
+          doc.textWithLink("Open in Google Maps →", M, y, { url: mapsUrl });
+          doc.setTextColor(0, 0, 0);
+          y += 4;
+          if (assets?.mapImage) {
+            const mapW = Math.min(contentW, 140);
+            const mapH = mapW * 0.5;
+            if (y + mapH > pageH - M) { doc.addPage(); y = M; }
+            try {
+              doc.addImage(assets.mapImage, M, y, mapW, mapH);
+              y += mapH + 5;
+            } catch {
+              doc.text("(Static map unavailable)", M, y); y += 5;
+            }
+          } else {
+            doc.setTextColor(120, 120, 120);
+            doc.text("(Static map preview unavailable — use the link above)", M, y);
+            doc.setTextColor(0, 0, 0);
+            y += 5;
+          }
+        } else {
+          doc.setTextColor(120, 120, 120);
+          doc.text("No GPS location was provided by the citizen.", M, y);
+          doc.setTextColor(0, 0, 0);
+          y += 5;
+        }
+        y += 2;
+
+        // Embedded image attachments
+        if (assets && assets.imageAttachments.length > 0) {
+          if (y > pageH - 60) { doc.addPage(); y = M; }
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+          doc.text(`Photo evidence (${assets.imageAttachments.length})`, M, y);
+          y += 5;
+          const cols = 2;
+          const gap = 4;
+          const imgW = (contentW - gap * (cols - 1)) / cols;
+          const imgH = imgW * 0.7;
+          for (let k = 0; k < assets.imageAttachments.length; k++) {
+            const att = assets.imageAttachments[k];
+            const col = k % cols;
+            const x = M + col * (imgW + gap);
+            if (col === 0 && y + imgH > pageH - M - 6) { doc.addPage(); y = M; }
+            try {
+              doc.addImage(att.dataUrl, formatFromMime(att.fileType), x, y, imgW, imgH, undefined, "FAST");
+            } catch {
+              doc.setDrawColor(200); doc.rect(x, y, imgW, imgH);
+              doc.setFontSize(8); doc.text("Image unavailable", x + 2, y + imgH / 2);
+            }
+            doc.setFont("helvetica", "normal"); doc.setFontSize(7);
+            const cap = doc.splitTextToSize(att.fileName, imgW);
+            doc.text(cap.slice(0, 1), x, y + imgH + 3);
+            if (col === cols - 1 || k === assets.imageAttachments.length - 1) {
+              y += imgH + 8;
+            }
+          }
+        }
+        if (assets && assets.nonImageCount > 0) {
+          if (y > pageH - 14) { doc.addPage(); y = M; }
+          doc.setFontSize(8); doc.setTextColor(80, 80, 80);
+          doc.text(
+            `+ ${assets.nonImageCount} non-image attachment(s) — view in admin portal.`,
+            M, y,
+          );
+          doc.setTextColor(0, 0, 0);
+          y += 5;
+        }
+
+        // Remarks
+        if (detail.remarks.length > 0) {
+          if (y > pageH - 30) { doc.addPage(); y = M; }
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+          doc.text(`Remarks (${detail.remarks.length})`, M, y);
+          y += 4;
+          autoTable(doc, {
+            startY: y,
+            head: [["When", "Author", "Visibility", "Remark"]],
+            body: detail.remarks.map(r => [
+              new Date(r.createdAt).toLocaleString("en-IN"),
+              r.authorName,
+              r.isPublic ? "Public" : "Internal",
+              r.remark,
+            ]),
+            styles: { fontSize: 8, cellWidth: "wrap" },
+            columnStyles: { 3: { cellWidth: contentW - 80 } },
+            headStyles: { fillColor: [30, 58, 138] },
+            margin: { left: M, right: M },
+          });
+          y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+        }
+
+        // Status timeline
+        if (detail.statusLog.length > 0) {
+          if (y > pageH - 30) { doc.addPage(); y = M; }
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+          doc.text(`Status timeline (${detail.statusLog.length})`, M, y);
+          y += 4;
+          autoTable(doc, {
+            startY: y,
+            head: [["When", "By", "Change", "Note"]],
+            body: detail.statusLog.map(s => [
+              new Date(s.createdAt).toLocaleString("en-IN"),
+              s.changedByName,
+              `${s.fromStatus ?? "—"} → ${s.toStatus}`,
+              s.note ?? "",
+            ]),
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [30, 58, 138] },
+            margin: { left: M, right: M },
+          });
+        }
+      }
+
+      // ── Page numbers ──────────────────────────────────────────────
+      const pageCount = doc.getNumberOfPages();
+      for (let p = 1; p <= pageCount; p++) {
+        doc.setPage(p);
+        doc.setFontSize(8); doc.setTextColor(120, 120, 120);
+        doc.text(`Page ${p} of ${pageCount}`, pageW - M, pageH - 6, { align: "right" });
+        doc.text("Confidential — Office of Dr. T.K. Prabhu", M, pageH - 6);
+        doc.setTextColor(0, 0, 0);
+      }
+
+      doc.save(`grievances-comprehensive-${new Date().toISOString().slice(0, 10)}.pdf`);
+    } finally {
+      setExportingPdf(false);
+      setExportProgress(null);
+    }
   }
 
   function toggleSelect(id: number) {
@@ -435,9 +738,25 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
             <FileText className="w-3.5 h-3.5" />
             {lang === "ta" ? "CSV ஏற்றுமதி" : "Export CSV"}
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5 h-8" onClick={exportPDF}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 h-8"
+            onClick={exportPDF}
+            disabled={exportingPdf}
+            data-testid="export-comprehensive-pdf"
+            title={
+              selectedIds.size > 0
+                ? `Export ${selectedIds.size} selected as comprehensive PDF (with photos & map)`
+                : "Export current page as comprehensive PDF (with photos & map)"
+            }
+          >
             <FileDown className="w-3.5 h-3.5" />
-            {lang === "ta" ? "PDF ஏற்றுமதி" : "Export PDF"}
+            {exportingPdf && exportProgress
+              ? (lang === "ta"
+                  ? `PDF... ${exportProgress.done}/${exportProgress.total}`
+                  : `Building PDF… ${exportProgress.done}/${exportProgress.total}`)
+              : (lang === "ta" ? "PDF ஏற்றுமதி" : "Export PDF")}
           </Button>
         </div>
       </div>

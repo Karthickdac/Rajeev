@@ -872,4 +872,77 @@ router.delete("/admin/grievances/:id/voter", requireStaff, async (req: AuthReque
   }
 });
 
+// GET /api/grievances/:id/pdf-assets — staff only.
+// Returns base64-encoded image attachments + a static map of the GPS
+// location so the client can embed them directly in a generated PDF
+// without dealing with CORS, auth, or cross-origin canvas tainting.
+router.get("/grievances/:id/pdf-assets", requireStaff, async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+
+    const [grievance] = await db.select().from(grievancesTable)
+      .where(eq(grievancesTable.id, id)).limit(1);
+    if (!grievance) { res.status(404).json({ error: "Grievance not found" }); return; }
+
+    const attachments = await db.select().from(grievanceAttachmentsTable)
+      .where(eq(grievanceAttachmentsTable.grievanceId, id))
+      .orderBy(grievanceAttachmentsTable.createdAt);
+
+    const imageAttachments: Array<{ id: number; fileName: string; fileType: string; dataUrl: string }> = [];
+    let skippedImages = 0;
+    for (const a of attachments) {
+      if (!a.fileType.startsWith("image/")) continue;
+      if (imageAttachments.length >= 8) { skippedImages++; continue; }
+      const filename = a.fileUrl.replace(/^\/uploads\/grievances\//, "");
+      const filePath = path.join(uploadsDir, filename);
+      try {
+        const buf = await fs.promises.readFile(filePath);
+        // Cap each image at ~2MB to keep PDF size reasonable
+        if (buf.length > 2 * 1024 * 1024) { skippedImages++; continue; }
+        imageAttachments.push({
+          id: a.id,
+          fileName: a.fileName,
+          fileType: a.fileType,
+          dataUrl: `data:${a.fileType};base64,${buf.toString("base64")}`,
+        });
+      } catch {
+        // Missing on disk — count as skipped
+        skippedImages++;
+      }
+    }
+    const nonImageCount = attachments.filter(a => !a.fileType.startsWith("image/")).length;
+
+    let mapImage: string | null = null;
+    if (grievance.latitude != null && grievance.longitude != null) {
+      try {
+        const url = `https://staticmap.openstreetmap.de/staticmap.php?center=${grievance.latitude},${grievance.longitude}&zoom=16&size=600x300&markers=${grievance.latitude},${grievance.longitude},red-pushpin`;
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        const mr = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (mr.ok) {
+          const ab = await mr.arrayBuffer();
+          const ct = mr.headers.get("content-type") ?? "image/png";
+          mapImage = `data:${ct};base64,${Buffer.from(ab).toString("base64")}`;
+        }
+      } catch {
+        // Map service unavailable — PDF will fall back to coords + link
+      }
+    }
+
+    res.json({
+      mapImage,
+      latitude: grievance.latitude,
+      longitude: grievance.longitude,
+      imageAttachments,
+      nonImageCount,
+      skippedImageCount: skippedImages,
+    });
+  } catch (err) {
+    console.error("[grievances] pdf-assets error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;
