@@ -28,22 +28,40 @@ import { z } from "zod";
 
 const router = Router();
 
-// Resolve uploads dir relative to this module — NOT process.cwd() —
-// so that the path is stable regardless of how the server is launched
-// (pm2, systemd, dev script, etc.). The bundled output lives in
-// `<api-server>/dist/index.mjs`, so `..` points back to the api-server
-// root, where the uploads folder sits next to dist/.
+// Resolve uploads dir. Historically `app.ts` serves `/uploads/*` from
+// `path.resolve(process.cwd(), "uploads")`, so files actually live under
+// whatever directory PM2 (or the dev script) is launched from. To stay in
+// lock-step with that mount AND with our newer module-relative layout,
+// try multiple candidate roots in order and pick the first that exists.
 // Override with UPLOADS_DIR env var if a different mount is required.
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-const defaultUploadsRoot = path.resolve(moduleDir, "..", "uploads");
-const uploadsRoot = process.env.UPLOADS_DIR
-  ? path.resolve(process.env.UPLOADS_DIR)
-  : defaultUploadsRoot;
+function pickUploadsRoot(): string {
+  if (process.env.UPLOADS_DIR) return path.resolve(process.env.UPLOADS_DIR);
+  const candidates = [
+    path.resolve(process.cwd(), "uploads"),       // matches app.ts static mount
+    path.resolve(moduleDir, "..", "uploads"),     // <api-server>/uploads (next to dist/)
+    path.resolve(moduleDir, "..", "..", "uploads"), // <api-server>/dist/.. one extra hop
+  ];
+  // Prefer a candidate that actually contains the grievances folder with files.
+  for (const c of candidates) {
+    const g = path.join(c, "grievances");
+    try {
+      if (fs.existsSync(g) && fs.readdirSync(g).length > 0) return c;
+    } catch { /* ignore */ }
+  }
+  // Otherwise prefer a candidate that at least exists.
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return candidates[0];
+}
+const uploadsRoot = pickUploadsRoot();
 const uploadsDir = path.join(uploadsRoot, "grievances");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 try {
   const count = fs.readdirSync(uploadsDir).length;
   console.log(`[grievances] uploads dir resolved: ${uploadsDir} (${count} file(s) present)`);
+  console.log(`[grievances] uploads candidates tried (in order): cwd-uploads=${path.resolve(process.cwd(), "uploads")}, module-uploads=${path.resolve(moduleDir, "..", "uploads")}`);
 } catch (err) {
   console.warn(`[grievances] uploads dir resolved: ${uploadsDir} (not readable: ${(err as Error).message})`);
 }
