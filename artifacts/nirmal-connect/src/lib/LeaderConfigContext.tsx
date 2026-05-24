@@ -29,7 +29,7 @@ export const DEFAULT_LEADER_CONFIG: LeaderConfig = {
   nameEn: "D. Logesh Tamilselvan",
   nameTa: "டி. லோகேஷ் தமிழ்செல்வன்",
   titleEn: "Minister of Commercial Taxes, Registration and Stamp Duty",
-  titleTa: "வணிக வரிகள், பதிவு மற்றும் முத்திரை வரி அமைச்சர்",
+  titleTa: "பத்திரப்பதிவு மற்றும் வணிக வரித்துறை அமைச்சர்",
   constituencyEn: "Rasipuram",
   constituencyTa: "ராசிபுரம்",
   partyEn: "Tamilaga Vettri Kazhagam (TVK)",
