@@ -5,7 +5,7 @@ Bilingual (Tamil-default) political leader website + grievance management platfo
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — API server (port 8080)
-- `pnpm --filter @workspace/nirmal-connect run dev` — web frontend
+- `pnpm --filter @workspace/logesh-connect run dev` — web frontend
 - `pnpm --filter @workspace/db run push` — push DB schema (dev only)
 - `npx tsx lib/db/src/seed.ts` — seed sample content (admin: admin@logeshconnect.in / Admin@2026)
 - `pnpm --filter @workspace/api-spec run codegen` — regen API hooks + Zod from OpenAPI
@@ -29,10 +29,10 @@ Bilingual (Tamil-default) political leader website + grievance management platfo
 - API contract: `lib/api-spec/openapi.yaml` (public routes only)
 - Admin API routes: `artifacts/api-server/src/routes/admin.ts` (protected by `requireStaff`)
 - Public site routes: `artifacts/api-server/src/routes/site.ts` (GET /about)
-- Frontend pages: `artifacts/nirmal-connect/src/pages/*`
-- Admin CMS pages: `artifacts/nirmal-connect/src/pages/admin/*`
-- i18n strings: `artifacts/nirmal-connect/src/lib/i18n.ts`
-- TVK theme: `artifacts/nirmal-connect/src/index.css`
+- Frontend pages: `artifacts/logesh-connect/src/pages/*`
+- Admin CMS pages: `artifacts/logesh-connect/src/pages/admin/*`
+- i18n strings: `artifacts/logesh-connect/src/lib/i18n.ts`
+- TVK theme: `artifacts/logesh-connect/src/index.css`
 
 ## Architecture decisions
 

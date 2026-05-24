@@ -38,7 +38,7 @@ pnpm --filter @workspace/api-server run build
 
 # ── 5. Build frontend ─────────────────────────────
 echo "▶ Building frontend..."
-pnpm --filter @workspace/nirmal-connect run build
+pnpm --filter @workspace/logesh-connect run build
 
 # ── 6. Run DB migrations ──────────────────────────
 echo "▶ Running database migrations..."
