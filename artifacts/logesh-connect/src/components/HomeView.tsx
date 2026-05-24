@@ -31,7 +31,7 @@ export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
     statsHeadline: "Constituency Development at a Glance",
     statsHeadlineTa: "தொகுதி வளர்ச்சி புள்ளிவிவரம்",
     statsSubheadline: `Key development milestones in ${lc.constituencyEn}`,
-    statsSubheadlineTa: `${lc.constituencyTa}தில் நடந்த வளர்ச்சி பணிகள்`,
+    statsSubheadlineTa: `ராசிபுரத்தில் நடந்த வளர்ச்சி பணிகள்`,
     grievanceCtaTitle: "Your Voice Matters",
     grievanceCtaTitleTa: "உங்கள் குரல் முக்கியம்",
     grievanceCtaBody: "Report issues in your area directly to the office. Submit your grievance and track its resolution in real time.",
@@ -39,7 +39,7 @@ export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
     volunteerCtaTitle: "Join the Movement",
     volunteerCtaTitleTa: "இயக்கத்தில் இணையுங்கள்",
     volunteerCtaBody: `Be part of positive change in ${lc.constituencyEn}. Register as a volunteer and contribute to our community.`,
-    volunteerCtaBodyTa: `${lc.constituencyTa}யின் வளர்ச்சிக்கு பங்காற்றுங்கள். தன்னார்வலராக பதிவு செய்யுங்கள்.`,
+    volunteerCtaBodyTa: `ராசிபுரத்தின் வளர்ச்சிக்கு பங்காற்றுங்கள். தன்னார்வலராக பதிவு செய்யுங்கள்.`,
   };
 }
 
