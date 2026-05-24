@@ -495,7 +495,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
         y += 9;
 
         // District derived from constituency (no district column in schema)
-        const district = detail.constituency === "Karaikudi" ? "Sivaganga" : "—";
+        const district = detail.constituency === "Rasipuram" ? "Namakkal" : "—";
 
         // Petitioner & filing details table
         autoTable(doc, {
@@ -508,7 +508,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
             ["Filed",         new Date(detail.createdAt).toLocaleString("en-IN")],
             ["Last updated",  new Date(detail.updatedAt).toLocaleString("en-IN")],
             ["Resolved",      detail.resolvedAt ? new Date(detail.resolvedAt).toLocaleString("en-IN") : "—"],
-            ["Scope",         detail.constituency === "Tamil Nadu" ? "Tamil Nadu State (Minerals & Mines)" : "Karaikudi Constituency"],
+            ["Scope",         detail.constituency === "Tamil Nadu" ? "Tamil Nadu State (Commercial Taxes)" : "Rasipuram Constituency"],
             ["District",      district],
             ["Constituency",  detail.constituency],
             ["Ward",          detail.ward || "—"],
@@ -779,9 +779,9 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
         doc.rect(0, 0, pageW, HEADER_H, "F");
         doc.setTextColor(255, 255, 255);
         doc.setFont("helvetica", "bold"); doc.setFontSize(13);
-        doc.text("TK Prabhu Connect — Grievance Report", M, 9);
+        doc.text("Logesh Connect — Grievance Report", M, 9);
         doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-        doc.text("Office of Dr. T.K. Prabhu, Minister of Minerals & Mines", M, 14);
+        doc.text("Office of D. Logesh Tamilselvan, Minister of Commercial Taxes, Registration and Stamp Duty", M, 14);
         doc.setFontSize(7.5);
         doc.text(`Generated: ${generatedAt}  ·  Confidential`, M, 19);
         // Ticket # top-right
@@ -967,8 +967,8 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{lang === "ta" ? "அனைத்தும்" : "All scopes"}</SelectItem>
-                <SelectItem value="Karaikudi">
-                  <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{lang === "ta" ? "காரைக்குடி தொகுதி" : "Karaikudi Constituency"}</span>
+                <SelectItem value="Rasipuram">
+                  <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{lang === "ta" ? "ராசிபுரம் தொகுதி" : "Rasipuram Constituency"}</span>
                 </SelectItem>
                 <SelectItem value="Tamil Nadu">
                   <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />{lang === "ta" ? "தமிழ்நாடு மாநிலம்" : "Tamil Nadu State"}</span>
@@ -1221,8 +1221,8 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               {/* Scope banner */}
               <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${detail.constituency === "Tamil Nadu" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-green-50 text-green-800 border border-green-200"}`}>
                 {detail.constituency === "Tamil Nadu"
-                  ? <><Globe className="w-4 h-4" />{lang === "ta" ? "தமிழ்நாடு மாநில புகார் — கனிமவளம் / சுரங்கம்" : "Tamil Nadu State Complaint — Minerals & Mines"}</>
-                  : <><Building2 className="w-4 h-4" />{lang === "ta" ? "காரைக்குடி தொகுதி புகார்" : "Karaikudi Constituency Complaint"}</>
+                  ? <><Globe className="w-4 h-4" />{lang === "ta" ? "தமிழ்நாடு மாநில புகார் — வணிக வரிகள் / பதிவு" : "Tamil Nadu State Complaint — Commercial Taxes & Registration"}</>
+                  : <><Building2 className="w-4 h-4" />{lang === "ta" ? "ராசிபுரம் தொகுதி புகார்" : "Rasipuram Constituency Complaint"}</>
                 }
               </div>
 

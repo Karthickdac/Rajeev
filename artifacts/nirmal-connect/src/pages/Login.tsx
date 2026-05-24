@@ -49,7 +49,7 @@ export default function Login() {
           <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
             T
           </div>
-          <h1 className="text-xl font-bold text-white">TK Prabhu Connect</h1>
+          <h1 className="text-xl font-bold text-white">Logesh Connect</h1>
           <p className="text-white/70 text-sm mt-1">Admin Portal</p>
         </div>
 
@@ -73,7 +73,7 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input data-testid="login-email" type="email" placeholder="admin@tkprabhu.in" {...field} />
+                      <Input data-testid="login-email" type="email" placeholder="admin@logeshconnect.in" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

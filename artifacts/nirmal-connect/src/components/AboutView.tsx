@@ -118,8 +118,8 @@ export function AboutView({ config, lang, embedded = false }: AboutViewProps) {
       <SectionHeader
         title={t("About the Leader", "தலைவரைப் பற்றி")}
         subtitle={t(
-          "Learn about Dr. T.K. Prabhu, Minister of Minerals and Mines, Karaikudi Constituency",
-          "டாக்டர் டி.கே. பிரபு அவர்களின் அரசியல் வாழ்க்கை"
+          "Learn about D. Logesh Tamilselvan, Minister of Commercial Taxes, Registration and Stamp Duty, Rasipuram Constituency",
+          "டி. லோகேஷ் தமிழ்செல்வன் அவர்களைப் பற்றி அறிந்துகொள்ளுங்கள்"
         )}
       />
 

@@ -312,9 +312,9 @@ function AdminInner({ lang = "ta" }: AdminProps) {
         {/* Brand */}
         <div className="px-4 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-sm shrink-0">T</div>
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-sm shrink-0">L</div>
             <div className="min-w-0">
-              <p className="font-semibold text-sm truncate">TK Prabhu Connect</p>
+              <p className="font-semibold text-sm truncate">Logesh Connect</p>
               <p className="text-xs text-gray-400 truncate">Admin Panel</p>
             </div>
           </div>
@@ -420,7 +420,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
             </div>
           )}
           <div className="ml-auto">
-            <span className="text-xs text-muted-foreground hidden sm:inline">Karaikudi Constituency</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">Rasipuram Constituency</span>
           </div>
         </header>
 

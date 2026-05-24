@@ -276,7 +276,7 @@ export default function Grievance({ lang }: GrievanceProps) {
           ? [data.assemblyConstituency, data.address].filter(Boolean).join(" — ") || null
           : data.address || null,
         ward: isState ? (data.district || null) : (data.ward || null),
-        constituency: isState ? "Tamil Nadu" : "Karaikudi",
+        constituency: isState ? "Tamil Nadu" : "Rasipuram",
         areaId: isState ? null : (data.areaId ?? null),
         pollingStationId: isState ? null : (data.pollingStationId ?? null),
         latitude: gps?.lat ?? null,
@@ -345,7 +345,7 @@ export default function Grievance({ lang }: GrievanceProps) {
         title={lang === "ta" ? "மக்கள் புகார் மையம்" : "Public Grievance Portal"}
         subtitle={lang === "ta"
           ? "உங்கள் பகுதியில் உள்ள பிரச்சினைகளை நேரடியாக தெரிவியுங்கள்"
-          : "Submit complaints directly to Dr. T.K. Prabhu's office and track resolution progress"}
+          : "Submit complaints directly to D. Logesh Tamilselvan's office and track resolution progress"}
       />
 
       <Tabs defaultValue="submit" className="space-y-6">
@@ -427,7 +427,7 @@ export default function Grievance({ lang }: GrievanceProps) {
                             <p className={`font-semibold text-sm ${complaintScope === "constituency" ? "text-orange-700 dark:text-orange-400" : ""}`}>
                               {lang === "ta" ? "தொகுதி புகார்" : "Constituency Complaint"}
                             </p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "காரைக்குடி" : "Karaikudi"}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "ராசிபுரம்" : "Rasipuram"}</p>
                           </div>
                         </button>
                         <button

@@ -8,7 +8,7 @@ import type { Language } from "./i18n";
 export const mapTranslations = {
   en: {
     pageTitle: "Constituency Map",
-    pageSubtitle: "Wards, polling stations, and grievances across Karaikudi Constituency (Sivaganga District).",
+    pageSubtitle: "Wards, polling stations, and grievances across Rasipuram Constituency (Namakkal District).",
     layers: "Layers",
     zones: "Zones",
     wards: "Wards",
@@ -27,13 +27,13 @@ export const mapTranslations = {
     failed: "Could not load map data",
     attribution: "Map data © OpenStreetMap contributors. Boundary data: see lib/db/data/data-sources.md.",
     outline: "Constituency outline",
-    constituencyOutline: "Karaikudi Constituency",
+    constituencyOutline: "Rasipuram Constituency",
     osmAttribution: "Source: OpenStreetMap (ODbL-1.0).",
     heatmap: "Grievance heatmap",
   },
   ta: {
     pageTitle: "தொகுதி வரைபடம்",
-    pageSubtitle: "காரைக்குடி தொகுதி (சிவகங்கை மாவட்டம்) வார்டுகள், வாக்குச்சாவடிகள் மற்றும் புகார்கள்.",
+    pageSubtitle: "ராசிபுரம் தொகுதி (நாமக்கல் மாவட்டம்) வார்டுகள், வாக்குச்சாவடிகள் மற்றும் புகார்கள்.",
     layers: "அடுக்குகள்",
     zones: "மண்டலங்கள்",
     wards: "வார்டுகள்",
@@ -52,7 +52,7 @@ export const mapTranslations = {
     failed: "வரைபடத் தகவலை ஏற்ற முடியவில்லை",
     attribution: "வரைபடத் தகவல் © OpenStreetMap பங்களிப்பாளர்கள். எல்லைத் தகவல்: lib/db/data/data-sources.md.",
     outline: "தொகுதி எல்லை",
-    constituencyOutline: "காரைக்குடி தொகுதி",
+    constituencyOutline: "ராசிபுரம் தொகுதி",
     osmAttribution: "மூலம்: OpenStreetMap (ODbL-1.0).",
     heatmap: "புகார் வெப்பப்படம்",
   },

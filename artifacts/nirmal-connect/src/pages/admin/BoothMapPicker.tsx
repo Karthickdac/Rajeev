@@ -16,7 +16,7 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Fallback centroid: Tirupparankundram (AC 195), Madurai. Callers may override
+// Fallback centroid: Rasipuram (Namakkal District). Callers may override
 // with a constituency-derived centroid via the `defaultCenter` prop.
 const FALLBACK_CENTRE: [number, number] = [9.9252, 78.1198];
 

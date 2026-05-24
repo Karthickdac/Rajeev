@@ -1,13 +1,13 @@
-# TK Prabhu Connect
+# Logesh Connect
 
-Bilingual (Tamil-default) political leader website + grievance management platform for Dr. T.K. Prabhu (Minister of Minerals and Mines, Karaikudi Constituency), with TVK red/gold branding.
+Bilingual (Tamil-default) political leader website + grievance management platform for D. Logesh Tamilselvan (Minister of Commercial Taxes, Registration and Stamp Duty, MLA of Rasipuram Constituency, Namakkal District), with TVK red/gold branding.
 
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — API server (port 8080)
 - `pnpm --filter @workspace/nirmal-connect run dev` — web frontend
 - `pnpm --filter @workspace/db run push` — push DB schema (dev only)
-- `npx tsx lib/db/src/seed.ts` — seed sample content (admin: admin@nirmalconnect.in / Admin@2024)
+- `npx tsx lib/db/src/seed.ts` — seed sample content (admin: admin@logeshconnect.in / Admin@2026)
 - `pnpm --filter @workspace/api-spec run codegen` — regen API hooks + Zod from OpenAPI
 - `cd lib/db && npx tsc -p tsconfig.json` — must run after adding new schema tables
 - Required env: `DATABASE_URL`, `JWT_SECRET` (auto-generated ephemerally if absent in dev)

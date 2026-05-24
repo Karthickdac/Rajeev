@@ -33,7 +33,7 @@ L.Icon.Default.mergeOptions({
 
 const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 
-// Karaikudi constituency centroid (approx, Sivaganga District).
+// Rasipuram constituency centroid (approx, Namakkal District).
 const DEFAULT_CENTER: [number, number] = [10.0765, 78.7730];
 const DEFAULT_ZOOM = 13;
 const CLUSTER_DISABLE_ZOOM = 16; // show individual markers when zoomed in

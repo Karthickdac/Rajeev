@@ -9,7 +9,7 @@ interface ContactInfo { phone: string; email: string; address: string; addressTa
 interface EmergencyContacts { primary: string; secondary: string; police: string; ambulance: string; }
 
 const defaultSocial: SocialLinks = { facebook: "", twitter: "", instagram: "", youtube: "", whatsapp: "" };
-const defaultContact: ContactInfo = { phone: "+91 98765 43210", email: "minister.karaikudi@tn.gov.in", address: "Minister's Office, Karaikudi, Sivaganga District, Tamil Nadu - 630001", addressTa: "அமைச்சர் அலுவலகம், காரைக்குடி", officeHours: "Mon–Fri 10 AM – 5 PM" };
+const defaultContact: ContactInfo = { phone: "+91 98765 43210", email: "minister.rasipuram@tn.gov.in", address: "MLA Office, Rasipuram, Namakkal District, Tamil Nadu - 637408", addressTa: "சட்டமன்ற உறுப்பினர் அலுவலகம், ராசிபுரம், நாமக்கல் மாவட்டம்", officeHours: "Mon–Sat 9 AM – 6 PM" };
 const defaultEmergency: EmergencyContacts = { primary: "+91 98765 43210", secondary: "+91 98765 43211", police: "100", ambulance: "108" };
 
 function Field({ label, value, onChange, type = "text", placeholder = "" }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; }) {
