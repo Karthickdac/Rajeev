@@ -44,7 +44,7 @@ export const DEFAULT_LEADER_CONFIG: LeaderConfig = {
   officeHoursTa: "திங்கள் – சனி: காலை 9:00 – மாலை 6:00",
   photoUrl: "",
   siteTitle: "Logesh Connect",
-  logoInitial: "L",
+  logoInitial: "D",
   districtEn: "Namakkal",
   districtTa: "நாமக்கல்",
 };

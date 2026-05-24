@@ -80,7 +80,7 @@ const TENANT_CONFIGS: Record<string, object> = {
     officeHoursTa: "திங்கள் – சனி: காலை 9:00 – மாலை 6:00",
     photoUrl: "/logesh_profile.jpg",
     siteTitle: "Logesh Connect",
-    logoInitial: "L",
+    logoInitial: "D",
     districtEn: "Namakkal",
     districtTa: "நாமக்கல்",
   },

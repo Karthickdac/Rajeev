@@ -83,8 +83,8 @@ export function Navbar({ lang, setLang, darkMode, setDarkMode }: NavbarProps) {
                   lc.logoInitial
                 )}
               </div>
-              <div className="leading-tight min-w-0 max-w-[180px] md:max-w-[220px]">
-                <p className="font-bold text-[13px] md:text-sm text-foreground truncate">
+              <div className="leading-tight min-w-0">
+                <p className="font-bold text-[13px] md:text-sm text-foreground whitespace-nowrap">
                   {lang === "ta" ? lc.nameTa : lc.nameEn}
                 </p>
                 <p className="text-[10px] md:text-xs text-muted-foreground line-clamp-1">
