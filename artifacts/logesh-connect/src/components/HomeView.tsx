@@ -20,7 +20,7 @@ export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
     subheadline: `${lc.titleEn} – ${lc.constituencyEn} Constituency, Tamil Nadu`,
     subheadlineTa: `${lc.titleTa} – ${lc.constituencyTa} தொகுதி`,
     description: `A leader dedicated to the people of ${lc.constituencyEn} — committed to development, transparency, and citizen welfare.`,
-    descriptionTa: `மக்களுக்காக பாடுபடும் தலைவர். வளர்ச்சியில் உறுதிபூண்ட ${lc.constituencyTa}யின் குரல்.`,
+    descriptionTa: `மக்களுக்காக பாடுபடும் தலைவர். வளர்ச்சியில் உறுதிபூண்ட ராசிபுரத்தின் குரல்.`,
     primaryCtaLabel: "Submit Grievance",
     primaryCtaLabelTa: "புகார் அளிக்க",
     primaryCtaHref: "/grievance",
