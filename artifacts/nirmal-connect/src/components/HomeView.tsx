@@ -318,7 +318,7 @@ export function HomeView({
                     <span className="text-yellow-300 mr-2">★</span>
                     {tx(a.title, a.titleTa || a.title)}
                     {a.location && ` – ${a.location}`}{" "}
-                    <span className="text-white/60 text-xs">{format(new Date(a.activityDate), "dd MMM")}</span>
+                    <span className="text-white/60 text-xs">{a.activityDate && !isNaN(new Date(a.activityDate).getTime()) ? format(new Date(a.activityDate), "dd MMM") : ""}</span>
                   </span>
                 ))}
               </div>
@@ -417,7 +417,7 @@ export function HomeView({
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-primary" />
                         <span className="text-xs font-medium text-primary">
-                          {format(new Date(event.eventDate), "dd MMM yyyy, h:mm a")}
+                          {event.eventDate && !isNaN(new Date(event.eventDate).getTime()) ? format(new Date(event.eventDate), "dd MMM yyyy, h:mm a") : ""}
                         </span>
                       </div>
                       <h3 className="font-semibold text-sm leading-snug mb-1 group-hover:text-primary transition-colors">
