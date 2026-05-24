@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "TK Prabhu Connect"
+title = "Logesh Connect"
 version = "1.0.0"
 id = "artifacts/nirmal-connect"
 router = "path"
@@ -15,11 +15,11 @@ paths = [ "/" ]
 localPort = 8081
 
 [services.development]
-run = "pnpm --filter @workspace/nirmal-connect run dev"
+run = "pnpm --filter @workspace/logesh-connect run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/nirmal-connect", "run", "build" ]
-publicDir = "artifacts/nirmal-connect/dist/public"
+build = [ "pnpm", "--filter", "@workspace/logesh-connect", "run", "build" ]
+publicDir = "artifacts/logesh-connect/dist/public"
 serve = "static"
 
 [[services.production.rewrites]]
