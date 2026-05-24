@@ -214,7 +214,7 @@ export function HomeView({
             <div className="lg:hidden flex justify-center mb-5">
               <div className="relative">
                 <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/20 bg-primary/60 flex items-center justify-center">
-                  {photoSrc ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" /> : <span className="text-4xl font-bold text-yellow-400">{config.logoInitial ?? "L"}</span>}
+                  {photoSrc ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" /> : <span className="text-4xl font-bold text-yellow-400">{config.logoInitial ?? "D"}</span>}
                 </div>
                 <span className="absolute -bottom-1 -right-1 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
                   Minister
@@ -281,7 +281,7 @@ export function HomeView({
           <div className={`${embedded ? "flex" : "hidden lg:flex"} justify-center`}>
             <div className="glass-card rounded-2xl p-6 md:p-8 max-w-sm w-full text-center text-white">
               <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-4 border-yellow-400 mx-auto mb-4 shadow-2xl bg-primary/60 flex items-center justify-center">
-                {photoSrc ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" /> : <span className="text-4xl font-bold text-yellow-400">{config.logoInitial ?? "L"}</span>}
+                {photoSrc ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" /> : <span className="text-4xl font-bold text-yellow-400">{config.logoInitial ?? "D"}</span>}
               </div>
               <div className="text-4xl md:text-5xl font-bold text-yellow-400 mb-2">
                 {summary?.totalVolunteers?.toLocaleString() ?? "—"}+
