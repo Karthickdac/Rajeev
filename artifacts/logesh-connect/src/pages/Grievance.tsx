@@ -26,6 +26,7 @@ import type { GrievanceTrackResponse } from "@workspace/api-client-react";
 import { useWards } from "@/lib/useWards";
 import { getConstituenciesForDistrict } from "@/lib/tn-constituencies";
 import GpsPicker, { type GpsValue } from "@/components/GpsPicker";
+import { SRO_ZONES } from "@/lib/sroData";
 
 interface GrievanceProps { lang: Language; }
 
@@ -135,6 +136,15 @@ const schema = z.object({
   areaId: z.number().int().positive().optional(),
   pollingStationId: z.number().int().positive().optional(),
   anonymous: z.boolean().optional(),
+  sroZone: z.string().optional(),
+  sroDistrict: z.string().optional(),
+  sroOffice: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.category === "Property Registration" || data.category === "Stamp Duty") {
+    if (!data.sroZone) ctx.addIssue({ code: "custom", path: ["sroZone"], message: "Region required" });
+    if (!data.sroDistrict) ctx.addIssue({ code: "custom", path: ["sroDistrict"], message: "District required" });
+    if (!data.sroOffice) ctx.addIssue({ code: "custom", path: ["sroOffice"], message: "Sub-Registrar Office required" });
+  }
 });
 type FormData = z.infer<typeof schema>;
 
@@ -245,7 +255,7 @@ export default function Grievance({ lang }: GrievanceProps) {
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", phone: "", category: "", description: "", address: "", ward: "", anonymous: false },
+    defaultValues: { name: "", phone: "", category: "", description: "", address: "", ward: "", anonymous: false, sroZone: "", sroDistrict: "", sroOffice: "" },
   });
 
   // Resolve currently-chosen ward id from its name (the form stores ward as
@@ -269,16 +279,21 @@ export default function Grievance({ lang }: GrievanceProps) {
   const submitMutation = useMutation({
     mutationFn: (data: FormData) => {
       const isState = complaintScope === "state";
+      const isSro = data.category === "Property Registration" || data.category === "Stamp Duty";
+      const sroLine = isSro && data.sroOffice
+        ? `[SRO: ${data.sroOffice} • ${data.sroDistrict} • ${data.sroZone}]`
+        : "";
+      const descriptionWithSro = sroLine ? `${sroLine}\n${data.description}` : data.description;
       const payload = {
         name: data.name,
         phone: data.phone,
         category: data.category,
-        description: data.description,
+        description: descriptionWithSro,
         address: isState
           ? [data.assemblyConstituency, data.address].filter(Boolean).join(" — ") || null
           : data.address || null,
-        ward: isState ? (data.district || null) : (data.ward || null),
-        constituency: isState ? "Tamil Nadu" : "Rasipuram",
+        ward: isSro ? (data.sroDistrict || null) : (isState ? (data.district || null) : (data.ward || null)),
+        constituency: isSro ? (data.sroZone || "Tamil Nadu") : (isState ? "Tamil Nadu" : "Rasipuram"),
         areaId: isState ? null : (data.areaId ?? null),
         pollingStationId: isState ? null : (data.pollingStationId ?? null),
         latitude: gps?.lat ?? null,
@@ -469,7 +484,14 @@ export default function Grievance({ lang }: GrievanceProps) {
                     <FormField control={form.control} name="category" render={({ field }) => (
                       <FormItem>
                         <FormLabel>{lang === "ta" ? "புகார் வகை" : "Complaint Category"} *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={(v) => {
+                          field.onChange(v);
+                          if (v !== "Property Registration" && v !== "Stamp Duty") {
+                            form.setValue("sroZone", "");
+                            form.setValue("sroDistrict", "");
+                            form.setValue("sroOffice", "");
+                          }
+                        }} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="grievance-category">
                               <SelectValue placeholder={lang === "ta" ? "வகையை தேர்ந்தெடுங்கள்" : "Select category"} />
@@ -486,6 +508,86 @@ export default function Grievance({ lang }: GrievanceProps) {
                         <FormMessage />
                       </FormItem>
                     )} />
+
+                    {(form.watch("category") === "Property Registration" || form.watch("category") === "Stamp Duty") && (() => {
+                      const zoneName = form.watch("sroZone") || "";
+                      const districtName = form.watch("sroDistrict") || "";
+                      const zone = SRO_ZONES.find((z) => z.en === zoneName);
+                      const district = zone?.districts.find((d) => d.en === districtName);
+                      const offices = district?.offices ?? [];
+                      return (
+                        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-4">
+                          <p className="text-sm font-medium text-primary">
+                            {lang === "ta"
+                              ? "சார்-பதிவாளர் அலுவலகத்தைத் தேர்ந்தெடுக்கவும்"
+                              : "Select Sub-Registrar Office"}
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <FormField control={form.control} name="sroZone" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{lang === "ta" ? "மண்டலம்" : "Region / Zone"} *</FormLabel>
+                                <Select onValueChange={(v) => {
+                                  field.onChange(v);
+                                  form.setValue("sroDistrict", "");
+                                  form.setValue("sroOffice", "");
+                                }} value={field.value || ""}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="sro-zone">
+                                      <SelectValue placeholder={lang === "ta" ? "மண்டலம்" : "Select region"} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {SRO_ZONES.map((z) => (
+                                      <SelectItem key={z.en} value={z.en}>{lang === "ta" ? z.ta : z.en}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={form.control} name="sroDistrict" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{lang === "ta" ? "மாவட்டம்" : "District"} *</FormLabel>
+                                <Select onValueChange={(v) => {
+                                  field.onChange(v);
+                                  form.setValue("sroOffice", "");
+                                }} value={field.value || ""} disabled={!zone}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="sro-district">
+                                      <SelectValue placeholder={lang === "ta" ? "மாவட்டம்" : "Select district"} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {zone?.districts.map((d) => (
+                                      <SelectItem key={d.en} value={d.en}>{lang === "ta" ? d.ta : d.en}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={form.control} name="sroOffice" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{lang === "ta" ? "சார்-பதிவாளர் அலுவலகம்" : "Sub-Registrar Office"} *</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || ""} disabled={!district}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="sro-office">
+                                      <SelectValue placeholder={lang === "ta" ? "அலுவலகம்" : "Select office"} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {offices.map((o) => (
+                                      <SelectItem key={o.en} value={o.en}>{lang === "ta" ? o.ta : o.en}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* (scope selector moved to top of form) */}
 
