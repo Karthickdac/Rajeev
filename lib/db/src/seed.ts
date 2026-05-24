@@ -63,7 +63,7 @@ type PollingPdfBooth = {
 const TENANT_CONFIGS: Record<string, object> = {
   logesh: {
     nameEn: "D. Logesh Tamilselvan",
-    nameTa: "டி. லோகேஷ் தமிழ்செல்வன்",
+    nameTa: "D. லோகேஷ் தமிழ்செல்வன்",
     titleEn: "Rasipuram Constituency - MLA",
     titleTa: "ராசிபுரம் தொகுதி - MLA",
     constituencyEn: "Rasipuram",
