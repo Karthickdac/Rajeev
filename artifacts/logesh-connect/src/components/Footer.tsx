@@ -19,8 +19,12 @@ export function Footer({ lang }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-                {lc.logoInitial}
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold overflow-hidden">
+                {lc.photoUrl ? (
+                  <img src={lc.photoUrl} alt={lc.siteTitle} className="w-full h-full object-cover object-top" />
+                ) : (
+                  lc.logoInitial
+                )}
               </div>
               <div>
                 <p className="font-bold text-white text-sm">{lc.siteTitle}</p>

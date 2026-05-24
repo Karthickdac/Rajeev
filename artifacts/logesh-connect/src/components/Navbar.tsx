@@ -76,8 +76,12 @@ export function Navbar({ lang, setLang, darkMode, setDarkMode }: NavbarProps) {
         <div className="flex items-center justify-between h-14 md:h-16">
           <Link href="/" data-testid="logo-link">
             <div className="flex items-center gap-2.5 md:gap-3 cursor-pointer min-w-0">
-              <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-base md:text-lg shadow-sm shrink-0">
-                {lc.logoInitial}
+              <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-base md:text-lg shadow-sm shrink-0 overflow-hidden">
+                {lc.photoUrl ? (
+                  <img src={lc.photoUrl} alt={lang === "ta" ? lc.nameTa : lc.nameEn} className="w-full h-full object-cover object-top" />
+                ) : (
+                  lc.logoInitial
+                )}
               </div>
               <div className="leading-tight min-w-0 max-w-[180px] md:max-w-[220px]">
                 <p className="font-bold text-[13px] md:text-sm text-foreground truncate">
@@ -172,8 +176,12 @@ export function Navbar({ lang, setLang, darkMode, setDarkMode }: NavbarProps) {
       >
         <div className="bg-primary text-primary-foreground px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center font-bold">
-              {lc.logoInitial}
+            <div className="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center font-bold overflow-hidden">
+              {lc.photoUrl ? (
+                <img src={lc.photoUrl} alt={lang === "ta" ? lc.nameTa : lc.nameEn} className="w-full h-full object-cover object-top" />
+              ) : (
+                lc.logoInitial
+              )}
             </div>
             <div className="leading-tight">
               <p className="font-bold text-sm">
