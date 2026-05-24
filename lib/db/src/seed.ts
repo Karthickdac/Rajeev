@@ -64,8 +64,8 @@ const TENANT_CONFIGS: Record<string, object> = {
   logesh: {
     nameEn: "D. Logesh Tamilselvan",
     nameTa: "டி. லோகேஷ் தமிழ்செல்வன்",
-    titleEn: "Minister of Commercial Taxes, Registration and Stamp Duty",
-    titleTa: "பத்திரப்பதிவு மற்றும் வணிக வரித்துறை அமைச்சர்",
+    titleEn: "Rasipuram Constituency - MLA",
+    titleTa: "ராசிபுரம் தொகுதி - MLA",
     constituencyEn: "Rasipuram",
     constituencyTa: "ராசிபுரம்",
     partyEn: "Tamilaga Vettri Kazhagam (TVK)",
