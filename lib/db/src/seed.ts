@@ -78,7 +78,7 @@ const TENANT_CONFIGS: Record<string, object> = {
     addressTa: "சட்டமன்ற உறுப்பினர் அலுவலகம், ராசிபுரம், நாமக்கல் மாவட்டம் – 637408, தமிழ்நாடு",
     officeHoursEn: "Monday – Saturday: 9:00 AM – 6:00 PM",
     officeHoursTa: "திங்கள் – சனி: காலை 9:00 – மாலை 6:00",
-    photoUrl: "",
+    photoUrl: "/logesh_profile.jpg",
     siteTitle: "Logesh Connect",
     logoInitial: "L",
     districtEn: "Namakkal",
