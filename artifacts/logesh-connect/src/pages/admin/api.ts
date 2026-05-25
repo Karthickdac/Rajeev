@@ -197,6 +197,18 @@ export const adminApi = {
   // Grievance bulk assign
   bulkGrievanceAssign: (ids: number[], officerId: number, officerName: string) =>
     authFetch("/admin/grievances/bulk-assign", { method: "POST", body: JSON.stringify({ ids, officerId, officerName }) }),
+  // Social media
+  getSocialAccounts: () => authFetch("/admin/social/accounts"),
+  createSocialAccount: (data: unknown) => authFetch("/admin/social/accounts", { method: "POST", body: JSON.stringify(data) }),
+  updateSocialAccount: (id: number, data: unknown) => authFetch(`/admin/social/accounts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteSocialAccount: (id: number) => authFetch(`/admin/social/accounts/${id}`, { method: "DELETE" }),
+  refreshSocialStats: (id: number) => authFetch(`/admin/social/accounts/${id}/refresh-stats`, { method: "POST" }),
+  getLatestSocialStats: () => authFetch("/admin/social/stats/latest"),
+  getSocialPosts: (limit = 50) => authFetch(`/admin/social/posts?limit=${limit}`),
+  createSocialPost: (data: unknown) => authFetch("/admin/social/posts", { method: "POST", body: JSON.stringify(data) }),
+  deleteSocialPost: (id: number) => authFetch(`/admin/social/posts/${id}`, { method: "DELETE" }),
+  publishSocialPost: (id: number) => authFetch(`/admin/social/posts/${id}/publish`, { method: "POST" }),
+  getSocialCapabilities: () => authFetch("/admin/social/capabilities"),
   // Image upload (multipart)
   uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
     const token = getToken();

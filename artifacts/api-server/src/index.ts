@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { startVoterExportSweeper } from "./lib/voterExportSweeper";
+import { processScheduledPosts } from "./routes/social";
 
 // Background jobs (PDF parsing, OCR via pdfjs/tesseract) can produce
 // detached promise rejections deep inside their worker pipelines that
@@ -38,4 +39,8 @@ app.listen(port, (err) => {
   // Daily background sweep of expired voter-export blobs (task #52).
   // Schedules an in-process timer; safe to call once at startup.
   startVoterExportSweeper();
+  // Social post scheduler — checks for due scheduled posts every 60s.
+  setInterval(() => {
+    processScheduledPosts().catch((err) => logger.error({ err }, "social scheduler tick failed"));
+  }, 60_000);
 });
