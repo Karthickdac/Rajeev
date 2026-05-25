@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Newspaper, Calendar, Activity, Image,
   Users, MessageSquare, HelpCircle, UserCircle, LogOut, Menu, X,
-  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio, Sparkles, Newspaper as NewsIcon,
+  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio, Sparkles, Newspaper as NewsIcon, Timer, Flame,
 } from "lucide-react";
 import { isAuthenticated, removeToken, getToken } from "@/lib/auth";
 import { useGetMe } from "@workspace/api-client-react";
@@ -40,6 +40,11 @@ import PromisesAdmin from "./admin/PromisesAdmin";
 import BroadcastAdmin from "./admin/BroadcastAdmin";
 import AiToolsAdmin from "./admin/AiToolsAdmin";
 import PressCoverageAdmin from "./admin/PressCoverageAdmin";
+import SlaAdmin from "./admin/SlaAdmin";
+import EscalationsAdmin from "./admin/EscalationsAdmin";
+import OutreachScorecardAdmin from "./admin/OutreachScorecardAdmin";
+import HeatmapAdmin from "./admin/HeatmapAdmin";
+import Map3DAdmin from "./admin/Map3DAdmin";
 import type { Language } from "@/lib/i18n";
 import { UnsavedChangesProvider, useConfirmDiscard } from "@/lib/unsavedChanges";
 
@@ -120,6 +125,11 @@ const NAV_ITEMS: NavItem[] = [
   { id: "broadcast",      label: "Broadcast",            icon: Radio,       group: "site", roles: ["super_admin", "admin", "media_team"] },
   { id: "ai-tools",       label: "AI Tools",             icon: Sparkles,    group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team", "grievance_officer"] },
   { id: "press-coverage", label: "Press Coverage",       icon: NewsIcon,    group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "sla",            label: "SLA Performance",      icon: Timer,       group: "site", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "escalations",    label: "Escalations",          icon: Flame,       group: "site", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "heatmap",        label: "Heatmap (time)",       icon: MapIcon,     group: "site", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "map3d",          label: "3D Map",                icon: MapIcon,     group: "site", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "outreach",       label: "Outreach Scorecard",   icon: Trophy,      group: "site", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
 
   // System
   { id: "audit",        label: "Audit Log",            icon: ClipboardList,   group: "system", roles: ["super_admin", "admin"] },
@@ -495,6 +505,11 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           {active === "broadcast"    && <BroadcastAdmin />}
           {active === "ai-tools"     && <AiToolsAdmin />}
           {active === "press-coverage" && <PressCoverageAdmin />}
+          {active === "sla"          && <SlaAdmin />}
+          {active === "escalations"  && <EscalationsAdmin />}
+          {active === "heatmap"      && <HeatmapAdmin />}
+          {active === "map3d"        && <Map3DAdmin />}
+          {active === "outreach"     && <OutreachScorecardAdmin />}
           {active === "audit"        && <AuditLogAdmin />}
           {active === "voters"       && <VoterRollAdmin />}
           {active === "voters-search" && <VotersAdmin lang={lang} />}

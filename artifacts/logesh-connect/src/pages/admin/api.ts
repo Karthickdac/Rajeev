@@ -225,6 +225,11 @@ export const adminApi = {
   getPressCoverage: () => authFetch("/admin/press-coverage"),
   refreshPressCoverage: (query?: string) => authFetch("/admin/press-coverage/refresh", { method: "POST", body: JSON.stringify({ query }) }),
   deletePressCoverage: (id: number) => authFetch(`/admin/press-coverage/${id}`, { method: "DELETE" }),
+  // Batch-3 analytics
+  getSla: (from: string, to: string) => authFetch(`/admin/analytics/sla?from=${from}&to=${to}`),
+  getEscalations: () => authFetch("/admin/analytics/escalations"),
+  getOutreach: (from: string, to: string) => authFetch(`/admin/analytics/outreach?from=${from}&to=${to}`),
+  getHeatmapTimeline: (from: string, to: string) => authFetch(`/admin/analytics/heatmap-timeline?from=${from}&to=${to}`),
   // Image upload (multipart)
   uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
     const token = getToken();

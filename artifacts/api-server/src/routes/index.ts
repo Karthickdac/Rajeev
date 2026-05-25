@@ -19,6 +19,7 @@ import mapRouter from "./map.js";
 import socialRouter from "./social.js";
 import promisesRouter from "./promises.js";
 import aiRouter from "./ai.js";
+import analyticsRouter from "./analytics.js";
 
 const router: IRouter = Router();
 
@@ -37,6 +38,7 @@ router.use(mapRouter);
 router.use(socialRouter);
 router.use(promisesRouter);
 router.use(aiRouter);
+router.use(analyticsRouter);
 router.use(adminRouter);
 // votersAdvancedRouter MUST be mounted before votersRouter so its
 // specific paths (/admin/voters/duplicates, /analytics, /merge, /bulk,

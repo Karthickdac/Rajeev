@@ -82,6 +82,9 @@ export const grievancesTable = pgTable("grievances", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => ({
   voterIdx: index("grievances_voter_idx").on(t.voterId),
+  // Analytics workload: most queries filter by createdAt range and/or status.
+  createdAtIdx: index("grievances_created_at_idx").on(t.createdAt),
+  statusCreatedIdx: index("grievances_status_created_at_idx").on(t.status, t.createdAt),
 }));
 
 // Audit trail for voter-link changes on grievances. Mirrors the pattern
