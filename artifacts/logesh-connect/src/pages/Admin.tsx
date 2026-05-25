@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Newspaper, Calendar, Activity, Image,
   Users, MessageSquare, HelpCircle, UserCircle, LogOut, Menu, X,
-  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2,
+  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio,
 } from "lucide-react";
 import { isAuthenticated, removeToken, getToken } from "@/lib/auth";
 import { useGetMe } from "@workspace/api-client-react";
@@ -36,6 +36,8 @@ import { Download } from "lucide-react";
 import PressReleasesAdmin from "./admin/PressReleasesAdmin";
 import AssignmentsAdmin from "./admin/AssignmentsAdmin";
 import SocialMediaAdmin from "./admin/SocialMediaAdmin";
+import PromisesAdmin from "./admin/PromisesAdmin";
+import BroadcastAdmin from "./admin/BroadcastAdmin";
 import type { Language } from "@/lib/i18n";
 import { UnsavedChangesProvider, useConfirmDiscard } from "@/lib/unsavedChanges";
 
@@ -109,6 +111,11 @@ const NAV_ITEMS: NavItem[] = [
   { id: "faqs",           label: "FAQs",                 icon: HelpCircle,  group: "site", roles: ["super_admin", "admin", "pa_staff"] },
   { id: "settings",       label: "Site Settings",        icon: Settings,    group: "site", roles: ["super_admin", "admin"] },
   { id: "social",         label: "Social Media",         icon: Share2,      group: "site", roles: ["super_admin", "admin", "media_team"] },
+  { id: "promises",       label: "Promises Tracker",     icon: Trophy,      group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  // Broadcast cross-posts to website news + Social Media APIs, which only
+  // accept super_admin / admin / media_team — keep the nav role aligned to
+  // avoid pa_staff loading a page whose social calls would 403 silently.
+  { id: "broadcast",      label: "Broadcast",            icon: Radio,       group: "site", roles: ["super_admin", "admin", "media_team"] },
 
   // System
   { id: "audit",        label: "Audit Log",            icon: ClipboardList,   group: "system", roles: ["super_admin", "admin"] },
@@ -480,6 +487,8 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           {active === "about"        && <AboutAdmin />}
           {active === "settings"     && <SiteSettingsAdmin />}
           {active === "social"       && <SocialMediaAdmin />}
+          {active === "promises"     && <PromisesAdmin />}
+          {active === "broadcast"    && <BroadcastAdmin />}
           {active === "audit"        && <AuditLogAdmin />}
           {active === "voters"       && <VoterRollAdmin />}
           {active === "voters-search" && <VotersAdmin lang={lang} />}

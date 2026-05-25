@@ -209,6 +209,13 @@ export const adminApi = {
   deleteSocialPost: (id: number) => authFetch(`/admin/social/posts/${id}`, { method: "DELETE" }),
   publishSocialPost: (id: number) => authFetch(`/admin/social/posts/${id}/publish`, { method: "POST" }),
   getSocialCapabilities: () => authFetch("/admin/social/capabilities"),
+  // Promises
+  getPromises: () => authFetch("/admin/promises"),
+  createPromise: (data: unknown) => authFetch("/admin/promises", { method: "POST", body: JSON.stringify(data) }),
+  updatePromise: (id: number, data: unknown) => authFetch(`/admin/promises/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deletePromise: (id: number) => authFetch(`/admin/promises/${id}`, { method: "DELETE" }),
+  // Constituency Development Index
+  getCdi: () => authFetch("/admin/cdi"),
   // Image upload (multipart)
   uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
     const token = getToken();

@@ -9,6 +9,7 @@ import {
   TrendingUp, CheckCircle, Clock, Activity,
 } from "lucide-react";
 import { adminApi } from "./api";
+import CdiCard from "./CdiCard";
 
 const COLORS = ["#c9181e", "#d4af37", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2"];
 
@@ -109,6 +110,9 @@ export default function Dashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Constituency Development Index */}
+      <CdiCard />
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
