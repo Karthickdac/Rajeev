@@ -95,7 +95,8 @@ export function AboutView({ config, lang, embedded = false }: AboutViewProps) {
     { icon: Mail, label: t("Email", "மின்னஞ்சல்"), value: config.email },
   ];
 
-  const photoSrc = config.photoUrl || leaderPhoto;
+  const photoSrc = config.photoUrl || "";
+  const initial = (t(config.name, config.nameTa) || "L").trim().charAt(0).toUpperCase();
 
   const socialLinks = [
     { icon: Facebook, url: config.facebook, label: "Facebook" },
@@ -127,12 +128,16 @@ export function AboutView({ config, lang, embedded = false }: AboutViewProps) {
         {/* Leader card */}
         <div className={embedded ? "" : "lg:col-span-1"}>
           <div className="bg-gradient-to-b from-primary/10 to-transparent rounded-2xl p-6 text-center">
-            <div className="w-36 h-36 rounded-full overflow-hidden mx-auto mb-4 shadow-xl ring-4 ring-primary/30">
-              <img
-                src={photoSrc}
-                alt={t(config.name, config.nameTa)}
-                className="w-full h-full object-cover object-top"
-              />
+            <div className="w-36 h-36 rounded-full overflow-hidden mx-auto mb-4 shadow-xl ring-4 ring-primary/30 bg-primary/15 flex items-center justify-center">
+              {photoSrc ? (
+                <img
+                  src={photoSrc}
+                  alt={t(config.name, config.nameTa)}
+                  className="w-full h-full object-cover object-top"
+                />
+              ) : (
+                <span className="text-5xl font-bold text-primary">{initial}</span>
+              )}
             </div>
             <h2 className="text-xl font-bold mb-1">{t(config.name, config.nameTa)}</h2>
             <p className="text-primary text-sm font-medium mb-1">

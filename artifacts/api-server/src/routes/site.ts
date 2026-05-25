@@ -180,7 +180,10 @@ router.get("/about", async (_req, res) => {
       .from(siteConfigTable)
       .where(eq(siteConfigTable.key, "about"))
       .limit(1);
-    if (!row) { res.json(null); return; }
+    // When no CMS row exists yet, return an empty object so the frontend
+    // falls back cleanly to its DEFAULT_ABOUT_CONFIG instead of crashing
+    // on a null payload.
+    if (!row) { res.json({}); return; }
     res.json(JSON.parse(row.value));
   } catch (err) {
     console.error("[site] about get:", err);
