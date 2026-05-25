@@ -216,6 +216,15 @@ export const adminApi = {
   deletePromise: (id: number) => authFetch(`/admin/promises/${id}`, { method: "DELETE" }),
   // Constituency Development Index
   getCdi: () => authFetch("/admin/cdi"),
+  // AI tools
+  triageGrievance: (id: number) => authFetch(`/admin/ai/triage-grievance/${id}`, { method: "POST" }),
+  similarGrievances: (id: number) => authFetch(`/admin/grievances/${id}/similar`),
+  generatePressRelease: (data: unknown) => authFetch("/admin/ai/press-release", { method: "POST", body: JSON.stringify(data) }),
+  analyzeSentiment: (data: unknown) => authFetch("/admin/ai/sentiment", { method: "POST", body: JSON.stringify(data) }),
+  // Press coverage
+  getPressCoverage: () => authFetch("/admin/press-coverage"),
+  refreshPressCoverage: (query?: string) => authFetch("/admin/press-coverage/refresh", { method: "POST", body: JSON.stringify({ query }) }),
+  deletePressCoverage: (id: number) => authFetch(`/admin/press-coverage/${id}`, { method: "DELETE" }),
   // Image upload (multipart)
   uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
     const token = getToken();

@@ -70,6 +70,14 @@ export const grievancesTable = pgTable("grievances", {
   // grievance — we keep the complaint and just clear the link.
   voterId: integer("voter_id").references(() => votersTable.id, { onDelete: "set null" }),
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  // AI triage fields — populated by routes/ai.ts (best-effort on create + manual rerun).
+  aiCategory: text("ai_category"),
+  aiPriority: text("ai_priority"),
+  aiSummary: text("ai_summary"),
+  aiSummaryTa: text("ai_summary_ta"),
+  aiSuggestedRoute: text("ai_suggested_route"),
+  aiEmbedding: text("ai_embedding"), // JSON-encoded number[]
+  aiTriagedAt: timestamp("ai_triaged_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => ({

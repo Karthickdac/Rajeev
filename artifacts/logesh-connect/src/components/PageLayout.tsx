@@ -2,6 +2,7 @@ import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { WhatsAppButton } from "./WhatsAppButton";
 import { MobileBottomBar } from "./MobileBottomBar";
+import { ChatWidget } from "./ChatWidget";
 import type { Language } from "@/lib/i18n";
 
 interface PageLayoutProps {
@@ -23,6 +24,7 @@ export function PageLayout({ lang, setLang, darkMode, setDarkMode, children }: P
       </main>
       <Footer lang={lang} />
       <WhatsAppButton />
+      <ChatWidget lang={lang} />
       <MobileBottomBar lang={lang} />
     </div>
   );

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Newspaper, Calendar, Activity, Image,
   Users, MessageSquare, HelpCircle, UserCircle, LogOut, Menu, X,
-  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio,
+  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio, Sparkles, Newspaper as NewsIcon,
 } from "lucide-react";
 import { isAuthenticated, removeToken, getToken } from "@/lib/auth";
 import { useGetMe } from "@workspace/api-client-react";
@@ -38,6 +38,8 @@ import AssignmentsAdmin from "./admin/AssignmentsAdmin";
 import SocialMediaAdmin from "./admin/SocialMediaAdmin";
 import PromisesAdmin from "./admin/PromisesAdmin";
 import BroadcastAdmin from "./admin/BroadcastAdmin";
+import AiToolsAdmin from "./admin/AiToolsAdmin";
+import PressCoverageAdmin from "./admin/PressCoverageAdmin";
 import type { Language } from "@/lib/i18n";
 import { UnsavedChangesProvider, useConfirmDiscard } from "@/lib/unsavedChanges";
 
@@ -116,6 +118,8 @@ const NAV_ITEMS: NavItem[] = [
   // accept super_admin / admin / media_team — keep the nav role aligned to
   // avoid pa_staff loading a page whose social calls would 403 silently.
   { id: "broadcast",      label: "Broadcast",            icon: Radio,       group: "site", roles: ["super_admin", "admin", "media_team"] },
+  { id: "ai-tools",       label: "AI Tools",             icon: Sparkles,    group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team", "grievance_officer"] },
+  { id: "press-coverage", label: "Press Coverage",       icon: NewsIcon,    group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
 
   // System
   { id: "audit",        label: "Audit Log",            icon: ClipboardList,   group: "system", roles: ["super_admin", "admin"] },
@@ -489,6 +493,8 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           {active === "social"       && <SocialMediaAdmin />}
           {active === "promises"     && <PromisesAdmin />}
           {active === "broadcast"    && <BroadcastAdmin />}
+          {active === "ai-tools"     && <AiToolsAdmin />}
+          {active === "press-coverage" && <PressCoverageAdmin />}
           {active === "audit"        && <AuditLogAdmin />}
           {active === "voters"       && <VoterRollAdmin />}
           {active === "voters-search" && <VotersAdmin lang={lang} />}
