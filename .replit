@@ -51,6 +51,7 @@ waitForPort = 5000
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
 expertMode = true
+integrations = ["javascript_object_storage:2.0.0"]
 
 [postMerge]
 path = "scripts/post-merge.sh"
@@ -75,6 +76,7 @@ externalPort = 3000
 [userenv]
 
 [userenv.shared]
+JWT_SECRET = "cfb40711a286e427af8011857f9428620b33ab6b7298883c8d5a78c888ffa59f53f576c2fcbc56f53956468009f0c8718f08860701fb559f3dfcf28918f64285"
 
 [nix]
 channel = "stable-25_05"
