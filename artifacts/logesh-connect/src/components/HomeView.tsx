@@ -319,7 +319,7 @@ export function HomeView({
                     {tx("Minister & MLA", "அமைச்சர் & எம்எல்ஏ")}
                   </span>
                   <span className="text-white/70 text-[11px] text-center leading-tight max-w-[90px]">
-                    {tx("D. Logesh", "D. லோகேஷ்")}
+                    {tx("D. Logesh Tamilselvan", "D. லோகேஷ் தமிழ்செல்வன்")}
                   </span>
                 </div>
               </div>
