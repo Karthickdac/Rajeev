@@ -321,6 +321,9 @@ export function HomeView({
                   <span className="text-white/70 text-[11px] text-center leading-tight w-full">
                     {tx("D. Logesh Tamilselvan", "D. லோகேஷ் தமிழ்செல்வன்")}
                   </span>
+                  <span className="text-yellow-300/80 text-[10px] text-center leading-tight w-full">
+                    {tx("Commercial Taxes, Registration & Stamp Duty", "வணிக வரி, பத்திரப்பதிவு & முத்திரை வரி")}
+                  </span>
                 </div>
               </div>
 
