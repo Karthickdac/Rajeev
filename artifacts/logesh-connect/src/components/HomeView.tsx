@@ -288,7 +288,7 @@ export function HomeView({
                   <div className="w-32 h-40 md:w-36 md:h-44 rounded-xl overflow-hidden border-2 border-yellow-400 shadow-xl bg-primary/60">
                     <img
                       src="/cm_vijay.jpg"
-                      alt="Thalapathy Vijay – Chief Minister"
+                      alt="C. Joseph Vijay – Chief Minister"
                       className="w-full h-full object-cover object-top"
                     />
                   </div>
@@ -296,7 +296,7 @@ export function HomeView({
                     {tx("Chief Minister", "முதலமைச்சர்")}
                   </span>
                   <span className="text-white/70 text-[11px] text-center leading-tight">
-                    {tx("Thalapathy Vijay", "தளபதி விஜய்")}
+                    {tx("C. Joseph Vijay", "C. ஜோசப் விஜய்")}
                   </span>
                 </div>
 
@@ -319,7 +319,7 @@ export function HomeView({
                     {tx("Minister & MLA", "அமைச்சர் & எம்எல்ஏ")}
                   </span>
                   <span className="text-white/70 text-[11px] text-center leading-tight max-w-[90px]">
-                    {tx("D. Logesh", "டி. லோகேஷ்")}
+                    {tx("D. Logesh", "D. லோகேஷ்")}
                   </span>
                 </div>
               </div>
@@ -397,7 +397,7 @@ export function HomeView({
                 <div className="w-48 h-56 md:w-60 md:h-72 rounded-2xl overflow-hidden border-2 border-yellow-400/50 shadow-2xl shadow-yellow-400/10">
                   <img
                     src="/cm_vijay.jpg"
-                    alt="Thalapathy Vijay – Chief Minister of Tamil Nadu"
+                    alt="C. Joseph Vijay – Chief Minister of Tamil Nadu"
                     className="w-full h-full object-cover object-top"
                   />
                 </div>
@@ -417,7 +417,7 @@ export function HomeView({
                 </span>
               </div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight mb-2 tracking-tight">
-                {tx("Thalapathy Vijay", "தளபதி விஜய்")}
+                {tx("C. Joseph Vijay", "C. ஜோசப் விஜய்")}
               </h2>
               <p className="text-yellow-300 font-semibold text-lg md:text-xl mb-5">
                 {tx("Chief Minister of Tamil Nadu", "தமிழ்நாடு முதலமைச்சர்")}
