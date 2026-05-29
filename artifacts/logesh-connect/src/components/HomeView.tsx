@@ -281,44 +281,44 @@ export function HomeView({
           <div className={`${embedded ? "flex" : "hidden lg:flex"} justify-center`}>
             <div className="glass-card rounded-2xl p-5 md:p-6 max-w-sm w-full text-white">
 
-              {/* CM + Minister photos — equal size side-by-side */}
-              <div className="flex items-end justify-center gap-4 mb-5">
+              {/* CM + Minister photos — fixed equal size */}
+              <div className="flex items-start justify-center gap-3 mb-5">
                 {/* CM — left */}
-                <div className="flex flex-col items-center gap-1.5">
-                  <div className="w-32 h-40 md:w-36 md:h-44 rounded-xl overflow-hidden border-2 border-yellow-400 shadow-xl bg-primary/60">
+                <div className="flex flex-col items-center gap-2 w-[128px]">
+                  <div className="w-[128px] h-[160px] rounded-xl overflow-hidden border-2 border-yellow-400 shadow-xl bg-primary/60 flex-shrink-0">
                     <img
                       src="/cm_vijay.jpg"
                       alt="C. Joseph Vijay – Chief Minister"
                       className="w-full h-full object-cover object-top"
                     />
                   </div>
-                  <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide leading-tight text-center">
+                  <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide text-center whitespace-nowrap">
                     {tx("Chief Minister", "முதலமைச்சர்")}
                   </span>
-                  <span className="text-white/70 text-[11px] text-center leading-tight">
+                  <span className="text-white/70 text-[11px] text-center leading-tight w-full">
                     {tx("C. Joseph Vijay", "C. ஜோசப் விஜய்")}
                   </span>
                 </div>
 
                 {/* Divider */}
-                <div className="flex flex-col items-center gap-1 pb-10 self-center">
-                  <div className="w-px h-8 bg-yellow-400/30" />
-                  <span className="text-yellow-400 text-lg">★</span>
-                  <div className="w-px h-8 bg-yellow-400/30" />
+                <div className="flex flex-col items-center gap-1 mt-16 flex-shrink-0">
+                  <div className="w-px h-6 bg-yellow-400/30" />
+                  <span className="text-yellow-400 text-base">★</span>
+                  <div className="w-px h-6 bg-yellow-400/30" />
                 </div>
 
-                {/* Minister — right, same size */}
-                <div className="flex flex-col items-center gap-1.5">
-                  <div className="w-32 h-40 md:w-36 md:h-44 rounded-xl overflow-hidden border-2 border-yellow-400/50 shadow-xl bg-primary/60">
+                {/* Minister — right, identical size */}
+                <div className="flex flex-col items-center gap-2 w-[128px]">
+                  <div className="w-[128px] h-[160px] rounded-xl overflow-hidden border-2 border-yellow-400/50 shadow-xl bg-primary/60 flex-shrink-0">
                     {photoSrc
                       ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" />
                       : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400">D</span>
                     }
                   </div>
-                  <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide leading-tight text-center">
+                  <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide text-center whitespace-nowrap">
                     {tx("Minister & MLA", "அமைச்சர் & எம்எல்ஏ")}
                   </span>
-                  <span className="text-white/70 text-[11px] text-center leading-tight max-w-[90px]">
+                  <span className="text-white/70 text-[11px] text-center leading-tight w-full">
                     {tx("D. Logesh Tamilselvan", "D. லோகேஷ் தமிழ்செல்வன்")}
                   </span>
                 </div>
