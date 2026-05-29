@@ -279,24 +279,77 @@ export function HomeView({
           </div>
 
           <div className={`${embedded ? "flex" : "hidden lg:flex"} justify-center`}>
-            <div className="glass-card rounded-2xl p-6 md:p-8 max-w-sm w-full text-center text-white">
-              <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-4 border-yellow-400 mx-auto mb-4 shadow-2xl bg-primary/60 flex items-center justify-center">
-                {photoSrc ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" /> : <span className="text-4xl font-bold text-yellow-400">{config.logoInitial ?? "D"}</span>}
-              </div>
-              <div className="text-4xl md:text-5xl font-bold text-yellow-400 mb-2">
-                {summary?.totalVolunteers?.toLocaleString() ?? "—"}+
-              </div>
-              <p className="text-white/80 text-sm">
-                {tx("Volunteers & Supporters", "தன்னார்வலர்கள்")}
-              </p>
-              <div className="mt-4 md:mt-6 grid grid-cols-2 gap-3">
-                <div className="bg-white/10 rounded-lg p-3">
-                  <div className="font-bold text-lg">{summary?.totalEvents ?? "—"}</div>
-                  <div className="text-xs text-white/70">{tx("Events", "நிகழ்வுகள்")}</div>
+            <div className="glass-card rounded-2xl p-5 md:p-6 max-w-sm w-full text-white">
+
+              {/* CM + MLA photos side-by-side */}
+              <div className="flex items-end justify-center gap-4 mb-5">
+                {/* CM — larger, left */}
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="w-36 h-44 md:w-40 md:h-48 rounded-xl overflow-hidden border-2 border-yellow-400 shadow-xl bg-primary/60">
+                    <img
+                      src="/cm_vijay.jpg"
+                      alt="Thalapathy Vijay – Chief Minister"
+                      className="w-full h-full object-cover object-top"
+                    />
+                  </div>
+                  <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide leading-tight text-center">
+                    {tx("Chief Minister", "முதலமைச்சர்")}
+                  </span>
+                  <span className="text-white/70 text-[11px] text-center leading-tight">
+                    {tx("Thalapathy Vijay", "தளபதி விஜய்")}
+                  </span>
                 </div>
-                <div className="bg-white/10 rounded-lg p-3">
-                  <div className="font-bold text-lg">{summary?.totalNews ?? "—"}</div>
-                  <div className="text-xs text-white/70">{tx("News Items", "செய்திகள்")}</div>
+
+                {/* Divider line with star */}
+                <div className="flex flex-col items-center gap-1 pb-8 self-center">
+                  <div className="w-px h-8 bg-yellow-400/30" />
+                  <span className="text-yellow-400 text-lg">★</span>
+                  <div className="w-px h-8 bg-yellow-400/30" />
+                </div>
+
+                {/* MLA — slightly smaller, right */}
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="w-28 h-36 md:w-32 md:h-40 rounded-xl overflow-hidden border-2 border-white/30 shadow-xl bg-primary/60">
+                    {photoSrc
+                      ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" />
+                      : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400">D</span>
+                    }
+                  </div>
+                  <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide leading-tight text-center">
+                    {tx("MLA", "எம்எல்ஏ")}
+                  </span>
+                  <span className="text-white/70 text-[11px] text-center leading-tight max-w-[80px] truncate">
+                    {tx("D. Logesh", "டி. லோகேஷ்")}
+                  </span>
+                </div>
+              </div>
+
+              {/* TVK party label */}
+              <div className="text-center mb-4">
+                <span className="text-yellow-400/80 text-[11px] font-semibold uppercase tracking-widest">
+                  {tx("Tamilaga Vettri Kazhagam", "தமிழக வெற்றி கழகம்")}
+                </span>
+              </div>
+
+              {/* Stats strip */}
+              <div className="grid grid-cols-3 gap-2 text-center border-t border-white/10 pt-4">
+                <div>
+                  <div className="text-yellow-400 font-bold text-lg leading-none">
+                    {summary?.totalVolunteers?.toLocaleString() ?? "—"}+
+                  </div>
+                  <div className="text-[10px] text-white/60 mt-0.5">{tx("Volunteers", "தன்னார்வலர்")}</div>
+                </div>
+                <div>
+                  <div className="text-yellow-400 font-bold text-lg leading-none">
+                    {summary?.totalEvents ?? "—"}
+                  </div>
+                  <div className="text-[10px] text-white/60 mt-0.5">{tx("Events", "நிகழ்வுகள்")}</div>
+                </div>
+                <div>
+                  <div className="text-yellow-400 font-bold text-lg leading-none">
+                    {summary?.totalNews ?? "—"}
+                  </div>
+                  <div className="text-[10px] text-white/60 mt-0.5">{tx("News", "செய்திகள்")}</div>
                 </div>
               </div>
             </div>
@@ -326,6 +379,74 @@ export function HomeView({
           </div>
         </div>
       )}
+
+      {/* CM Feature Banner */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-red-950/60 to-gray-950 border-y border-yellow-400/20">
+        {/* Decorative blobs */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-yellow-400/5 blur-3xl" />
+          <div className="absolute -bottom-20 -right-20 w-96 h-96 rounded-full bg-red-600/10 blur-3xl" />
+        </div>
+
+        <div className={`relative ${embedded ? "w-full" : "max-w-7xl mx-auto"} px-4 py-10 md:py-14`}>
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-14">
+
+            {/* Photo */}
+            <div className="flex-shrink-0 flex flex-col items-center">
+              <div className="relative">
+                <div className="w-48 h-56 md:w-60 md:h-72 rounded-2xl overflow-hidden border-2 border-yellow-400/50 shadow-2xl shadow-yellow-400/10">
+                  <img
+                    src="/cm_vijay.jpg"
+                    alt="Thalapathy Vijay – Chief Minister of Tamil Nadu"
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+                {/* Gold badge */}
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-[11px] font-bold px-4 py-1 rounded-full shadow-lg whitespace-nowrap tracking-wide uppercase">
+                  {tx("Chief Minister", "முதலமைச்சர்")}
+                </div>
+              </div>
+            </div>
+
+            {/* Text */}
+            <div className="flex-1 text-center md:text-left text-white">
+              <div className="inline-flex items-center gap-2 mb-3">
+                <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+                <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest">
+                  {tx("TVK Party Leadership", "தமிழக வெற்றி கழகம்")}
+                </span>
+              </div>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight mb-2 tracking-tight">
+                {tx("Thalapathy Vijay", "தளபதி விஜய்")}
+              </h2>
+              <p className="text-yellow-300 font-semibold text-lg md:text-xl mb-5">
+                {tx("Chief Minister of Tamil Nadu", "தமிழ்நாடு முதலமைச்சர்")}
+              </p>
+
+              {/* Divider */}
+              <div className="w-16 h-0.5 bg-yellow-400/50 mb-5 mx-auto md:mx-0" />
+
+              <blockquote className="text-white/80 text-base md:text-lg leading-relaxed mb-6 max-w-xl mx-auto md:mx-0 italic border-l-2 border-yellow-400/40 pl-4">
+                {tx(
+                  '"Together, we build a prosperous Tamil Nadu — one constituency at a time."',
+                  '"ஒன்றிணைந்து, நாம் ஒரு வளமான தமிழ்நாட்டை கட்டியெழுப்புவோம்."'
+                )}
+              </blockquote>
+
+              {/* Party endorsement line */}
+              <div className="flex items-center gap-3 justify-center md:justify-start flex-wrap">
+                <span className="text-xs text-white/50 uppercase tracking-wider">
+                  {tx("Rasipuram Constituency is proud to serve under", "ராசிபுரம் தொகுதி பெருமையுடன் உழைக்கிறது")}
+                </span>
+                <span className="text-yellow-400 font-bold text-xs">
+                  {tx("TVK Leadership", "TVK தலைமை")}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
 
       {/* Constituency Stats */}
       {stats && (
