@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Newspaper, Calendar, Activity, Image,
   Users, MessageSquare, HelpCircle, UserCircle, LogOut, Menu, X,
-  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio, Sparkles, Newspaper as NewsIcon, Timer, Flame,
+  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio, Sparkles, Newspaper as NewsIcon, Timer, Flame, Layers,
 } from "lucide-react";
 import { isAuthenticated, removeToken, getToken } from "@/lib/auth";
 import { useGetMe } from "@workspace/api-client-react";
@@ -54,8 +54,9 @@ type NavGroupId =
   | "overview"
   | "grievances"
   | "voters"
+  | "maps"
   | "content"
-  | "organization"
+  | "outreach"
   | "site"
   | "system";
 
@@ -70,69 +71,73 @@ interface NavItem {
 interface NavGroup {
   id: NavGroupId;
   label: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 // Ordered. Empty groups (after role filtering) are hidden automatically.
 const NAV_GROUPS: NavGroup[] = [
-  { id: "overview",     label: "Overview" },
-  { id: "grievances",   label: "Grievances" },
-  { id: "voters",       label: "Voters" },
-  { id: "content",      label: "Content" },
-  { id: "organization", label: "Organization" },
-  { id: "site",         label: "Site Management" },
-  { id: "system",       label: "System" },
+  { id: "overview",   label: "Overview",      icon: LayoutDashboard },
+  { id: "grievances", label: "Grievances",    icon: MessageSquare },
+  { id: "voters",     label: "Voters",        icon: Users },
+  { id: "maps",       label: "Maps",          icon: MapIcon },
+  { id: "content",    label: "Content",       icon: Newspaper },
+  { id: "outreach",   label: "Outreach",      icon: Trophy },
+  { id: "site",       label: "Site",          icon: Settings },
+  { id: "system",     label: "System",        icon: ClipboardList },
 ];
 
 // roles: undefined = all staff; listed = only those roles
 const NAV_ITEMS: NavItem[] = [
   // Overview
-  { id: "dashboard",    label: "Dashboard",            icon: LayoutDashboard, group: "overview" },
-  { id: "map",          label: "Constituency Map",     icon: MapIcon,         group: "overview" },
-  { id: "analytics",    label: "Analytics",            icon: BarChart3,       group: "overview", roles: ["super_admin", "admin", "constituency_coordinator"] },
+  { id: "dashboard",  label: "Dashboard",   icon: LayoutDashboard, group: "overview" },
+  { id: "analytics",  label: "Analytics",   icon: BarChart3,       group: "overview", roles: ["super_admin", "admin", "constituency_coordinator"] },
 
   // Grievances
-  { id: "grievances",   label: "Grievances",           icon: MessageSquare,   group: "grievances" },
-  { id: "assignments",  label: "Officer Assignments",  icon: Network,         group: "grievances", roles: ["super_admin", "admin", "constituency_coordinator"] },
+  { id: "grievances",   label: "Grievances",          icon: MessageSquare, group: "grievances" },
+  { id: "assignments",  label: "Officer Assignments", icon: Network,       group: "grievances", roles: ["super_admin", "admin", "constituency_coordinator"] },
+  { id: "sla",          label: "SLA Performance",     icon: Timer,         group: "grievances", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "escalations",  label: "Escalations",         icon: Flame,         group: "grievances", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
 
   // Voters
-  { id: "voters-search", label: "Voters",              icon: Users,           group: "voters", roles: ["super_admin", "admin", "constituency_coordinator", "grievance_officer", "pa_staff"] },
-  { id: "voters",        label: "Voter Roll",          icon: ShieldAlert,     group: "voters", roles: ["super_admin"] },
-  { id: "voter-tags",    label: "Voter Tags",          icon: ShieldAlert,     group: "voters", roles: ["super_admin"] },
-  { id: "voter-exports", label: "Voter Exports",       icon: Download,        group: "voters", roles: ["super_admin"] },
+  { id: "voters-search", label: "Voter Search",   icon: Users,      group: "voters", roles: ["super_admin", "admin", "constituency_coordinator", "grievance_officer", "pa_staff"] },
+  { id: "voters",        label: "Voter Roll",     icon: ShieldAlert, group: "voters", roles: ["super_admin"] },
+  { id: "voter-tags",    label: "Voter Tags",     icon: ShieldAlert, group: "voters", roles: ["super_admin"] },
+  { id: "voter-exports", label: "Voter Exports",  icon: Download,    group: "voters", roles: ["super_admin"] },
+
+  // Maps
+  { id: "map",     label: "Constituency Map", icon: MapIcon, group: "maps" },
+  { id: "heatmap", label: "Grievance Heatmap", icon: Layers,  group: "maps", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "map3d",   label: "3D Map",           icon: MapIcon, group: "maps", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
 
   // Content
-  { id: "news",         label: "News",                 icon: Newspaper,       group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
-  { id: "press",        label: "Press Releases",       icon: FileText,        group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
-  { id: "events",       label: "Events",               icon: Calendar,        group: "content", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator", "media_team"] },
-  { id: "activities",   label: "Activities",           icon: Activity,        group: "content", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator", "media_team"] },
-  { id: "gallery",      label: "Gallery",              icon: Image,           group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
-  { id: "banners",      label: "Banners",              icon: Megaphone,       group: "content", roles: ["super_admin", "admin", "pa_staff"] },
+  { id: "news",           label: "News",           icon: Newspaper, group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "press",          label: "Press Releases", icon: FileText,  group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "press-coverage", label: "Press Coverage", icon: NewsIcon,  group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "events",         label: "Events",         icon: Calendar,  group: "content", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator", "media_team"] },
+  { id: "activities",     label: "Activities",     icon: Activity,  group: "content", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator", "media_team"] },
+  { id: "gallery",        label: "Gallery",        icon: Image,     group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "banners",        label: "Banners",        icon: Megaphone, group: "content", roles: ["super_admin", "admin", "pa_staff"] },
 
-  // Organization
-  { id: "volunteers",   label: "Volunteers",           icon: Users,           group: "organization", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
-  { id: "constituency", label: "Constituency & Wards", icon: MapPin,          group: "organization", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
-
-  // Site Management
-  { id: "home",           label: "Home CMS",             icon: HomeIcon,    group: "site", roles: ["super_admin", "admin"] },
-  { id: "about",          label: "About CMS",            icon: UserCircle,  group: "site", roles: ["super_admin", "admin"] },
-  { id: "faqs",           label: "FAQs",                 icon: HelpCircle,  group: "site", roles: ["super_admin", "admin", "pa_staff"] },
-  { id: "settings",       label: "Site Settings",        icon: Settings,    group: "site", roles: ["super_admin", "admin"] },
-  { id: "social",         label: "Social Media",         icon: Share2,      group: "site", roles: ["super_admin", "admin", "media_team"] },
-  { id: "promises",       label: "Promises Tracker",     icon: Trophy,      group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  // Outreach
+  { id: "volunteers",   label: "Volunteers",         icon: Users,    group: "outreach", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
+  { id: "constituency", label: "Constituency & Wards", icon: MapPin, group: "outreach", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
   // Broadcast cross-posts to website news + Social Media APIs, which only
   // accept super_admin / admin / media_team — keep the nav role aligned to
   // avoid pa_staff loading a page whose social calls would 403 silently.
-  { id: "broadcast",      label: "Broadcast",            icon: Radio,       group: "site", roles: ["super_admin", "admin", "media_team"] },
-  { id: "ai-tools",       label: "AI Tools",             icon: Sparkles,    group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team", "grievance_officer"] },
-  { id: "press-coverage", label: "Press Coverage",       icon: NewsIcon,    group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
-  { id: "sla",            label: "SLA Performance",      icon: Timer,       group: "site", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
-  { id: "escalations",    label: "Escalations",          icon: Flame,       group: "site", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
-  { id: "heatmap",        label: "Heatmap (time)",       icon: MapIcon,     group: "site", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
-  { id: "map3d",          label: "3D Map",                icon: MapIcon,     group: "site", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
-  { id: "outreach",       label: "Outreach Scorecard",   icon: Trophy,      group: "site", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
+  { id: "broadcast",    label: "Broadcast",          icon: Radio,    group: "outreach", roles: ["super_admin", "admin", "media_team"] },
+  { id: "social",       label: "Social Media",       icon: Share2,   group: "outreach", roles: ["super_admin", "admin", "media_team"] },
+  { id: "promises",     label: "Promises Tracker",   icon: Trophy,   group: "outreach", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "outreach",     label: "Outreach Scorecard", icon: BarChart3, group: "outreach", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
+
+  // Site
+  { id: "home",      label: "Home CMS",    icon: HomeIcon,  group: "site", roles: ["super_admin", "admin"] },
+  { id: "about",     label: "About CMS",   icon: UserCircle, group: "site", roles: ["super_admin", "admin"] },
+  { id: "faqs",      label: "FAQs",        icon: HelpCircle, group: "site", roles: ["super_admin", "admin", "pa_staff"] },
+  { id: "settings",  label: "Site Settings", icon: Settings, group: "site", roles: ["super_admin", "admin"] },
+  { id: "ai-tools",  label: "AI Tools",    icon: Sparkles,  group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team", "grievance_officer"] },
 
   // System
-  { id: "audit",        label: "Audit Log",            icon: ClipboardList,   group: "system", roles: ["super_admin", "admin"] },
+  { id: "audit", label: "Audit Log", icon: ClipboardList, group: "system", roles: ["super_admin", "admin"] },
 ];
 
 // Persisted collapse state. Stored as a comma-separated list of
@@ -352,31 +357,38 @@ function AdminInner({ lang = "ta" }: AdminProps) {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 px-2 py-3 space-y-3 overflow-y-auto">
+        <nav className="flex-1 px-2 py-3 space-y-1 overflow-y-auto">
           {groupedNav.map(({ group, items }) => {
+            const GroupIcon = group.icon;
             const isActiveGroup = activeGroupId === group.id;
             // Active group is always expanded so the user never loses
             // their place after a refresh or hash deep-link.
             const isCollapsed = !isActiveGroup && collapsedGroups.has(group.id);
             return (
-              <div key={group.id}>
+              <div key={group.id} className="mb-1">
                 <button
                   type="button"
                   onClick={() => toggleGroup(group.id)}
                   data-testid={`admin-nav-group-${group.id}`}
                   aria-expanded={!isCollapsed}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-300 transition-colors"
+                  className={`
+                    w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-semibold uppercase tracking-wider transition-colors
+                    ${isActiveGroup
+                      ? "text-primary/80 bg-primary/10"
+                      : "text-gray-500 hover:text-gray-300 hover:bg-white/5"}
+                  `}
                 >
-                  {isCollapsed
-                    ? <ChevronRight className="w-3 h-3 shrink-0" />
-                    : <ChevronDown className="w-3 h-3 shrink-0" />}
+                  <GroupIcon className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">{group.label}</span>
-                  <span className="ml-auto text-gray-600 font-normal normal-case tracking-normal">
-                    {items.length}
+                  <span className="ml-auto flex items-center gap-1 text-gray-600 font-normal normal-case tracking-normal">
+                    <span className="text-[10px]">{items.length}</span>
+                    {isCollapsed
+                      ? <ChevronRight className="w-3 h-3" />
+                      : <ChevronDown className="w-3 h-3" />}
                   </span>
                 </button>
                 {!isCollapsed && (
-                  <div className="mt-1 space-y-0.5">
+                  <div className="mt-0.5 ml-1 pl-2 border-l border-white/8 space-y-0.5">
                     {items.map((item) => {
                       const Icon = item.icon;
                       const isActive = active === item.id;
@@ -386,15 +398,15 @@ function AdminInner({ lang = "ta" }: AdminProps) {
                           onClick={() => navigate(item.id)}
                           data-testid={`admin-nav-${item.id}`}
                           className={`
-                            w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left
+                            w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all text-left
                             ${isActive
                               ? "bg-primary text-white shadow-sm"
                               : "text-gray-400 hover:text-white hover:bg-white/10"}
                           `}
                         >
-                          <Icon className="w-4 h-4 shrink-0" />
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
                           <span className="truncate">{item.label}</span>
-                          {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0" />}
+                          {isActive && <ChevronRight className="w-3 h-3 ml-auto shrink-0 opacity-70" />}
                         </button>
                       );
                     })}
