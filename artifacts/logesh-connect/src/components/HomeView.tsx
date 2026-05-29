@@ -281,11 +281,11 @@ export function HomeView({
           <div className={`${embedded ? "flex" : "hidden lg:flex"} justify-center`}>
             <div className="glass-card rounded-2xl p-5 md:p-6 max-w-sm w-full text-white">
 
-              {/* CM + MLA photos side-by-side */}
+              {/* CM + Minister photos — equal size side-by-side */}
               <div className="flex items-end justify-center gap-4 mb-5">
-                {/* CM — larger, left */}
+                {/* CM — left */}
                 <div className="flex flex-col items-center gap-1.5">
-                  <div className="w-36 h-44 md:w-40 md:h-48 rounded-xl overflow-hidden border-2 border-yellow-400 shadow-xl bg-primary/60">
+                  <div className="w-32 h-40 md:w-36 md:h-44 rounded-xl overflow-hidden border-2 border-yellow-400 shadow-xl bg-primary/60">
                     <img
                       src="/cm_vijay.jpg"
                       alt="Thalapathy Vijay – Chief Minister"
@@ -300,25 +300,25 @@ export function HomeView({
                   </span>
                 </div>
 
-                {/* Divider line with star */}
-                <div className="flex flex-col items-center gap-1 pb-8 self-center">
+                {/* Divider */}
+                <div className="flex flex-col items-center gap-1 pb-10 self-center">
                   <div className="w-px h-8 bg-yellow-400/30" />
                   <span className="text-yellow-400 text-lg">★</span>
                   <div className="w-px h-8 bg-yellow-400/30" />
                 </div>
 
-                {/* MLA — slightly smaller, right */}
+                {/* Minister — right, same size */}
                 <div className="flex flex-col items-center gap-1.5">
-                  <div className="w-28 h-36 md:w-32 md:h-40 rounded-xl overflow-hidden border-2 border-white/30 shadow-xl bg-primary/60">
+                  <div className="w-32 h-40 md:w-36 md:h-44 rounded-xl overflow-hidden border-2 border-yellow-400/50 shadow-xl bg-primary/60">
                     {photoSrc
                       ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" />
                       : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400">D</span>
                     }
                   </div>
                   <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide leading-tight text-center">
-                    {tx("MLA", "எம்எல்ஏ")}
+                    {tx("Minister & MLA", "அமைச்சர் & எம்எல்ஏ")}
                   </span>
-                  <span className="text-white/70 text-[11px] text-center leading-tight max-w-[80px] truncate">
+                  <span className="text-white/70 text-[11px] text-center leading-tight max-w-[90px]">
                     {tx("D. Logesh", "டி. லோகேஷ்")}
                   </span>
                 </div>
