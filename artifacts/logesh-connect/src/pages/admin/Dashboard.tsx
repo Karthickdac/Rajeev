@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { adminApi } from "./api";
 import CdiCard from "./CdiCard";
+import { MyTasksWidget } from "./TasksAdmin";
+import { type Language } from "@/lib/i18n";
 
 const COLORS = ["#c9181e", "#d4af37", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2"];
 
@@ -35,7 +37,7 @@ interface DashboardData {
   recentAuditLog: { id: number; actorName: string; action: string; target: string; detail: string | null; createdAt: string }[];
 }
 
-export default function Dashboard() {
+export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +112,9 @@ export default function Dashboard() {
           </Card>
         ))}
       </div>
+
+      {/* My Tasks Today */}
+      <MyTasksWidget lang={lang} />
 
       {/* Constituency Development Index */}
       <CdiCard />

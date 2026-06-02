@@ -469,7 +469,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
 
         {/* Page content */}
         <main className="flex-1 p-4 sm:p-6 overflow-auto">
-          {active === "dashboard"    && <Dashboard />}
+          {active === "dashboard"    && <Dashboard lang={lang} />}
           {active === "tasks"        && <TasksAdmin lang={lang} />}
           {active === "calendar"     && <CalendarAdmin lang={lang} />}
           {active === "grievances"   && <GrievanceOfficer lang={lang} token={token} userRole={role} />}
