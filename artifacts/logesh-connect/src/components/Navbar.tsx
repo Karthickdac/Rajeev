@@ -86,11 +86,11 @@ export function Navbar({ lang, setLang, darkMode, setDarkMode }: NavbarProps) {
                 )}
               </div>
               <div className="leading-tight min-w-0">
-                <p className="font-bold text-[13px] md:text-sm text-foreground whitespace-nowrap">
-                  {lang === "ta" ? lc.nameTa : lc.nameEn}
+                <p className="font-bold text-[14px] md:text-[15px] text-primary whitespace-nowrap tracking-tight">
+                  {lang === "ta" ? lc.siteTitleTa : lc.siteTitle}
                 </p>
-                <p className="text-[10px] md:text-xs text-muted-foreground line-clamp-1">
-                  {lang === "ta" ? lc.titleTa : lc.titleEn}
+                <p className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
+                  {lang === "ta" ? lc.nameTa : lc.nameEn}
                 </p>
               </div>
             </div>
@@ -187,10 +187,10 @@ export function Navbar({ lang, setLang, darkMode, setDarkMode }: NavbarProps) {
             </div>
             <div className="leading-tight">
               <p className="font-bold text-sm">
-                {lang === "ta" ? lc.nameTa : lc.nameEn}
+                {lang === "ta" ? lc.siteTitleTa : lc.siteTitle}
               </p>
               <p className="text-[11px] opacity-90">
-                {lang === "ta" ? lc.partyTa : lc.partyEn}
+                {lang === "ta" ? lc.nameTa : lc.nameEn}
               </p>
             </div>
           </div>

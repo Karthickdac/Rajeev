@@ -45,8 +45,8 @@ function validate(c: HomeHeroConfig): Record<string, string> {
   if (!c.secondaryCtaLabel.trim()) errs.secondaryCtaLabel = "Secondary CTA label required";
   if (!c.secondaryCtaHref.trim() || !c.secondaryCtaHref.startsWith("/")) errs.secondaryCtaHref = "Must start with /";
   const photo = c.photoUrl.trim();
-  if (photo && !URL_RE.test(photo) && !photo.startsWith("/uploads/") && !photo.startsWith("/api/uploads/")) {
-    errs.photoUrl = "Must be a valid URL or /uploads/ path";
+  if (photo && !URL_RE.test(photo) && !photo.startsWith("/uploads/") && !photo.startsWith("/api/uploads/") && !photo.startsWith("/api/storage/") && !photo.startsWith("/")) {
+    errs.photoUrl = "Must be a valid URL or an uploaded image path";
   }
   return errs;
 }

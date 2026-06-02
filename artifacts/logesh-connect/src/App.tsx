@@ -3,7 +3,7 @@ import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { LeaderConfigProvider } from "@/lib/LeaderConfigContext";
+import { LeaderConfigProvider, useLeaderConfig } from "@/lib/LeaderConfigContext";
 import { PageLayout } from "@/components/PageLayout";
 import type { Language } from "@/lib/i18n";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
@@ -44,6 +44,25 @@ function ScrollToTop() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location]);
+  return null;
+}
+
+function SiteMetaManager() {
+  const lc = useLeaderConfig();
+  useEffect(() => {
+    if (lc.siteTitle) {
+      document.title = `${lc.siteTitleTa || lc.siteTitle} | ${lc.nameTa || lc.nameEn}`;
+    }
+  }, [lc.siteTitle, lc.siteTitleTa, lc.nameTa, lc.nameEn]);
+  useEffect(() => {
+    if (!lc.photoUrl) return;
+    const link32 = document.querySelector<HTMLLinkElement>("link[sizes='32x32']");
+    const link512 = document.querySelector<HTMLLinkElement>("link[sizes='512x512']");
+    const apple = document.querySelector<HTMLLinkElement>("link[rel='apple-touch-icon']");
+    if (link32) link32.href = lc.photoUrl;
+    if (link512) link512.href = lc.photoUrl;
+    if (apple) apple.href = lc.photoUrl;
+  }, [lc.photoUrl]);
   return null;
 }
 
@@ -125,6 +144,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LeaderConfigProvider>
+        <SiteMetaManager />
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <Router lang={lang} setLang={setLang} darkMode={darkMode} setDarkMode={setDarkMode} />

@@ -20,6 +20,7 @@ export interface LeaderConfig {
   officeHoursTa: string;
   photoUrl: string;
   siteTitle: string;
+  siteTitleTa: string;
   logoInitial: string;
   districtEn: string;
   districtTa: string;
@@ -44,6 +45,7 @@ export const DEFAULT_LEADER_CONFIG: LeaderConfig = {
   officeHoursTa: "திங்கள் – சனி: காலை 9:00 – மாலை 6:00",
   photoUrl: "/sarath_kumar_dp.png",
   siteTitle: "Ungaludan Sarath",
+  siteTitleTa: "உங்களுடன் சரத்",
   logoInitial: "S",
   districtEn: "Chengalpattu",
   districtTa: "செங்கல்பட்டு",

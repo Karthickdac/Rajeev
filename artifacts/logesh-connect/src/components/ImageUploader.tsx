@@ -118,7 +118,9 @@ export default function ImageUploader({
   const previewSrc = value
     ? value.startsWith("http") ||
       value.startsWith("/uploads/") ||
-      value.startsWith("/api/uploads/")
+      value.startsWith("/api/uploads/") ||
+      value.startsWith("/api/storage/") ||
+      value.startsWith("/")
       ? value
       : null
     : null;
