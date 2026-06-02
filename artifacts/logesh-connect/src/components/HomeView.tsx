@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Calendar, Megaphone, ChevronRight } from "lucide-react";
+import { ArrowRight, Calendar, ChevronRight, Megaphone, Shield, HeartPulse, Briefcase, GraduationCap, Home, Star, FileText, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -439,7 +439,7 @@ export function HomeView({
               {/* Party endorsement line */}
               <div className="flex items-center gap-3 justify-center md:justify-start flex-wrap">
                 <span className="text-xs text-white/50 uppercase tracking-wider">
-                  {tx("Rasipuram Constituency is proud to serve under", "ராசிபுரம் தொகுதி பெருமையுடன் உழைக்கிறது")}
+                  {tx("Tambaram Constituency is proud to serve under", "தாம்பரம் தொகுதி பெருமையுடன் உழைக்கிறது")}
                 </span>
                 <span className="text-yellow-400 font-bold text-xs">
                   {tx("TVK Leadership", "TVK தலைமை")}
@@ -473,6 +473,147 @@ export function HomeView({
           </div>
         </section>
       )}
+
+      {/* Ex-Servicemen Welfare Section */}
+      <section className="relative overflow-hidden py-14 md:py-20">
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900" />
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-yellow-400/5 blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-blue-500/10 blur-3xl" />
+        </div>
+
+        <div className={`relative ${embedded ? "w-full" : "max-w-7xl mx-auto"} px-4`}>
+          {/* Header */}
+          <div className="text-center mb-10 md:mb-14">
+            <div className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-4 py-1.5 mb-4">
+              <Shield className="w-4 h-4 text-yellow-400" />
+              <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest">
+                {tx("Ex-Servicemen Welfare", "முன்னாள் இராணுவ வீரர் நலன்")}
+              </span>
+            </div>
+            <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-3 leading-tight">
+              {tx("Serving Those Who Served the Nation", "நாட்டிற்காக உழைத்தவர்களுக்கு நாம் உழைக்கிறோம்")}
+            </h2>
+            <p className="text-white/65 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+              {tx(
+                "D. Sarath Kumar, as Minister for Human Resources Management and Ex-Servicemen Welfare, is committed to the welfare, dignity, and rehabilitation of veterans and their families in Tambaram and across Tamil Nadu.",
+                "மனித வள மேலாண்மை மற்றும் முன்னாள் இராணுவ வீரர் நலன் அமைச்சராக, டி. சரத் குமார் தாம்பரம் மற்றும் தமிழ்நாடு முழுவதும் உள்ள வீரர்கள் மற்றும் அவர்களது குடும்பங்களுக்கு சேவை செய்ய உறுதிபூண்டுள்ளார்."
+              )}
+            </p>
+          </div>
+
+          {/* Scheme Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
+            {[
+              {
+                icon: HeartPulse,
+                color: "from-rose-500/20 to-rose-600/10",
+                border: "border-rose-500/30",
+                iconColor: "text-rose-400",
+                title: tx("ECHS Health Scheme", "ஈசிஹெச்எஸ் சுகாதார திட்டம்"),
+                desc: tx(
+                  "Free medical care at ECHS polyclinics and empanelled hospitals for ex-servicemen and their dependents.",
+                  "முன்னாள் இராணுவ வீரர்கள் மற்றும் அவர்களது குடும்பத்தினருக்கு இலவச மருத்துவ சேவை."
+                ),
+                tag: tx("Health", "சுகாதாரம்"),
+              },
+              {
+                icon: Star,
+                color: "from-yellow-500/20 to-yellow-600/10",
+                border: "border-yellow-500/30",
+                iconColor: "text-yellow-400",
+                title: tx("Gallantry Award Recognition", "வீரதீர விருது அங்கீகாரம்"),
+                desc: tx(
+                  "Felicitation and financial rewards for Param Vir Chakra, Vir Chakra, and Sena Medal awardees in Tamil Nadu.",
+                  "பரம வீர சக்கரம், வீர சக்கரம் மற்றும் சேனா பதக்கம் பெற்ற வீரர்களுக்கு விருது மற்றும் நிதி உதவி."
+                ),
+                tag: tx("Recognition", "அங்கீகாரம்"),
+              },
+              {
+                icon: Briefcase,
+                color: "from-blue-500/20 to-blue-600/10",
+                border: "border-blue-500/30",
+                iconColor: "text-blue-400",
+                title: tx("Employment Reservation", "வேலைவாய்ப்பு இட ஒதுக்கீடு"),
+                desc: tx(
+                  "10% reservation in Tamil Nadu government jobs for ex-servicemen under the Ex-Servicemen Re-employment Act.",
+                  "தமிழ்நாடு அரசு வேலைகளில் முன்னாள் இராணுவ வீரர்களுக்கு 10% இட ஒதுக்கீடு."
+                ),
+                tag: tx("Employment", "வேலைவாய்ப்பு"),
+              },
+              {
+                icon: GraduationCap,
+                color: "from-emerald-500/20 to-emerald-600/10",
+                border: "border-emerald-500/30",
+                iconColor: "text-emerald-400",
+                title: tx("Education Scholarships", "கல்வி உதவித்தொகை"),
+                desc: tx(
+                  "Scholarships and fee concessions for children of ex-servicemen studying in schools and colleges across Tamil Nadu.",
+                  "முன்னாள் வீரர்களின் பிள்ளைகளுக்கு பள்ளி மற்றும் கல்லூரி கல்விக்கு உதவித்தொகை."
+                ),
+                tag: tx("Education", "கல்வி"),
+              },
+              {
+                icon: Home,
+                color: "from-purple-500/20 to-purple-600/10",
+                border: "border-purple-500/30",
+                iconColor: "text-purple-400",
+                title: tx("Housing Assistance", "வீட்டுவசதி உதவி"),
+                desc: tx(
+                  "Priority allotment in Tamil Nadu Housing Board schemes and subsidised loans for ex-servicemen families.",
+                  "தமிழ்நாடு வீட்டு வாரிய திட்டங்களில் முன்னுரிமை ஒதுக்கீடு மற்றும் மானிய கடன் வசதி."
+                ),
+                tag: tx("Housing", "வீட்டுவசதி"),
+              },
+              {
+                icon: FileText,
+                color: "from-sky-500/20 to-sky-600/10",
+                border: "border-sky-500/30",
+                iconColor: "text-sky-400",
+                title: tx("Pension & Financial Aid", "ஓய்வூதியம் & நிதி உதவி"),
+                desc: tx(
+                  "Assistance with pension arrears, disability pension claims, and one-time financial grants for veterans in need.",
+                  "ஓய்வூதிய நிலுவை, ஊனமுற்றோர் ஓய்வூதியம் மற்றும் ஒருமுறை நிதி உதவிக்கு ஆதரவு."
+                ),
+                tag: tx("Pension", "ஓய்வூதியம்"),
+              },
+            ].map(({ icon: Icon, color, border, iconColor, title, desc, tag }) => (
+              <div
+                key={title}
+                className={`relative rounded-2xl border ${border} bg-gradient-to-br ${color} backdrop-blur-sm p-6 flex flex-col gap-3 hover:scale-[1.02] transition-transform duration-200`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className={`w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0`}>
+                    <Icon className={`w-5 h-5 ${iconColor}`} />
+                  </div>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${iconColor} bg-white/10 px-2 py-0.5 rounded-full`}>
+                    {tag}
+                  </span>
+                </div>
+                <h3 className="text-white font-bold text-base leading-snug">{title}</h3>
+                <p className="text-white/60 text-sm leading-relaxed flex-1">{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA strip */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/grievance">
+              <Button className="h-12 px-8 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold text-sm shadow-lg shadow-yellow-400/20">
+                <Phone className="w-4 h-4 mr-2" />
+                {tx("Apply / File a Welfare Complaint", "விண்ணப்பிக்க / புகார் அளிக்க")}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+            <Link href="/contact">
+              <Button variant="outline" className="h-12 px-8 border-white/30 text-white hover:bg-white/10 text-sm">
+                {tx("Contact the Welfare Office", "நலன் அலுவலகத்தை தொடர்பு கொள்ளுங்கள்")}
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Latest News */}
       <section className={`py-12 md:py-16 ${embedded ? "w-full" : "max-w-7xl mx-auto"} px-4`}>
