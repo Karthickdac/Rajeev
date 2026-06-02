@@ -34,6 +34,10 @@ interface DashboardData {
     totalVolunteers: number;
     pendingVolunteers: number;
     approvedVolunteers: number;
+    newVolunteersThisWeek: number;
+    grievancesNewToday: number;
+    grievancesResolvedToday: number;
+    broadcastReach: number;
     eventsThisMonth: number;
   };
   grievancesByStatus: { status: string; count: number }[];
@@ -123,6 +127,8 @@ export default function LeaderDashboard({ lang = "ta", readOnly = false }: { lan
   const [targets, setTargets] = useState<Record<string, number>>(DEFAULT_TARGETS);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [actPage, setActPage] = useState(1);
+  const [actTotalPages, setActTotalPages] = useState(1);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [press, setPress] = useState<PressItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,18 +140,16 @@ export default function LeaderDashboard({ lang = "ta", readOnly = false }: { lan
       adminApi.getPublicPromises(),
       adminApi.getConstituencyStats(),
       adminApi.getEvents(1, 50),
-      adminApi.getActivities(1, 10),
       adminApi.getNews(1, 5),
       adminApi.getPublicPressCoverage(),
       adminApi.getSettings(),
     ]).then((results) => {
       if (cancelled) return;
-      const [rDash, rProm, rStats, rEvents, rAct, rNews, rPress, rSettings] = results;
+      const [rDash, rProm, rStats, rEvents, rNews, rPress, rSettings] = results;
       if (rDash.status === "fulfilled") setDash(rDash.value as DashboardData);
       if (rProm.status === "fulfilled") setPromises((rProm.value?.promises ?? []) as PromiseItem[]);
       if (rStats.status === "fulfilled") setStats(rStats.value as ConstituencyStats);
       if (rEvents.status === "fulfilled") setEvents((rEvents.value?.items ?? []) as EventItem[]);
-      if (rAct.status === "fulfilled") setActivities((rAct.value?.items ?? []) as ActivityItem[]);
       if (rNews.status === "fulfilled") setNews((rNews.value?.items ?? []) as NewsItem[]);
       if (rPress.status === "fulfilled") setPress((rPress.value?.items ?? []) as PressItem[]);
       if (rSettings.status === "fulfilled") {
@@ -156,6 +160,19 @@ export default function LeaderDashboard({ lang = "ta", readOnly = false }: { lan
     });
     return () => { cancelled = true; };
   }, []);
+
+  // Recent Activities is independently paginated (last 10 per page).
+  useEffect(() => {
+    let cancelled = false;
+    adminApi.getActivities(actPage, 10)
+      .then((r) => {
+        if (cancelled) return;
+        setActivities((r?.items ?? []) as ActivityItem[]);
+        setActTotalPages(Math.max(1, (r?.totalPages ?? 1) as number));
+      })
+      .catch(() => { if (!cancelled) { setActivities([]); setActTotalPages(1); } });
+    return () => { cancelled = true; };
+  }, [actPage]);
 
   const name = lc(lang, leader.nameEn, leader.nameTa);
   const hour = new Date().getHours();
@@ -182,7 +199,6 @@ export default function LeaderDashboard({ lang = "ta", readOnly = false }: { lan
     .filter((p) => /high|urgent|critical/i.test(p.priority))
     .reduce((s, p) => s + p.count, 0);
 
-  const latestMonth = dash?.monthlyTrend?.[dash.monthlyTrend.length - 1];
 
   // Promise rollups
   const promiseStatus = {
@@ -325,8 +341,12 @@ export default function LeaderDashboard({ lang = "ta", readOnly = false }: { lan
                   <p className="text-[10px] text-muted-foreground">{lc(lang, "Avg resolution", "சராசரி தீர்வு")}</p>
                 </div>
                 <div className="rounded-lg bg-rose-50 p-2.5">
-                  <div className="flex items-center gap-1 text-rose-600"><MessageSquare className="w-3.5 h-3.5" /><span className="text-lg font-bold">{latestMonth?.submitted ?? 0}</span></div>
-                  <p className="text-[10px] text-muted-foreground">{lc(lang, "New this month", "இம்மாதம் புதியவை")}</p>
+                  <div className="flex items-center gap-1 text-rose-600"><MessageSquare className="w-3.5 h-3.5" /><span className="text-lg font-bold">{dash?.kpi.grievancesNewToday ?? 0}</span></div>
+                  <p className="text-[10px] text-muted-foreground">{lc(lang, "New today", "இன்று புதியவை")}</p>
+                </div>
+                <div className="rounded-lg bg-emerald-50 p-2.5">
+                  <div className="flex items-center gap-1 text-emerald-600"><TrendingUp className="w-3.5 h-3.5" /><span className="text-lg font-bold">{dash?.kpi.grievancesResolvedToday ?? 0}</span></div>
+                  <p className="text-[10px] text-muted-foreground">{lc(lang, "Resolved today", "இன்று தீர்க்கப்பட்டது")}</p>
                 </div>
               </div>
             </div>
@@ -464,19 +484,38 @@ export default function LeaderDashboard({ lang = "ta", readOnly = false }: { lan
             {activities.length === 0 ? (
               <p className="text-xs text-muted-foreground py-4 text-center">{lc(lang, "No activities yet.", "நடவடிக்கைகள் இல்லை.")}</p>
             ) : (
-              <div className="space-y-2 max-h-[260px] overflow-y-auto">
-                {activities.slice(0, 10).map((a) => (
-                  <div key={a.id} className="flex items-start gap-2 text-xs border-b last:border-0 pb-1.5 last:pb-0">
-                    <ActivityIcon className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{lc(lang, a.title, a.titleTa || a.title)}</p>
-                      <p className="text-muted-foreground truncate">
-                        {fmtDate(a.activityDate)}{a.location ? ` · ${a.location}` : ""}
-                      </p>
+              <>
+                <div className="space-y-2 max-h-[260px] overflow-y-auto">
+                  {activities.map((a) => (
+                    <div key={a.id} className="flex items-start gap-2 text-xs border-b last:border-0 pb-1.5 last:pb-0">
+                      <ActivityIcon className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{lc(lang, a.title, a.titleTa || a.title)}</p>
+                        <p className="text-muted-foreground truncate">
+                          {fmtDate(a.activityDate)}{a.location ? ` · ${a.location}` : ""}
+                        </p>
+                      </div>
                     </div>
+                  ))}
+                </div>
+                {actTotalPages > 1 && (
+                  <div className="flex items-center justify-between mt-3 no-print">
+                    <button
+                      onClick={() => setActPage((p) => Math.max(1, p - 1))}
+                      disabled={actPage <= 1}
+                      className="text-[11px] px-2 py-1 rounded border disabled:opacity-40 hover:bg-muted"
+                    >{lc(lang, "← Prev", "← முந்தைய")}</button>
+                    <span className="text-[10px] text-muted-foreground">
+                      {lc(lang, `Page ${actPage} of ${actTotalPages}`, `பக்கம் ${actPage} / ${actTotalPages}`)}
+                    </span>
+                    <button
+                      onClick={() => setActPage((p) => Math.min(actTotalPages, p + 1))}
+                      disabled={actPage >= actTotalPages}
+                      className="text-[11px] px-2 py-1 rounded border disabled:opacity-40 hover:bg-muted"
+                    >{lc(lang, "Next →", "அடுத்து →")}</button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -496,6 +535,14 @@ export default function LeaderDashboard({ lang = "ta", readOnly = false }: { lan
               <div className="rounded-lg bg-purple-50 p-3 text-center">
                 <div className="text-2xl font-bold text-purple-700">{dash?.kpi.totalVolunteers ?? 0}</div>
                 <p className="text-[10px] text-muted-foreground mt-0.5">{lc(lang, "Total volunteers", "மொத்த தன்னார்வலர்")}</p>
+              </div>
+              <div className="rounded-lg bg-blue-50 p-3 text-center">
+                <div className="text-2xl font-bold text-blue-700">+{dash?.kpi.newVolunteersThisWeek ?? 0}</div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{lc(lang, "New this week", "இவ்வாரம் புதியவர்")}</p>
+              </div>
+              <div className="rounded-lg bg-indigo-50 p-3 text-center">
+                <div className="text-2xl font-bold text-indigo-700">{(dash?.kpi.broadcastReach ?? 0).toLocaleString(lang === "ta" ? "ta-IN" : "en-IN")}</div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{lc(lang, "Broadcast reach", "சமூக ஊடக சென்றடைவு")}</p>
               </div>
               <div className="rounded-lg bg-green-50 p-3 text-center">
                 <div className="text-2xl font-bold text-green-700">{dash?.kpi.approvedVolunteers ?? 0}</div>
@@ -544,7 +591,10 @@ export default function LeaderDashboard({ lang = "ta", readOnly = false }: { lan
                       <span className="truncate group-hover:text-primary flex items-center gap-1">
                         <ExternalLink className="w-3 h-3 shrink-0 opacity-60" />{p.title}
                       </span>
-                      <span className={`shrink-0 text-[9px] px-1.5 py-0.5 rounded-full ${sentimentColor(p.sentiment)}`}>{p.source}</span>
+                      <span className="shrink-0 flex flex-col items-end gap-0.5">
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${sentimentColor(p.sentiment)}`}>{p.source}</span>
+                        <span className="text-[9px] text-muted-foreground">{fmtDate(p.publishedAt)}</span>
+                      </span>
                     </a>
                   ))}
                 </div>

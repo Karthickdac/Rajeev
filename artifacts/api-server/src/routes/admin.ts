@@ -175,6 +175,8 @@ router.get("/admin/dashboard", async (_req, res) => {
   try {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const [
       [{ totalGrievances }],
@@ -183,6 +185,10 @@ router.get("/admin/dashboard", async (_req, res) => {
       [{ totalVolunteers }],
       [{ pendingVolunteers }],
       [{ approvedVolunteers }],
+      [{ newVolunteersThisWeek }],
+      [{ grievancesNewToday }],
+      [{ grievancesResolvedToday }],
+      [{ broadcastReach }],
       [{ eventsThisMonth }],
       [{ totalNews }],
       [{ totalActivities }],
@@ -203,6 +209,21 @@ router.get("/admin/dashboard", async (_req, res) => {
         .where(eq(volunteersTable.status, "pending")),
       db.select({ approvedVolunteers: sql<number>`count(*)::int` }).from(volunteersTable)
         .where(eq(volunteersTable.status, "approved")),
+      db.select({ newVolunteersThisWeek: sql<number>`count(*)::int` }).from(volunteersTable)
+        .where(gte(volunteersTable.createdAt, weekAgo)),
+      db.select({ grievancesNewToday: sql<number>`count(*)::int` }).from(grievancesTable)
+        .where(gte(grievancesTable.createdAt, startOfToday)),
+      db.select({ grievancesResolvedToday: sql<number>`count(*)::int` }).from(grievancesTable)
+        .where(sql`resolved_at >= ${startOfToday}`),
+      // Broadcast reach = total audience across social channels (latest follower
+      // snapshot per account). Returns 0 when no social accounts/snapshots exist.
+      db.execute(sql`
+        SELECT coalesce(sum(followers), 0)::int AS "broadcastReach" FROM (
+          SELECT DISTINCT ON (account_id) followers
+          FROM social_stats_snapshots
+          ORDER BY account_id, captured_at DESC
+        ) latest
+      `).then((r) => r.rows as Array<{ broadcastReach: number }>),
       db.select({ eventsThisMonth: sql<number>`count(*)::int` }).from(eventsTable)
         .where(gte(eventsTable.eventDate, startOfMonth)),
       db.select({ totalNews: sql<number>`count(*)::int` }).from(newsTable),
@@ -250,6 +271,10 @@ router.get("/admin/dashboard", async (_req, res) => {
         totalVolunteers,
         pendingVolunteers,
         approvedVolunteers,
+        newVolunteersThisWeek,
+        grievancesNewToday,
+        grievancesResolvedToday,
+        broadcastReach,
         eventsThisMonth,
         totalNews,
         totalActivities,
