@@ -63,7 +63,7 @@ type PollingPdfBooth = {
 const TENANT_CONFIGS: Record<string, object> = {
   logesh: {
     nameEn: "D. Sarath Kumar",
-    nameTa: "டி. சரத் குமார்",
+    nameTa: "D. சரத் குமார்",
     titleEn: "Minister for Human Resources Management and Ex-Servicemen Welfare",
     titleTa: "மனித வள மேலாண்மை மற்றும் முன்னாள் இராணுவ வீரர் நலன் அமைச்சர்",
     constituencyEn: "Tambaram",
@@ -133,7 +133,7 @@ async function seed() {
       title: "New Flyover Inaugurated at Tambaram Junction",
       titleTa: "தாம்பரம் சந்திப்பில் புதிய மேம்பாலம் திறப்பு",
       content: "D. Sarath Kumar, Minister for Human Resources Management and Ex-Servicemen Welfare, inaugurated a new flyover at Tambaram Junction, easing traffic congestion for thousands of daily commuters. The project was funded under the state urban infrastructure scheme.",
-      contentTa: "மனித வள மேலாண்மை மற்றும் முன்னாள் இராணுவ வீரர் நலன் அமைச்சர் டி. சரத் குமார் தாம்பரம் சந்திப்பில் புதிய மேம்பாலம் திறந்து வைத்தார். இந்த திட்டம் மாநில நகர்புற உள்கட்டமைப்பு திட்டத்தின் கீழ் நிதியளிக்கப்பட்டது.",
+      contentTa: "மனித வள மேலாண்மை மற்றும் முன்னாள் இராணுவ வீரர் நலன் அமைச்சர் D. சரத் குமார் தாம்பரம் சந்திப்பில் புதிய மேம்பாலம் திறந்து வைத்தார். இந்த திட்டம் மாநில நகர்புற உள்கட்டமைப்பு திட்டத்தின் கீழ் நிதியளிக்கப்பட்டது.",
       category: "development",
       featured: true,
       publishedAt: new Date("2025-04-15"),
@@ -142,7 +142,7 @@ async function seed() {
       title: "Free Medical Camp Provides Treatment to 5,000 Residents in Tambaram",
       titleTa: "தாம்பரத்தில் 5,000 மக்களுக்கு இலவச மருத்துவ முகாம்",
       content: "A mega free medical camp was organized by D. Sarath Kumar's office in collaboration with government hospitals in Tambaram. Over 5,000 residents received free consultation, medicines, and diagnostic tests.",
-      contentTa: "டி. சரத் குமாரின் அலுவலகம் தாம்பரம் அரசு மருத்துவமனைகளுடன் இணைந்து மெகா இலவச மருத்துவ முகாம் ஏற்பாடு செய்தது. 5,000க்கும் மேற்பட்ட மக்கள் இலவச ஆலோசனை, மருந்துகள் பெற்றனர்.",
+      contentTa: "D. சரத் குமாரின் அலுவலகம் தாம்பரம் அரசு மருத்துவமனைகளுடன் இணைந்து மெகா இலவச மருத்துவ முகாம் ஏற்பாடு செய்தது. 5,000க்கும் மேற்பட்ட மக்கள் இலவச ஆலோசனை, மருந்துகள் பெற்றனர்.",
       category: "welfare",
       featured: true,
       publishedAt: new Date("2025-03-20"),
@@ -151,7 +151,7 @@ async function seed() {
       title: "Ex-Servicemen Welfare Assistance Distributed in Tambaram",
       titleTa: "தாம்பரத்தில் முன்னாள் இராணுவ வீரர்களுக்கு நலன் உதவி வழங்கல்",
       content: "D. Sarath Kumar distributed financial assistance and welfare certificates to 250 ex-servicemen and their families in Tambaram constituency. The initiative aims to honour veterans and support their livelihoods.",
-      contentTa: "டி. சரத் குமார் தாம்பரம் தொகுதியில் 250 முன்னாள் இராணுவ வீரர்களுக்கும் அவர்களின் குடும்பங்களுக்கும் நிதி உதவி மற்றும் நலன் சான்றிதழ்கள் வழங்கினார்.",
+      contentTa: "D. சரத் குமார் தாம்பரம் தொகுதியில் 250 முன்னாள் இராணுவ வீரர்களுக்கும் அவர்களின் குடும்பங்களுக்கும் நிதி உதவி மற்றும் நலன் சான்றிதழ்கள் வழங்கினார்.",
       category: "welfare",
       featured: true,
       publishedAt: new Date("2025-02-10"),
@@ -200,7 +200,7 @@ async function seed() {
       title: "Constituency Meeting & Public Hearing",
       titleTa: "தொகுதி கூட்டம் & பொது விசாரணை",
       description: "Monthly public hearing where residents can directly present their issues to D. Sarath Kumar. All are welcome. No appointment needed.",
-      descriptionTa: "மாதாந்திர பொது விசாரணை - மக்கள் நேரடியாக டி. சரத் குமாரிடம் தங்கள் பிரச்சினைகளை தெரிவிக்கலாம்.",
+      descriptionTa: "மாதாந்திர பொது விசாரணை - மக்கள் நேரடியாக D. சரத் குமாரிடம் தங்கள் பிரச்சினைகளை தெரிவிக்கலாம்.",
       venue: "Town Hall, Tambaram",
       eventDate: futureDate1,
       category: "public-hearing",
@@ -227,7 +227,7 @@ async function seed() {
       title: "Tree Plantation Drive – Green Tambaram",
       titleTa: "மர நடவடிக்கை – பச்சை தாம்பரம்",
       description: "D. Sarath Kumar led a constituency-wide tree plantation drive with volunteers. Over 1,500 saplings were planted across public spaces in Tambaram.",
-      descriptionTa: "டி. சரத் குமார் தன்னார்வலர்களுடன் தொகுதி அளவிலான மர நடவடிக்கையை நடத்தினார். தாம்பரத்தில் 1,500 மரக்கன்றுகள் நடப்பட்டன.",
+      descriptionTa: "D. சரத் குமார் தன்னார்வலர்களுடன் தொகுதி அளவிலான மர நடவடிக்கையை நடத்தினார். தாம்பரத்தில் 1,500 மரக்கன்றுகள் நடப்பட்டன.",
       venue: "Throughout Tambaram Constituency",
       eventDate: pastDate1,
       category: "environment",
@@ -355,7 +355,7 @@ async function seed() {
   await db.delete(galleryTable);
   await db.insert(galleryTable).values([
     {
-      title: "டி. சரத் குமார் – அலுவலக நாள்",
+      title: "D. சரத் குமார் – அலுவலக நாள்",
       mediaUrl: "/gallery/sarath_1.jpg",
       thumbnailUrl: "/gallery/sarath_1.jpg",
       mediaType: "photo",
@@ -400,14 +400,14 @@ async function seed() {
   await db.insert(faqsTable).values([
     {
       question: "How do I submit a grievance to D. Sarath Kumar's office?",
-      questionTa: "டி. சரத் குமாரின் அலுவலகத்திற்கு புகார் எப்படி அனுப்புவது?",
+      questionTa: "D. சரத் குமாரின் அலுவலகத்திற்கு புகார் எப்படி அனுப்புவது?",
       answer: "You can submit a grievance through the Grievance Portal on this website. Fill in your name, contact number, category, and description of the issue. You will receive a unique ticket number to track the status of your complaint.",
       answerTa: "இந்த வலைத்தளத்தில் உள்ள புகார் மையம் மூலம் புகார் அனுப்பலாம். பெயர், தொலைபேசி, வகை மற்றும் பிரச்சினையின் விவரங்களை பூர்த்தி செய்யுங்கள். உங்கள் புகாரின் நிலையை கண்காணிக்க தனித்துவமான புகார் எண் கிடைக்கும்.",
       order: 1,
     },
     {
       question: "What are the office hours for D. Sarath Kumar's constituency office?",
-      questionTa: "டி. சரத் குமாரின் தொகுதி அலுவலகம் எப்போது திறந்திருக்கும்?",
+      questionTa: "D. சரத் குமாரின் தொகுதி அலுவலகம் எப்போது திறந்திருக்கும்?",
       answer: "The constituency office is open Monday to Saturday, 9:00 AM to 6:00 PM. The office is closed on Sundays and public holidays.",
       answerTa: "தொகுதி அலுவலகம் திங்கள் முதல் சனி வரை, காலை 9:00 மணி முதல் மாலை 6:00 மணி வரை திறந்திருக்கும். ஞாயிறுகள் மற்றும் பொது விடுமுறை நாட்களில் மூடல்.",
       order: 2,

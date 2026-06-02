@@ -27,7 +27,7 @@ export interface LeaderConfig {
 
 export const DEFAULT_LEADER_CONFIG: LeaderConfig = {
   nameEn: "D. Sarath Kumar",
-  nameTa: "டி. சரத் குமார்",
+  nameTa: "D. சரத் குமார்",
   titleEn: "Minister for Human Resources Management and Ex-Servicemen Welfare",
   titleTa: "மனித வள மேலாண்மை மற்றும் முன்னாள் இராணுவ வீரர் நலன் அமைச்சர்",
   constituencyEn: "Tambaram",
@@ -42,7 +42,7 @@ export const DEFAULT_LEADER_CONFIG: LeaderConfig = {
   addressTa: "சட்டமன்ற உறுப்பினர் அலுவலகம், தாம்பரம், செங்கல்பட்டு மாவட்டம், தமிழ்நாடு",
   officeHoursEn: "Monday – Saturday: 9:00 AM – 6:00 PM",
   officeHoursTa: "திங்கள் – சனி: காலை 9:00 – மாலை 6:00",
-  photoUrl: "",
+  photoUrl: "/sarath_kumar_dp.png",
   siteTitle: "Ungaludan Sarath",
   logoInitial: "S",
   districtEn: "Chengalpattu",

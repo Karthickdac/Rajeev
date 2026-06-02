@@ -353,7 +353,7 @@ export function HomeView({
                     </div>
                     <div className="mt-5 text-center">
                       <p className="text-white/85 text-[12px] font-semibold leading-tight">
-                        {tx("D. Sarath Kumar", "டி. சரத் குமார்")}
+                        {tx("D. Sarath Kumar", "D. சரத் குமார்")}
                       </p>
                       <p className="text-yellow-400/70 text-[10px] mt-0.5 leading-tight max-w-[120px] mx-auto">
                         {tx("HR & Ex-SM Welfare", "மனித வளம் & முன்னாள் வீரர் நலன்")}
@@ -522,7 +522,7 @@ export function HomeView({
             <p className="text-white/65 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
               {tx(
                 "D. Sarath Kumar, as Minister for Human Resources Management and Ex-Servicemen Welfare, is committed to the welfare, dignity, and rehabilitation of veterans and their families in Tambaram and across Tamil Nadu.",
-                "மனித வள மேலாண்மை மற்றும் முன்னாள் இராணுவ வீரர் நலன் அமைச்சராக, டி. சரத் குமார் தாம்பரம் மற்றும் தமிழ்நாடு முழுவதும் உள்ள வீரர்கள் மற்றும் அவர்களது குடும்பங்களுக்கு சேவை செய்ய உறுதிபூண்டுள்ளார்."
+                "மனித வள மேலாண்மை மற்றும் முன்னாள் இராணுவ வீரர் நலன் அமைச்சராக, D. சரத் குமார் தாம்பரம் மற்றும் தமிழ்நாடு முழுவதும் உள்ள வீரர்கள் மற்றும் அவர்களது குடும்பங்களுக்கு சேவை செய்ய உறுதிபூண்டுள்ளார்."
               )}
             </p>
           </div>
