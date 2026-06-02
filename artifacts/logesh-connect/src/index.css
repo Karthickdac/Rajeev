@@ -365,3 +365,18 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
 }
+
+/* ── Leader Dashboard print styles ──────────────────────── */
+@media print {
+  .no-print { display: none !important; }
+  .leader-print .print-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+  .leader-print {
+    color: #000 !important;
+  }
+  @page { margin: 12mm; }
+}

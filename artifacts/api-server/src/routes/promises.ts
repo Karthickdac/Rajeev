@@ -14,7 +14,7 @@ const router = Router();
 // chain requireStaff (which authenticates + enforces any staff role) in front
 // of every admin endpoint. Same pattern admin.ts uses with router.use().
 const requireContentRole = [requireStaff, requireRole("super_admin", "admin", "pa_staff", "media_team")];
-const requireCdiRole = [requireStaff, requireRole("super_admin", "admin", "pa_staff", "constituency_coordinator")];
+const requireCdiRole = [requireStaff, requireRole("super_admin", "admin", "pa_staff", "constituency_coordinator", "grievance_officer")];
 
 // Accept http(s) URLs only — keeps stored values from becoming a javascript:
 // or data: phishing/XSS vector when re-rendered into public <a href>.

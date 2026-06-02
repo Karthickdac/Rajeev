@@ -211,6 +211,7 @@ export const adminApi = {
   getSocialCapabilities: () => authFetch("/admin/social/capabilities"),
   // Promises
   getPromises: () => authFetch("/admin/promises"),
+  getPublicPromises: () => authFetch("/promises"),
   createPromise: (data: unknown) => authFetch("/admin/promises", { method: "POST", body: JSON.stringify(data) }),
   updatePromise: (id: number, data: unknown) => authFetch(`/admin/promises/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deletePromise: (id: number) => authFetch(`/admin/promises/${id}`, { method: "DELETE" }),
@@ -223,6 +224,7 @@ export const adminApi = {
   analyzeSentiment: (data: unknown) => authFetch("/admin/ai/sentiment", { method: "POST", body: JSON.stringify(data) }),
   // Press coverage
   getPressCoverage: () => authFetch("/admin/press-coverage"),
+  getPublicPressCoverage: () => authFetch("/press-coverage"),
   refreshPressCoverage: (query?: string) => authFetch("/admin/press-coverage/refresh", { method: "POST", body: JSON.stringify({ query }) }),
   deletePressCoverage: (id: number) => authFetch(`/admin/press-coverage/${id}`, { method: "DELETE" }),
   // Batch-3 analytics

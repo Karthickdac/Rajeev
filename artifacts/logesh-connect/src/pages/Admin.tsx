@@ -13,6 +13,7 @@ import { lazy, Suspense } from "react";
 const ConstituencyMap = lazy(() => import("@/components/maps/ConstituencyMap"));
 import GrievanceOfficer from "./GrievanceOfficer";
 import Dashboard from "./admin/Dashboard";
+import LeaderDashboard from "./admin/LeaderDashboard";
 import Analytics from "./admin/Analytics";
 import NewsAdmin from "./admin/NewsAdmin";
 import EventsAdmin from "./admin/EventsAdmin";
@@ -93,6 +94,7 @@ const NAV_GROUPS: NavGroup[] = [
 // roles: undefined = all staff; listed = only those roles
 const NAV_ITEMS: NavItem[] = [
   // Overview
+  { id: "leader-dashboard", label: "Leader Dashboard", icon: Trophy, group: "overview", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
   { id: "dashboard",  label: "Dashboard",   icon: LayoutDashboard, group: "overview" },
   { id: "analytics",  label: "Analytics",   icon: BarChart3,       group: "overview", roles: ["super_admin", "admin", "constituency_coordinator"] },
 
@@ -469,6 +471,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
 
         {/* Page content */}
         <main className="flex-1 p-4 sm:p-6 overflow-auto">
+          {active === "leader-dashboard" && <LeaderDashboard lang={lang} readOnly={role === "grievance_officer" || role === "pa_staff"} />}
           {active === "dashboard"    && <Dashboard lang={lang} />}
           {active === "tasks"        && <TasksAdmin lang={lang} />}
           {active === "calendar"     && <CalendarAdmin lang={lang} />}
