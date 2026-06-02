@@ -279,80 +279,104 @@ export function HomeView({
           </div>
 
           <div className={`${embedded ? "flex" : "hidden lg:flex"} justify-center`}>
-            <div className="glass-card rounded-2xl p-5 md:p-6 max-w-sm w-full text-white">
+            {/* Premium Leader Card */}
+            <div className="relative w-[340px] rounded-3xl overflow-hidden shadow-2xl shadow-black/40 border border-white/10">
+              {/* Card background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-800/90 via-slate-900/95 to-slate-950" />
+              {/* TVK red top accent bar */}
+              <div className="relative h-1.5 w-full" style={{ background: "linear-gradient(90deg, #C9181E 0%, #FFB300 100%)" }} />
 
-              {/* CM + Minister photos — fixed equal size */}
-              <div className="flex items-start justify-center gap-3 mb-5">
-                {/* CM — left */}
-                <div className="flex flex-col items-center gap-2 w-[128px]">
-                  <div className="w-[128px] h-[160px] rounded-xl overflow-hidden border-2 border-yellow-400 shadow-xl bg-primary/60 flex-shrink-0">
-                    <img
-                      src="/cm_vijay.jpg"
-                      alt="C. Joseph Vijay – Chief Minister"
-                      className="w-full h-full object-cover object-top"
-                    />
+              <div className="relative p-5">
+                {/* Party badge */}
+                <div className="flex items-center justify-center mb-4">
+                  <div className="flex items-center gap-2 rounded-full px-4 py-1 border border-white/10" style={{ background: "rgba(201,24,30,0.15)" }}>
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#C9181E" }} />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/80">
+                      {tx("Tamilaga Vettri Kazhagam", "தமிழக வெற்றி கழகம்")}
+                    </span>
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#FFB300" }} />
                   </div>
-                  <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide text-center whitespace-nowrap">
-                    {tx("Chief Minister", "முதலமைச்சர்")}
-                  </span>
-                  <span className="text-white/70 text-[11px] text-center leading-tight w-full">
-                    {tx("C. Joseph Vijay", "C. ஜோசப் விஜய்")}
-                  </span>
+                </div>
+
+                {/* Photos row */}
+                <div className="flex items-end justify-center gap-0 mb-5">
+                  {/* CM — left */}
+                  <div className="flex flex-col items-center" style={{ zIndex: 2 }}>
+                    <div className="relative">
+                      <div className="w-[136px] h-[168px] rounded-2xl overflow-hidden shadow-xl flex-shrink-0"
+                        style={{ border: "2.5px solid #C9181E", boxShadow: "0 8px 32px rgba(201,24,30,0.35)" }}>
+                        <img src="/cm_vijay.jpg" alt="C. Joseph Vijay – Chief Minister"
+                          className="w-full h-full object-cover object-top" />
+                      </div>
+                      {/* CM red badge */}
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-white text-[9px] font-black px-3 py-0.5 rounded-full whitespace-nowrap uppercase tracking-wider shadow-lg"
+                        style={{ background: "#C9181E" }}>
+                        {tx("Chief Minister", "முதலமைச்சர்")}
+                      </div>
+                    </div>
+                    <div className="mt-5 text-center">
+                      <p className="text-white/85 text-[12px] font-semibold leading-tight">
+                        {tx("C. Joseph Vijay", "C. ஜோசப் விஜய்")}
+                      </p>
+                      <p className="text-white/45 text-[10px] mt-0.5">
+                        {tx("Tamil Nadu", "தமிழ்நாடு")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Gold star divider */}
+                  <div className="flex flex-col items-center pb-8 flex-shrink-0 mx-1" style={{ zIndex: 3 }}>
+                    <div className="w-px h-10 bg-gradient-to-b from-transparent via-yellow-400/50 to-transparent" />
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center my-1"
+                      style={{ background: "linear-gradient(135deg,#FFB300,#FF8C00)", boxShadow: "0 0 12px rgba(255,179,0,0.5)" }}>
+                      <span className="text-white text-xs font-black">★</span>
+                    </div>
+                    <div className="w-px h-10 bg-gradient-to-b from-transparent via-yellow-400/50 to-transparent" />
+                  </div>
+
+                  {/* Minister — right */}
+                  <div className="flex flex-col items-center" style={{ zIndex: 2 }}>
+                    <div className="relative">
+                      <div className="w-[136px] h-[168px] rounded-2xl overflow-hidden shadow-xl flex-shrink-0"
+                        style={{ border: "2.5px solid #FFB300", boxShadow: "0 8px 32px rgba(255,179,0,0.25)" }}>
+                        {photoSrc
+                          ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)}
+                              className="w-full h-full object-cover object-top" />
+                          : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400 bg-slate-700">S</span>
+                        }
+                      </div>
+                      {/* Minister gold badge */}
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[9px] font-black px-3 py-0.5 rounded-full whitespace-nowrap uppercase tracking-wider shadow-lg"
+                        style={{ background: "#FFB300", color: "#1a1a1a" }}>
+                        {tx("Minister & MLA", "அமைச்சர் & MLA")}
+                      </div>
+                    </div>
+                    <div className="mt-5 text-center">
+                      <p className="text-white/85 text-[12px] font-semibold leading-tight">
+                        {tx("D. Sarath Kumar", "டி. சரத் குமார்")}
+                      </p>
+                      <p className="text-yellow-400/70 text-[10px] mt-0.5 leading-tight max-w-[120px] mx-auto">
+                        {tx("HR & Ex-SM Welfare", "மனித வளம் & முன்னாள் வீரர் நலன்")}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Divider */}
-                <div className="flex flex-col items-center gap-1 mt-16 flex-shrink-0">
-                  <div className="w-px h-6 bg-yellow-400/30" />
-                  <span className="text-yellow-400 text-base">★</span>
-                  <div className="w-px h-6 bg-yellow-400/30" />
-                </div>
+                <div className="h-px w-full mb-4" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)" }} />
 
-                {/* Minister — right, identical size */}
-                <div className="flex flex-col items-center gap-2 w-[128px]">
-                  <div className="w-[128px] h-[160px] rounded-xl overflow-hidden border-2 border-yellow-400/50 shadow-xl bg-primary/60 flex-shrink-0">
-                    {photoSrc
-                      ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" />
-                      : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400">S</span>
-                    }
-                  </div>
-                  <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide text-center whitespace-nowrap">
-                    {tx("Minister & MLA", "அமைச்சர் & எம்எல்ஏ")}
-                  </span>
-                  <span className="text-white/70 text-[11px] text-center leading-tight w-full">
-                    {tx("D. Sarath Kumar", "டி. சரத் குமார்")}
-                  </span>
-                  <span className="text-yellow-300/80 text-[10px] text-center leading-tight w-full">
-                    {tx("Human Resources & Ex-Servicemen Welfare", "மனித வளம் & முன்னாள் இராணுவ வீரர் நலன்")}
-                  </span>
-                </div>
-              </div>
-
-              {/* TVK party label */}
-              <div className="text-center mb-4">
-                <span className="text-yellow-400/80 text-[11px] font-semibold uppercase tracking-widest">
-                  {tx("Tamilaga Vettri Kazhagam", "தமிழக வெற்றி கழகம்")}
-                </span>
-              </div>
-
-              {/* Stats strip */}
-              <div className="grid grid-cols-3 gap-2 text-center border-t border-white/10 pt-4">
-                <div>
-                  <div className="text-yellow-400 font-bold text-lg leading-none">
-                    {summary?.totalVolunteers?.toLocaleString() ?? "—"}+
-                  </div>
-                  <div className="text-[10px] text-white/60 mt-0.5">{tx("Volunteers", "தன்னார்வலர்")}</div>
-                </div>
-                <div>
-                  <div className="text-yellow-400 font-bold text-lg leading-none">
-                    {summary?.totalEvents ?? "—"}
-                  </div>
-                  <div className="text-[10px] text-white/60 mt-0.5">{tx("Events", "நிகழ்வுகள்")}</div>
-                </div>
-                <div>
-                  <div className="text-yellow-400 font-bold text-lg leading-none">
-                    {summary?.totalNews ?? "—"}
-                  </div>
-                  <div className="text-[10px] text-white/60 mt-0.5">{tx("News", "செய்திகள்")}</div>
+                {/* Stats strip */}
+                <div className="grid grid-cols-3 gap-1 text-center">
+                  {[
+                    { val: summary?.totalVolunteers != null ? `${summary.totalVolunteers}+` : "—", label: tx("Volunteers", "தன்னார்வலர்") },
+                    { val: summary?.totalEvents ?? "—", label: tx("Events", "நிகழ்வுகள்") },
+                    { val: summary?.totalNews ?? "—", label: tx("News", "செய்திகள்") },
+                  ].map(({ val, label }) => (
+                    <div key={label} className="rounded-xl py-2 px-1" style={{ background: "rgba(255,255,255,0.05)" }}>
+                      <div className="font-black text-lg leading-none" style={{ color: "#FFB300" }}>{val}</div>
+                      <div className="text-[9px] text-white/50 mt-0.5 uppercase tracking-wide">{label}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

@@ -61,12 +61,12 @@ export function Navbar({ lang, setLang, darkMode, setDarkMode }: NavbarProps) {
           : "bg-white dark:bg-gray-950"
       }`}
     >
-      <div className="hidden md:block bg-primary text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-4 py-1 flex items-center justify-between text-xs">
-          <span className="font-medium">
+      <div className="hidden md:block text-white" style={{ background: "#C9181E" }}>
+        <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between text-xs">
+          <span className="font-bold uppercase tracking-widest">
             {lang === "ta" ? lc.partyTa : lc.partyEn}
           </span>
-          <span className="truncate">
+          <span className="truncate text-white/90">
             {lang === "ta"
               ? `${lc.titleTa} – ${lc.constituencyTa} தொகுதி, தமிழ்நாடு`
               : `${lc.titleEn} – ${lc.constituencyEn} Constituency, Tamil Nadu`}
