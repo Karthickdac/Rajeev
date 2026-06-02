@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Newspaper, Calendar, Activity, Image,
   Users, MessageSquare, HelpCircle, UserCircle, LogOut, Menu, X,
-  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio, Sparkles, Newspaper as NewsIcon, Timer, Flame, Layers,
+  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio, Sparkles, Newspaper as NewsIcon, Timer, Flame, Layers, CheckSquare, CalendarDays,
 } from "lucide-react";
 import { isAuthenticated, removeToken, getToken } from "@/lib/auth";
 import { useGetMe } from "@workspace/api-client-react";
@@ -45,6 +45,8 @@ import EscalationsAdmin from "./admin/EscalationsAdmin";
 import OutreachScorecardAdmin from "./admin/OutreachScorecardAdmin";
 import HeatmapAdmin from "./admin/HeatmapAdmin";
 import Map3DAdmin from "./admin/Map3DAdmin";
+import TasksAdmin from "./admin/TasksAdmin";
+import CalendarAdmin from "./admin/CalendarAdmin";
 import type { Language } from "@/lib/i18n";
 import { UnsavedChangesProvider, useConfirmDiscard } from "@/lib/unsavedChanges";
 
@@ -52,6 +54,7 @@ interface AdminProps { lang?: Language }
 
 type NavGroupId =
   | "overview"
+  | "schedule"
   | "grievances"
   | "voters"
   | "maps"
@@ -77,6 +80,7 @@ interface NavGroup {
 // Ordered. Empty groups (after role filtering) are hidden automatically.
 const NAV_GROUPS: NavGroup[] = [
   { id: "overview",   label: "Overview",      icon: LayoutDashboard },
+  { id: "schedule",   label: "Schedule",      icon: CalendarDays },
   { id: "grievances", label: "Grievances",    icon: MessageSquare },
   { id: "voters",     label: "Voters",        icon: Users },
   { id: "maps",       label: "Maps",          icon: MapIcon },
@@ -91,6 +95,10 @@ const NAV_ITEMS: NavItem[] = [
   // Overview
   { id: "dashboard",  label: "Dashboard",   icon: LayoutDashboard, group: "overview" },
   { id: "analytics",  label: "Analytics",   icon: BarChart3,       group: "overview", roles: ["super_admin", "admin", "constituency_coordinator"] },
+
+  // Schedule
+  { id: "tasks",    label: "Tasks",    icon: CheckSquare,   group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
+  { id: "calendar", label: "Calendar", icon: CalendarDays,  group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
 
   // Grievances
   { id: "grievances",   label: "Grievances",          icon: MessageSquare, group: "grievances" },
@@ -462,6 +470,8 @@ function AdminInner({ lang = "ta" }: AdminProps) {
         {/* Page content */}
         <main className="flex-1 p-4 sm:p-6 overflow-auto">
           {active === "dashboard"    && <Dashboard />}
+          {active === "tasks"        && <TasksAdmin lang={lang} />}
+          {active === "calendar"     && <CalendarAdmin lang={lang} />}
           {active === "grievances"   && <GrievanceOfficer lang={lang} token={token} userRole={role} />}
           {active === "assignments"  && <AssignmentsAdmin token={token} />}
           {active === "map"          && (

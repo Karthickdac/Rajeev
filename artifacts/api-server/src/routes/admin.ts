@@ -7,6 +7,7 @@ import {
   zonesTable, areasTable, streetsTable, pollingStationsTable,
   pincodesTable, pincodeWardsTable,
   officerAssignmentsTable, grievanceRoutingLogTable, volunteerAssignmentsTable,
+  tasksTable,
 } from "@workspace/db/schema";
 
 import { requireStaff, requireRole, type AuthRequest } from "../lib/auth.js";
@@ -2359,6 +2360,188 @@ router.get("/admin/analytics/officers", requireRole(...ANALYTICS_ROLES), async (
   } catch (err) {
     console.error("[admin] analytics/officers error:", err);
     res.status(500).json({ error: "Failed to load officers" });
+  }
+});
+
+// ──────────────────────────────────────────────────────────
+// TASKS (internal team to-do) CRUD
+// ──────────────────────────────────────────────────────────
+const TASK_ROLES = ["super_admin", "admin", "minister", "pa_staff"] as const;
+
+const TASK_STATUS_VALUES = ["todo", "in_progress", "done", "cancelled"] as const;
+const TASK_PRIORITY_VALUES = ["high", "medium", "low"] as const;
+const TASK_CATEGORY_VALUES = ["follow_up", "visit_prep", "grievance_action", "content", "official", "personal"] as const;
+const TASK_LINK_VALUES = ["grievance", "appointment", "event"] as const;
+
+const TaskBody = z.object({
+  title: z.string().min(2),
+  description: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
+  dueTime: z.string().optional().nullable(),
+  priority: z.enum(TASK_PRIORITY_VALUES).default("medium"),
+  status: z.enum(TASK_STATUS_VALUES).default("todo"),
+  category: z.enum(TASK_CATEGORY_VALUES).default("follow_up"),
+  assignedTo: z.number().int().optional().nullable(),
+  linkedEntityType: z.enum(TASK_LINK_VALUES).optional().nullable(),
+  linkedEntityId: z.number().int().optional().nullable(),
+  reminderAt: z.string().optional().nullable(),
+});
+
+// Parse an incoming date string safely. Returns undefined when the value is a
+// non-empty but unparseable string so callers can reject with 400 instead of
+// letting an Invalid Date reach the DB layer (which surfaces as a 500).
+function parseDateField(v: string | null | undefined): Date | null | undefined {
+  if (v == null || v === "") return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? undefined : d;
+}
+
+function serializeTask(t: typeof tasksTable.$inferSelect, assigneeName?: string | null, creatorName?: string | null) {
+  return {
+    ...t,
+    assigneeName: assigneeName ?? null,
+    creatorName: creatorName ?? null,
+    dueDate: t.dueDate?.toISOString() ?? null,
+    reminderAt: t.reminderAt?.toISOString() ?? null,
+    completedAt: t.completedAt?.toISOString() ?? null,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString(),
+  };
+}
+
+// List staff users for the assignee dropdown
+router.get("/admin/tasks/assignees", requireRole(...TASK_ROLES), async (_req, res) => {
+  try {
+    const rows = await db
+      .select({ id: usersTable.id, name: usersTable.name, role: usersTable.role })
+      .from(usersTable)
+      .orderBy(asc(usersTable.name));
+    res.json({ items: rows });
+  } catch (err) {
+    console.error("[admin] tasks/assignees:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/admin/tasks", requireRole(...TASK_ROLES), async (req: AuthRequest, res) => {
+  try {
+    const { status, priority, assignedTo, mine } = req.query;
+    const conds = [];
+    if (mine === "1" && req.user?.id) conds.push(eq(tasksTable.assignedTo, req.user.id));
+    else if (assignedTo) conds.push(eq(tasksTable.assignedTo, parseInt(String(assignedTo), 10)));
+    if (status) conds.push(eq(tasksTable.status, String(status)));
+    if (priority) conds.push(eq(tasksTable.priority, String(priority)));
+
+    const assignee = usersTable;
+    const rows = await db
+      .select({
+        task: tasksTable,
+        assigneeName: assignee.name,
+      })
+      .from(tasksTable)
+      .leftJoin(assignee, eq(tasksTable.assignedTo, assignee.id))
+      .where(conds.length ? and(...conds) : undefined)
+      .orderBy(sql`${tasksTable.dueDate} asc nulls last`, desc(tasksTable.createdAt));
+
+    res.json({ items: rows.map((r) => serializeTask(r.task, r.assigneeName)) });
+  } catch (err) {
+    console.error("[admin] tasks list:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/admin/tasks", requireRole(...TASK_ROLES), async (req: AuthRequest, res) => {
+  try {
+    const body = TaskBody.safeParse(req.body);
+    if (!body.success) { res.status(400).json({ error: "Invalid", details: body.error.issues }); return; }
+    const d = body.data;
+    const dueDate = parseDateField(d.dueDate);
+    const reminderAt = parseDateField(d.reminderAt);
+    if (dueDate === undefined || reminderAt === undefined) {
+      res.status(400).json({ error: "Invalid date value" }); return;
+    }
+    const [item] = await db.insert(tasksTable).values({
+      title: d.title,
+      description: d.description ?? null,
+      dueDate,
+      dueTime: d.dueTime ?? null,
+      priority: d.priority,
+      status: d.status,
+      category: d.category,
+      assignedTo: d.assignedTo ?? null,
+      createdBy: req.user?.id ?? null,
+      linkedEntityType: d.linkedEntityType ?? null,
+      linkedEntityId: d.linkedEntityId ?? null,
+      reminderAt,
+      completedAt: d.status === "done" ? new Date() : null,
+    }).returning();
+    await logAudit(req, "CREATE", `task:${item.id}`, item.title);
+    res.status(201).json(serializeTask(item));
+  } catch (err) {
+    console.error("[admin] task create:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.patch("/admin/tasks/:id", requireRole(...TASK_ROLES), async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(req.params["id"] as string);
+    const body = TaskBody.partial().safeParse(req.body);
+    if (!body.success) { res.status(400).json({ error: "Invalid", details: body.error.issues }); return; }
+    const d = body.data;
+    if (Object.keys(d).length === 0) { res.status(400).json({ error: "No fields to update" }); return; }
+
+    const [existing] = await db.select().from(tasksTable).where(eq(tasksTable.id, id));
+    if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+
+    const patch: Partial<typeof tasksTable.$inferInsert> = {};
+    if (d.title !== undefined) patch.title = d.title;
+    if (d.description !== undefined) patch.description = d.description ?? null;
+    if (d.dueDate !== undefined) {
+      const dd = parseDateField(d.dueDate);
+      if (dd === undefined) { res.status(400).json({ error: "Invalid date value" }); return; }
+      patch.dueDate = dd;
+    }
+    if (d.dueTime !== undefined) patch.dueTime = d.dueTime ?? null;
+    if (d.priority !== undefined) patch.priority = d.priority;
+    if (d.category !== undefined) patch.category = d.category;
+    if (d.assignedTo !== undefined) patch.assignedTo = d.assignedTo ?? null;
+    if (d.linkedEntityType !== undefined) patch.linkedEntityType = d.linkedEntityType ?? null;
+    if (d.linkedEntityId !== undefined) patch.linkedEntityId = d.linkedEntityId ?? null;
+    if (d.reminderAt !== undefined) {
+      const ra = parseDateField(d.reminderAt);
+      if (ra === undefined) { res.status(400).json({ error: "Invalid date value" }); return; }
+      patch.reminderAt = ra;
+    }
+    if (d.status !== undefined) {
+      patch.status = d.status;
+      // Stamp / clear completedAt when crossing the done boundary.
+      if (d.status === "done" && existing.status !== "done") patch.completedAt = new Date();
+      if (d.status !== "done" && existing.status === "done") patch.completedAt = null;
+    }
+
+    const [item] = await db.update(tasksTable).set(patch).where(eq(tasksTable.id, id)).returning();
+    if (d.status !== undefined && d.status !== existing.status) {
+      await logAudit(req, "UPDATE", `task:${id}`, `status ${existing.status} → ${d.status}`);
+    } else {
+      await logAudit(req, "UPDATE", `task:${id}`, item.title);
+    }
+    res.json(serializeTask(item));
+  } catch (err) {
+    console.error("[admin] task update:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.delete("/admin/tasks/:id", requireRole(...TASK_ROLES), async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(req.params["id"] as string);
+    await db.delete(tasksTable).where(eq(tasksTable.id, id));
+    await logAudit(req, "DELETE", `task:${id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[admin] task delete:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

@@ -230,6 +230,20 @@ export const adminApi = {
   getEscalations: () => authFetch("/admin/analytics/escalations"),
   getOutreach: (from: string, to: string) => authFetch(`/admin/analytics/outreach?from=${from}&to=${to}`),
   getHeatmapTimeline: (from: string, to: string) => authFetch(`/admin/analytics/heatmap-timeline?from=${from}&to=${to}`),
+  // Tasks (internal team to-do)
+  getTasks: (params?: { mine?: boolean; status?: string; priority?: string; assignedTo?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.mine) q.set("mine", "1");
+    if (params?.status) q.set("status", params.status);
+    if (params?.priority) q.set("priority", params.priority);
+    if (params?.assignedTo != null) q.set("assignedTo", String(params.assignedTo));
+    const qs = q.toString();
+    return authFetch(`/admin/tasks${qs ? `?${qs}` : ""}`);
+  },
+  getTaskAssignees: () => authFetch("/admin/tasks/assignees"),
+  createTask: (data: unknown) => authFetch("/admin/tasks", { method: "POST", body: JSON.stringify(data) }),
+  updateTask: (id: number, data: unknown) => authFetch(`/admin/tasks/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteTask: (id: number) => authFetch(`/admin/tasks/${id}`, { method: "DELETE" }),
   // Image upload (multipart)
   uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
     const token = getToken();

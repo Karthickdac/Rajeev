@@ -13,6 +13,7 @@ import {
   pincodeWardsTable,
   pollingStationsTable,
   siteConfigTable,
+  tasksTable,
 } from "./schema/index.js";
 import { createHmac, randomBytes } from "crypto";
 import { eq, sql } from "drizzle-orm";
@@ -441,6 +442,56 @@ async function seed() {
       order: 6,
     },
   ]).onConflictDoNothing();
+
+  // Tasks (internal team to-do) — assigned to the seed admin user.
+  const [adminUser] = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.email, "admin@logeshconnect.in"));
+
+  if (adminUser) {
+    const day = (offset: number) => {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() + offset);
+      return d;
+    };
+    await db.insert(tasksTable).values([
+      {
+        title: "Review pending grievances from Tambaram ward",
+        description: "Go through escalated grievances and assign officers.",
+        dueDate: day(-1), dueTime: "10:00", priority: "high", status: "todo",
+        category: "grievance_action", assignedTo: adminUser.id, createdBy: adminUser.id,
+      },
+      {
+        title: "Prepare brief for school inauguration visit",
+        description: "Talking points and guest list for the event.",
+        dueDate: day(0), dueTime: "09:30", priority: "high", status: "in_progress",
+        category: "visit_prep", assignedTo: adminUser.id, createdBy: adminUser.id,
+      },
+      {
+        title: "Approve press release on water project",
+        dueDate: day(0), priority: "medium", status: "todo",
+        category: "content", assignedTo: adminUser.id, createdBy: adminUser.id,
+      },
+      {
+        title: "Follow up with PWD on road repair status",
+        dueDate: day(2), dueTime: "15:00", priority: "medium", status: "todo",
+        category: "follow_up", assignedTo: adminUser.id, createdBy: adminUser.id,
+      },
+      {
+        title: "Confirm attendance for district coordination meeting",
+        dueDate: day(4), priority: "low", status: "todo",
+        category: "official", assignedTo: adminUser.id, createdBy: adminUser.id,
+      },
+      {
+        title: "Sign welfare scheme approval documents",
+        dueDate: day(-3), priority: "high", status: "done",
+        category: "official", assignedTo: adminUser.id, createdBy: adminUser.id,
+        completedAt: day(-3),
+      },
+    ]).onConflictDoNothing();
+  }
 
   console.log("Database seeded successfully!");
 }
