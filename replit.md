@@ -1,6 +1,6 @@
-# Logesh Connect
+# Ungaludan Sarath
 
-Bilingual (Tamil-default) political leader website + grievance management platform for D. Logesh Tamilselvan (Minister of Commercial Taxes, Registration and Stamp Duty, MLA of Rasipuram Constituency, Namakkal District), with TVK red/gold branding.
+Bilingual (Tamil-default) political leader website + grievance management platform for D. Sarath Kumar (Minister for Human Resources Management and Ex-Servicemen Welfare, MLA of Tambaram Constituency, Chengalpattu District), with TVK red/gold branding.
 
 ## Run & Operate
 

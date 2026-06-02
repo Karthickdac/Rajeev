@@ -35,7 +35,7 @@ export function MobileBottomBar({ lang }: MobileBottomBarProps) {
     },
     {
       key: "whatsapp",
-      href: "https://wa.me/919876543210?text=Hello%2C%20I%20need%20assistance%20from%20the%20office%20of%20D.%20Logesh%20Tamilselvan%20MLA",
+      href: "https://wa.me/919876543210?text=Hello%2C%20I%20need%20assistance%20from%20the%20office%20of%20D.%20Sarath%20Kumar%20MLA",
       icon: MessageCircle,
       label: "WhatsApp",
       type: "external" as const,

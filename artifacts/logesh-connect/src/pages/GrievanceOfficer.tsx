@@ -508,7 +508,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
             ["Filed",         new Date(detail.createdAt).toLocaleString("en-IN")],
             ["Last updated",  new Date(detail.updatedAt).toLocaleString("en-IN")],
             ["Resolved",      detail.resolvedAt ? new Date(detail.resolvedAt).toLocaleString("en-IN") : "—"],
-            ["Scope",         detail.constituency === "Tamil Nadu" ? "Tamil Nadu State (Commercial Taxes)" : "Rasipuram Constituency"],
+            ["Scope",         detail.constituency === "Tamil Nadu" ? "Tamil Nadu State (Human Resources & Ex-Servicemen Welfare)" : "Tambaram Constituency"],
             ["District",      district],
             ["Constituency",  detail.constituency],
             ["Ward",          detail.ward || "—"],
@@ -779,9 +779,9 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
         doc.rect(0, 0, pageW, HEADER_H, "F");
         doc.setTextColor(255, 255, 255);
         doc.setFont("helvetica", "bold"); doc.setFontSize(13);
-        doc.text("Logesh Connect — Grievance Report", M, 9);
+        doc.text("Ungaludan Sarath — Grievance Report", M, 9);
         doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-        doc.text("Office of D. Logesh Tamilselvan, Minister of Commercial Taxes, Registration and Stamp Duty", M, 14);
+        doc.text("Office of D. Sarath Kumar, Minister for Human Resources Management and Ex-Servicemen Welfare", M, 14);
         doc.setFontSize(7.5);
         doc.text(`Generated: ${generatedAt}  ·  Confidential`, M, 19);
         // Ticket # top-right
@@ -1221,8 +1221,8 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               {/* Scope banner */}
               <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${detail.constituency === "Tamil Nadu" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-green-50 text-green-800 border border-green-200"}`}>
                 {detail.constituency === "Tamil Nadu"
-                  ? <><Globe className="w-4 h-4" />{lang === "ta" ? "தமிழ்நாடு மாநில புகார் — வணிக வரிகள் / பதிவு" : "Tamil Nadu State Complaint — Commercial Taxes & Registration"}</>
-                  : <><Building2 className="w-4 h-4" />{lang === "ta" ? "ராசிபுரம் தொகுதி புகார்" : "Rasipuram Constituency Complaint"}</>
+                  ? <><Globe className="w-4 h-4" />{lang === "ta" ? "தமிழ்நாடு மாநில புகார் — மனித வளம் / முன்னாள் இராணுவ வீரர் நலன்" : "Tamil Nadu State Complaint — Human Resources & Ex-Servicemen Welfare"}</>
+                  : <><Building2 className="w-4 h-4" />{lang === "ta" ? "தாம்பரம் தொகுதி புகார்" : "Tambaram Constituency Complaint"}</>
                 }
               </div>
 

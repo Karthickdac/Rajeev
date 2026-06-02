@@ -61,14 +61,14 @@ async function submitGrievanceWithFiles(
 }
 
 const CATEGORIES = [
-  "Commercial Taxes", "Property Registration", "Stamp Duty",
+  "Ex-Servicemen Welfare", "Human Resources", "Employment",
   "Roads", "Water Supply", "EB / Electricity Issues", "Sewage",
   "Healthcare", "Education", "Women Safety", "Corruption",
   "Ration", "Transport", "Pension", "Housing",
-  "Agriculture", "Employment", "Others",
+  "Agriculture", "Property Registration", "Others",
 ];
 const CATEGORIES_TA = [
-  "வணிக வரி", "சொத்து பத்திரப்பதிவு", "முத்திரைத் தீர்வை",
+  "முன்னாள் இராணுவ வீரர் நலன்", "மனித வளம்", "வேலைவாய்ப்பு",
   "சாலை", "குடிநீர்", "மின்சாரம்", "கழிவுநீர்",
   "சுகாதாரம்", "கல்வி", "பெண் பாதுகாப்பு", "ஊழல்",
   "ரேஷன்", "போக்குவரத்து", "ஓய்வூதியம்", "வீட்டுவசதி",
@@ -362,7 +362,7 @@ export default function Grievance({ lang }: GrievanceProps) {
         title={lang === "ta" ? "மக்கள் புகார் மையம்" : "Public Grievance Portal"}
         subtitle={lang === "ta"
           ? "உங்கள் பகுதியில் உள்ள பிரச்சினைகளை நேரடியாக தெரிவியுங்கள்"
-          : "Submit complaints directly to D. Logesh Tamilselvan's office and track resolution progress"}
+          : "Submit complaints directly to D. Sarath Kumar's office and track resolution progress"}
       />
 
       <Tabs defaultValue="submit" className="space-y-6">

@@ -20,7 +20,7 @@ export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
     subheadline: `${lc.titleEn} – ${lc.constituencyEn} Constituency, Tamil Nadu`,
     subheadlineTa: `${lc.titleTa} – ${lc.constituencyTa} தொகுதி`,
     description: `A leader dedicated to the people of ${lc.constituencyEn} — committed to development, transparency, and citizen welfare.`,
-    descriptionTa: `மக்களுக்கான சேவையில், வளர்ச்சியில் உறுதிபூண்ட ராசிபுரத்தின் குரல்.`,
+    descriptionTa: `மக்களுக்கான சேவையில், வளர்ச்சியில் உறுதிபூண்ட தாம்பரத்தின் குரல்.`,
     primaryCtaLabel: "Submit Grievance",
     primaryCtaLabelTa: "புகார் அளிக்க",
     primaryCtaHref: "/grievance",
@@ -31,7 +31,7 @@ export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
     statsHeadline: "Constituency Development at a Glance",
     statsHeadlineTa: "தொகுதி வளர்ச்சி புள்ளிவிவரம்",
     statsSubheadline: `Key development milestones in ${lc.constituencyEn}`,
-    statsSubheadlineTa: `ராசிபுரத்தில் நடந்த வளர்ச்சி பணிகள்`,
+    statsSubheadlineTa: `தாம்பரத்தில் நடந்த வளர்ச்சி பணிகள்`,
     grievanceCtaTitle: "Your Voice Matters",
     grievanceCtaTitleTa: "உங்கள் குரல் முக்கியம்",
     grievanceCtaBody: "Report issues in your area directly to the office. Submit your grievance and track its resolution in real time.",
@@ -39,7 +39,7 @@ export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
     volunteerCtaTitle: "Join the Movement",
     volunteerCtaTitleTa: "இயக்கத்தில் இணையுங்கள்",
     volunteerCtaBody: `Be part of positive change in ${lc.constituencyEn}. Register as a volunteer and contribute to our community.`,
-    volunteerCtaBodyTa: `ராசிபுரத்தின் வளர்ச்சிக்கு பங்காற்றுங்கள். தன்னார்வலராக பதிவு செய்யுங்கள்.`,
+    volunteerCtaBodyTa: `தாம்பரத்தின் வளர்ச்சிக்கு பங்காற்றுங்கள். தன்னார்வலராக பதிவு செய்யுங்கள்.`,
   };
 }
 
@@ -312,17 +312,17 @@ export function HomeView({
                   <div className="w-[128px] h-[160px] rounded-xl overflow-hidden border-2 border-yellow-400/50 shadow-xl bg-primary/60 flex-shrink-0">
                     {photoSrc
                       ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" />
-                      : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400">D</span>
+                      : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400">S</span>
                     }
                   </div>
                   <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide text-center whitespace-nowrap">
                     {tx("Minister & MLA", "அமைச்சர் & எம்எல்ஏ")}
                   </span>
                   <span className="text-white/70 text-[11px] text-center leading-tight w-full">
-                    {tx("D. Logesh Tamilselvan", "D. லோகேஷ் தமிழ்செல்வன்")}
+                    {tx("D. Sarath Kumar", "டி. சரத் குமார்")}
                   </span>
                   <span className="text-yellow-300/80 text-[10px] text-center leading-tight w-full">
-                    {tx("Commercial Taxes, Registration & Stamp Duty", "வணிக வரி, பத்திரப்பதிவு & முத்திரை வரி")}
+                    {tx("Human Resources & Ex-Servicemen Welfare", "மனித வளம் & முன்னாள் இராணுவ வீரர் நலன்")}
                   </span>
                 </div>
               </div>

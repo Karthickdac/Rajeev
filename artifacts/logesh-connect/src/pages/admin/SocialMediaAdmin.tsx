@@ -293,7 +293,7 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
             <div className="space-y-1">
               <Label className="text-xs">Display name (optional)</Label>
               <Input value={editing.displayName ?? ""} onChange={(e) => setEditing({ ...editing, displayName: e.target.value })}
-                placeholder="D. Logesh Tamilselvan" />
+                placeholder="D. Sarath Kumar" />
             </div>
 
             <div className="space-y-1 sm:col-span-2">
