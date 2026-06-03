@@ -48,18 +48,26 @@ import HeatmapAdmin from "./admin/HeatmapAdmin";
 import Map3DAdmin from "./admin/Map3DAdmin";
 import TasksAdmin from "./admin/TasksAdmin";
 import CalendarAdmin from "./admin/CalendarAdmin";
+import MinisterHome from "./admin/MinisterHome";
+import PaHome from "./admin/PaHome";
+import MinisterReadOnly from "./admin/MinisterReadOnly";
 import type { Language } from "@/lib/i18n";
+import { useLeaderConfig, lc } from "@/lib/LeaderConfigContext";
+import { Crown } from "lucide-react";
 import { UnsavedChangesProvider, useConfirmDiscard } from "@/lib/unsavedChanges";
 
 interface AdminProps { lang?: Language }
 
 type NavGroupId =
   | "overview"
+  | "home"
   | "schedule"
   | "grievances"
   | "voters"
   | "maps"
   | "content"
+  | "people"
+  | "comms"
   | "outreach"
   | "site"
   | "system";
@@ -93,6 +101,16 @@ const NAV_GROUPS: NavGroup[] = [
 
 // roles: undefined = all staff; listed = only those roles
 const NAV_ITEMS: NavItem[] = [
+  // Role home pages
+  { id: "minister-home", label: "My Dashboard", icon: Crown,    group: "overview", roles: ["minister"] },
+  { id: "pa-home",       label: "PA Home",      icon: HomeIcon, group: "overview", roles: ["pa_staff"] },
+
+  // Minister read-only feeds
+  { id: "minister-events",     label: "Today's Schedule", icon: CalendarDays, group: "schedule", roles: ["minister"] },
+  { id: "minister-activities", label: "Activities",       icon: Activity,     group: "schedule", roles: ["minister"] },
+  { id: "minister-promises",   label: "Promises",         icon: Trophy,       group: "outreach", roles: ["minister"] },
+  { id: "minister-press",      label: "Press & News",     icon: Newspaper,    group: "content",  roles: ["minister"] },
+
   // Overview
   { id: "leader-dashboard", label: "Leader Dashboard", icon: Trophy, group: "overview", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
   { id: "dashboard",  label: "Dashboard",   icon: LayoutDashboard, group: "overview" },
@@ -149,6 +167,43 @@ const NAV_ITEMS: NavItem[] = [
   // System
   { id: "audit", label: "Audit Log", icon: ClipboardList, group: "system", roles: ["super_admin", "admin"] },
 ];
+
+// ── Role-specific portal layouts ───────────────────────────
+// Minister sees a slim, read-only-focused sidebar. We restrict the visible
+// items via an allowlist and present them under friendly group labels.
+const MINISTER_ALLOW = [
+  "minister-home", "grievances", "minister-events",
+  "minister-activities", "minister-promises", "minister-press",
+];
+const MINISTER_GROUPS: NavGroup[] = [
+  { id: "overview",   label: "Home",        icon: Crown },
+  { id: "grievances", label: "Grievances",  icon: MessageSquare },
+  { id: "schedule",   label: "Schedule",    icon: CalendarDays },
+  { id: "content",    label: "Press & News", icon: Newspaper },
+  { id: "outreach",   label: "Promises",    icon: Trophy },
+];
+
+// PA keeps full role-based access but the items are regrouped into a
+// daily-workflow layout. We override each item's group label without
+// touching the underlying NAV_ITEMS definitions.
+const PA_GROUPS: NavGroup[] = [
+  { id: "overview",   label: "Home",       icon: HomeIcon },
+  { id: "schedule",   label: "Schedule",   icon: CalendarDays },
+  { id: "grievances", label: "Grievances", icon: MessageSquare },
+  { id: "content",    label: "Content",    icon: Newspaper },
+  { id: "people",     label: "People",     icon: Users },
+  { id: "comms",      label: "Comms",      icon: Radio },
+  { id: "site",       label: "Settings",   icon: Settings },
+];
+const PA_ITEM_GROUP: Record<string, NavGroupId> = {
+  "pa-home": "overview", "leader-dashboard": "overview", "dashboard": "overview",
+  "tasks": "schedule", "calendar": "schedule", "events": "schedule", "activities": "schedule", "map": "schedule",
+  "grievances": "grievances", "sla": "grievances", "escalations": "grievances", "heatmap": "grievances", "map3d": "grievances",
+  "news": "content", "press": "content", "press-coverage": "content", "gallery": "content", "banners": "content",
+  "volunteers": "people", "voters-search": "people", "constituency": "people",
+  "promises": "comms", "outreach": "comms", "ai-tools": "comms",
+  "faqs": "site",
+};
 
 // Persisted collapse state. Stored as a comma-separated list of
 // collapsed group ids so we can hand-edit / inspect easily and so an
@@ -216,6 +271,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
     setLocation("/login");
   }
 
+  const leader = useLeaderConfig();
   const token = getToken() ?? "";
   const role = me?.role ?? "";
   const isAdminRole = ["super_admin", "admin", "constituency_coordinator"].includes(role);
@@ -287,17 +343,27 @@ function AdminInner({ lang = "ta" }: AdminProps) {
     );
   }
 
+  const isMinister = role === "minister";
+  const isPa = role === "pa_staff";
+
   const visibleNav = NAV_ITEMS.filter(item => {
+    // Minister gets a curated, slim sidebar regardless of generic staff access.
+    if (isMinister && !MINISTER_ALLOW.includes(item.id)) return false;
     if (!item.roles) return true;
     return item.roles.includes(role);
   });
 
-  // Group → visible items (preserves NAV_GROUPS order, drops empty groups)
+  // Resolve a nav item's group, applying the PA workflow regrouping override.
+  const groupOf = (it: NavItem): NavGroupId => (isPa ? (PA_ITEM_GROUP[it.id] ?? it.group) : it.group);
+
+  // Group → visible items (preserves group order, drops empty groups)
   const groupedNav = useMemo(() => {
-    return NAV_GROUPS
-      .map(g => ({ group: g, items: visibleNav.filter(it => it.group === g.id) }))
+    const groups = isMinister ? MINISTER_GROUPS : isPa ? PA_GROUPS : NAV_GROUPS;
+    return groups
+      .map(g => ({ group: g, items: visibleNav.filter(it => groupOf(it) === g.id) }))
       .filter(g => g.items.length > 0);
-  }, [visibleNav]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleNav, isMinister, isPa]);
 
   // Collapsed-group state, persisted to localStorage. The group
   // containing the active item is always rendered expanded regardless
@@ -314,18 +380,30 @@ function AdminInner({ lang = "ta" }: AdminProps) {
     });
   }
 
-  const activeGroupId = visibleNav.find(n => n.id === active)?.group;
+  const activeItem = visibleNav.find(n => n.id === active);
+  const activeGroupId = activeItem ? groupOf(activeItem) : undefined;
+  const roleHome = isMinister ? "minister-home" : isPa ? "pa-home" : "dashboard";
 
-  // Ensure active tab is accessible; reset to dashboard if not.
+  // Ensure active tab is accessible; reset to the role's home tab if not.
   // Runs whenever role, visibleNav, or active changes — so deep-links
   // (e.g. from clickable KPI tiles) targeting tabs the current role
   // cannot access fall back gracefully instead of rendering a blank
   // content area.
   useEffect(() => {
     if (role && !visibleNav.find(n => n.id === active)) {
-      setActive("dashboard");
+      setActive(roleHome);
     }
-  }, [role, visibleNav, active]);
+  }, [role, visibleNav, active, roleHome]);
+
+  // Land minister/PA on their portal home after login when no deep-link
+  // hash was provided. Applied once per session.
+  const [defaultApplied, setDefaultApplied] = useState(false);
+  useEffect(() => {
+    if (defaultApplied || !role) return;
+    const hash = window.location.hash.match(/^#([\w-]+)/);
+    if (!hash && (isMinister || isPa)) setActive(roleHome);
+    setDefaultApplied(true);
+  }, [role, defaultApplied, isMinister, isPa, roleHome]);
 
   async function navigate(id: string) {
     if (id === active) { setSidebarOpen(false); return; }
@@ -360,10 +438,27 @@ function AdminInner({ lang = "ta" }: AdminProps) {
 
         {/* User info */}
         {me && (
-          <div className="px-4 py-3 border-b border-white/10">
-            <p className="text-sm font-medium truncate">{me.name}</p>
-            <p className="text-xs text-gray-400 capitalize truncate">{me.role.replace(/_/g, " ")}</p>
-          </div>
+          isMinister ? (
+            <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
+              <img
+                src={leader.photoUrl}
+                alt=""
+                className="w-10 h-10 rounded-full object-cover border-2 border-[#d4af37] shrink-0"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold truncate">{lc(lang, leader.nameEn, leader.nameTa)}</p>
+                <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#d4af37] text-gray-900">
+                  <Crown className="w-2.5 h-2.5" />{lc(lang, "Minister", "அமைச்சர்")}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="px-4 py-3 border-b border-white/10">
+              <p className="text-sm font-medium truncate">{me.name}</p>
+              <p className="text-xs text-gray-400 capitalize truncate">{me.role.replace(/_/g, " ")}</p>
+            </div>
+          )
         )}
 
         {/* Navigation */}
@@ -471,6 +566,12 @@ function AdminInner({ lang = "ta" }: AdminProps) {
 
         {/* Page content */}
         <main className="flex-1 p-4 sm:p-6 overflow-auto">
+          {active === "minister-home"       && <MinisterHome lang={lang} />}
+          {active === "pa-home"             && <PaHome lang={lang} />}
+          {active === "minister-events"     && <MinisterReadOnly lang={lang} section="events" />}
+          {active === "minister-activities" && <MinisterReadOnly lang={lang} section="activities" />}
+          {active === "minister-promises"   && <MinisterReadOnly lang={lang} section="promises" />}
+          {active === "minister-press"      && <MinisterReadOnly lang={lang} section="press" />}
           {active === "leader-dashboard" && <LeaderDashboard lang={lang} readOnly={role === "grievance_officer" || role === "pa_staff"} />}
           {active === "dashboard"    && <Dashboard lang={lang} />}
           {active === "tasks"        && <TasksAdmin lang={lang} />}

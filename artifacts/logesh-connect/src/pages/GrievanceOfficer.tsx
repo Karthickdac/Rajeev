@@ -128,6 +128,9 @@ async function fetchStaffDetail(id: number, token: string): Promise<StaffGrievan
 export default function GrievanceOfficer({ lang, token, userRole = "" }: GrievanceOfficerProps) {
   // Officers default to their own inbox; admins/coordinators default to all.
   const isOfficer = userRole === "grievance_officer";
+  // Minister has a read-only-plus-remarks view: they can read grievances and
+  // add remarks, but cannot change status/priority, assign, or run bulk actions.
+  const canManage = userRole !== "minister";
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("");
@@ -1009,7 +1012,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
       </Card>
 
       {/* Bulk Actions Bar */}
-      {selectedIds.size > 0 && (
+      {canManage && selectedIds.size > 0 && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="p-3">
             <div className="flex flex-wrap items-center gap-3">
@@ -1081,6 +1084,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               <table className="w-full text-sm">
                 <thead className="border-b bg-muted/40">
                   <tr>
+                    {canManage && (
                     <th className="px-4 py-3 w-8">
                       <input
                         type="checkbox"
@@ -1089,6 +1093,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                         onChange={toggleSelectAll}
                       />
                     </th>
+                    )}
                     {["Ticket", "Category", "Ward", "Priority", "Status", "Filed", ""].map((h) => (
                       <th key={h} className="text-left px-4 py-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">{h}</th>
                     ))}
@@ -1097,6 +1102,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                 <tbody className="divide-y">
                   {(data?.items ?? []).map((item) => (
                     <tr key={item.id} className={`hover:bg-muted/20 transition-colors ${selectedIds.has(item.id) ? "bg-primary/5" : ""}`}>
+                      {canManage && (
                       <td className="px-4 py-3">
                         <input
                           type="checkbox"
@@ -1105,6 +1111,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                           onChange={() => toggleSelect(item.id)}
                         />
                       </td>
+                      )}
                       <td className="px-4 py-3">
                         <div className="font-mono text-primary font-semibold text-xs">{item.ticketNo}</div>
                         {item.constituency === "Tamil Nadu" ? (
@@ -1363,6 +1370,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               />
 
               {/* Update Status */}
+              {canManage && (
               <div className="border rounded-lg p-4 space-y-3">
                 <h4 className="font-semibold text-sm flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-primary" />
@@ -1394,6 +1402,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                   <span className="ml-2">{lang === "ta" ? "புதுப்பி" : "Update"}</span>
                 </Button>
               </div>
+              )}
 
               {/* Add Remark */}
               <div className="border rounded-lg p-4 space-y-3">
@@ -1429,6 +1438,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               </div>
 
               {/* Update Priority */}
+              {canManage && (
               <div className="border rounded-lg p-4 space-y-3">
                 <h4 className="font-semibold text-sm flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-primary" />
@@ -1453,8 +1463,10 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                   {priorityMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : lang === "ta" ? "புதுப்பி" : "Set Priority"}
                 </Button>
               </div>
+              )}
 
               {/* Assign to Officer */}
+              {canManage && (
               <div className="border rounded-lg p-4 space-y-3">
                 <h4 className="font-semibold text-sm flex items-center gap-2">
                   <Users className="w-4 h-4 text-primary" />
@@ -1486,6 +1498,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                   {assignMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : lang === "ta" ? "ஒதுக்கு" : "Assign"}
                 </Button>
               </div>
+              )}
 
               {/* Status History */}
               {detail.statusLog.length > 0 && (

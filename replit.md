@@ -7,7 +7,7 @@ Bilingual (Tamil-default) political leader website + grievance management platfo
 - `pnpm --filter @workspace/api-server run dev` — API server (port 8080)
 - `pnpm --filter @workspace/logesh-connect run dev` — web frontend
 - `pnpm --filter @workspace/db run push` — push DB schema (dev only)
-- `npx tsx lib/db/src/seed.ts` — seed sample content (admin: admin@logeshconnect.in / Admin@2026)
+- `npx tsx lib/db/src/seed.ts` — seed sample content. Logins: super_admin `admin@logeshconnect.in / Admin@2026`, minister `minister@logeshconnect.in / Minister@2026`, PA `pa@logeshconnect.in / PaStaff@2026`
 - `pnpm --filter @workspace/api-spec run codegen` — regen API hooks + Zod from OpenAPI
 - `cd lib/db && npx tsc -p tsconfig.json` — must run after adding new schema tables
 - Required env: `DATABASE_URL`, `JWT_SECRET` (auto-generated ephemerally if absent in dev)

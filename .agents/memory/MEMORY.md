@@ -1,3 +1,2 @@
-- [Drizzle NULLS LAST ordering](drizzle-nulls-ordering.md) — `asc(sql\`col NULLS LAST\`)` emits invalid SQL; use raw `sql\`col asc nulls last\``.
-- [Seed file is bilingual](seed-bilingual.md) — never run global sed/regex deletes on lib/db/src/seed.ts; `titleTa`/`*Ta` twin columns live across many tables.
-- [Admin vs public endpoint RBAC](admin-vs-public-endpoint-rbac.md) — for multi-role read pages use public `/promises` `/press-coverage` not `/admin/*` (CMS-role gated, silently 403 grievance_officer).
+- [Frontend tsc noise](frontend-tsc-noise.md) — `tsc --noEmit` in logesh-connect spews TS6305 + cascading TS7006; pre-existing build-artifact noise, Vite dev ignores it.
+- [Role portal gating](role-portal-gating.md) — Admin.tsx gates nav per role via allowlist/group-override; mutating UI must ALSO be gated in the shared GrievanceOfficer, not just nav.

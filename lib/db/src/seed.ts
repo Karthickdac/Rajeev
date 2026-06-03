@@ -101,6 +101,20 @@ async function seed() {
       role: "super_admin",
       isActive: "true",
     },
+    {
+      email: "minister@logeshconnect.in",
+      name: "D. Sarath Kumar",
+      passwordHash: hashPassword("Minister@2026"),
+      role: "minister",
+      isActive: "true",
+    },
+    {
+      email: "pa@logeshconnect.in",
+      name: "PA Staff",
+      passwordHash: hashPassword("PaStaff@2026"),
+      role: "pa_staff",
+      isActive: "true",
+    },
   ]).onConflictDoNothing();
 
   // Leader config — upsert so re-running with a different TENANT updates the live value.

@@ -100,6 +100,21 @@ export default function Login() {
           </CardContent>
         </Card>
 
+        {/* Role hints */}
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          <div className="rounded-lg bg-white/10 border border-white/15 px-3 py-2.5 text-white/80">
+            <p className="text-[11px] font-semibold">Staff / PA / Minister</p>
+            <p className="text-[10px] text-white/60 mt-0.5">Sign in above to reach your portal.</p>
+          </div>
+          <a
+            href="/grievance"
+            className="rounded-lg bg-primary/90 hover:bg-primary border border-white/15 px-3 py-2.5 text-white transition-colors flex flex-col justify-center"
+          >
+            <p className="text-[11px] font-semibold">Public visitor?</p>
+            <p className="text-[10px] text-white/80 mt-0.5">Submit a Grievance →</p>
+          </a>
+        </div>
+
         <p className="text-center text-white/50 text-xs mt-6">
           Authorized personnel only
         </p>
