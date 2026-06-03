@@ -25,6 +25,8 @@ so the DB `site_config.leader_config` row updates — the running DB value overr
 code default. Legitimate TN reference datasets (`tn-constituencies.ts`, `sroData.ts`)
 contain place names like Tambaram/Rasipuram/Namakkal and are intentionally kept.
 
-**Known deferred:** Backend AI prompts in `artifacts/api-server/src/routes/ai.ts` still
-hardcode "D. Sarath Kumar / Tambaram"; to be parameterized when the AI settings/prompt-
-template infrastructure lands (those values are currently correct, just not config-driven).
+**AI prompts:** Backend AI behaviour (model, temperature, maxTokens, prompt templates,
+feature toggles) is now driven by `site_config.ai_settings` via `loadAiSettings()` /
+`resolvePrompt()`; admin SettingsTab edits it and the PUT invalidates the cache. Prompt
+text still references the current leader by name — override per-tenant through the
+`promptTemplates` settings rather than re-hardcoding in route code.

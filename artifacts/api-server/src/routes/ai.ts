@@ -4,7 +4,7 @@ import {
   grievancesTable, grievanceRemarksTable, pressCoverageTable, siteConfigTable, faqsTable,
   newsTable, eventsTable, promisesTable, auditLogTable, appointmentsTable,
 } from "@workspace/db/schema";
-import { and, desc, eq, gte, inArray, isNotNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, lte, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireStaff, requireRole, type AuthRequest } from "../lib/auth.js";
 import { hasOpenAI, chat, chatJson, embed, cosineSimilarity, type ChatMessage } from "../lib/ai.js";
@@ -15,6 +15,8 @@ const router = Router();
 const requireContent = [requireStaff, requireRole("super_admin", "admin", "pa_staff", "media_team", "grievance_officer")];
 // Media-only tools (press release, sentiment, press coverage) — keep aligned with admin nav RBAC.
 const requireMedia = [requireStaff, requireRole("super_admin", "admin", "pa_staff", "media_team")];
+// Appointment scheduling tools — mirror appointment management RBAC (admin.ts APPT_MANAGE_ROLES).
+const requireAppointments = [requireStaff, requireRole("super_admin", "admin", "pa_staff")];
 
 // ─────────────────────────────────────────────────────────
 // Status — frontend can hide AI features if no key configured.
@@ -131,7 +133,19 @@ router.get("/admin/grievances/:id/similar", requireContent, async (req: AuthRequ
       eq(grievancesTable.category, seed.category),
       inArray(grievancesTable.status, ["Resolved", "Closed"]),
     )).orderBy(desc(grievancesTable.createdAt)).limit(limit);
-    return res.json({ similar: rows.map((r) => ({ ...r, score: null })), resolvedTemplate: null, mode: "fallback-category" });
+    // Even without embeddings, surface a reusable remark from the most recent
+    // resolved/closed case in the same category.
+    let fallbackTemplate: { grievanceId: number; ticketNo: string; score: number; remark: string } | null = null;
+    if (rows[0]) {
+      const [rem] = await db.select({ remark: grievanceRemarksTable.remark })
+        .from(grievanceRemarksTable)
+        .where(eq(grievanceRemarksTable.grievanceId, rows[0].id))
+        .orderBy(desc(grievanceRemarksTable.createdAt)).limit(1);
+      if (rem?.remark) {
+        fallbackTemplate = { grievanceId: rows[0].id, ticketNo: rows[0].ticketNo, score: 0, remark: rem.remark };
+      }
+    }
+    return res.json({ similar: rows.map((r) => ({ ...r, score: null })), resolvedTemplate: fallbackTemplate, mode: "fallback-category" });
   }
 
   // Pull only rows that already have an embedding (efficient subset).
@@ -172,6 +186,28 @@ router.get("/admin/grievances/:id/similar", requireContent, async (req: AuthRequ
 function safeParseVec(s: string | null): number[] | null {
   if (!s) return null;
   try { const v = JSON.parse(s); return Array.isArray(v) ? v : null; } catch { return null; }
+}
+
+// Walk forward from a desired date/time to the first free 30-min office slot
+// (Mon-Sat 10:00-16:30 start), skipping any slot already in `booked`. Used as a
+// deterministic guard when the LLM proposes a clashing slot.
+function nextFreeOfficeSlot(startDate: string, startTime: string, booked: Set<string>): { date: string; time: string } {
+  const slotTimes: string[] = [];
+  for (let h = 10; h < 17; h++) {
+    slotTimes.push(`${String(h).padStart(2, "0")}:00`, `${String(h).padStart(2, "0")}:30`);
+  }
+  let base = new Date(`${startDate}T00:00:00Z`);
+  if (Number.isNaN(base.getTime())) base = new Date();
+  for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+    const day = new Date(base.getTime() + dayOffset * 86400000);
+    if (day.getUTCDay() === 0) continue; // office closed Sunday
+    const dateStr = day.toISOString().slice(0, 10);
+    for (const t of slotTimes) {
+      if (dayOffset === 0 && t < startTime) continue; // only times at/after the desired one on day 0
+      if (!booked.has(`${dateStr} ${t}`)) return { date: dateStr, time: t };
+    }
+  }
+  return { date: startDate, time: startTime };
 }
 
 // ─────────────────────────────────────────────────────────
@@ -701,32 +737,52 @@ export async function scoreAppointment(id: number): Promise<void> {
 // 13. Suggested appointment time slot — proposes the next sensible office slot
 // for a pending request, avoiding clashes with already-scheduled appointments.
 // ─────────────────────────────────────────────────────────
-router.post("/admin/appointments/:id/suggest-slot", requireStaff, async (req: AuthRequest, res: Response) => {
+router.post("/admin/appointments/:id/suggest-slot", requireAppointments, async (req: AuthRequest, res: Response) => {
   if (!hasOpenAI()) return res.status(503).json({ error: "OPENAI_API_KEY not configured" });
   const id = Number(req.params.id);
   if (!Number.isFinite(id)) return res.status(400).json({ error: "Bad id" });
   const [appt] = await db.select().from(appointmentsTable).where(eq(appointmentsTable.id, id));
   if (!appt) return res.status(404).json({ error: "Appointment not found" });
   const settings = await loadAiSettings();
-  // Pull upcoming confirmed slots so the assistant can avoid clashes.
+  // Pull upcoming confirmed slots so the assistant can avoid clashes. Bound to
+  // the 45-day window the deterministic guard scans (nextFreeOfficeSlot looks
+  // ≤30 days ahead), with a high cap so every in-window slot is captured.
   const now = new Date();
+  const horizon = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000);
   const booked = await db.select({
     date: appointmentsTable.scheduledDate, time: appointmentsTable.scheduledTime,
   }).from(appointmentsTable)
-    .where(and(isNotNull(appointmentsTable.scheduledDate), gte(appointmentsTable.scheduledDate, now)))
-    .orderBy(appointmentsTable.scheduledDate).limit(50);
-  const bookedList = booked
-    .filter((b) => b.date)
-    .map((b) => `${new Date(b.date as Date).toISOString().slice(0, 10)} ${b.time ?? ""}`.trim())
-    .join("; ") || "none";
+    .where(and(
+      isNotNull(appointmentsTable.scheduledDate),
+      gte(appointmentsTable.scheduledDate, now),
+      lte(appointmentsTable.scheduledDate, horizon),
+    ))
+    .orderBy(appointmentsTable.scheduledDate).limit(1000);
+  // Normalised "YYYY-MM-DD HH:MM" set for deterministic clash detection.
+  const bookedSet = new Set(
+    booked.filter((b) => b.date)
+      .map((b) => `${new Date(b.date as Date).toISOString().slice(0, 10)} ${(b.time ?? "").slice(0, 5)}`.trim()),
+  );
+  const bookedList = Array.from(bookedSet).join("; ") || "none";
   const t0 = Date.now();
   try {
     const result = await chatJson<{ date: string; time: string; reason: string }>([
       { role: "system", content: `You are a scheduling assistant for an MLA's constituency office. Office hours are Mon-Sat 10:00-17:00 IST. Propose ONE suitable upcoming appointment slot that does not clash with already-booked slots. Today is ${now.toISOString().slice(0, 10)}. Respect the citizen's preferred date/time when feasible. Respond ONLY with strict JSON: {"date":"YYYY-MM-DD","time":"HH:MM","reason":"<brief 1-line English reason>"}` },
       { role: "user", content: `Category: ${appt.category}\nSubject: ${appt.subject}\nParty size: ${appt.partySize}\nPreferred date: ${appt.preferredDate ? new Date(appt.preferredDate).toISOString().slice(0, 10) : "n/a"}\nPreferred time: ${appt.preferredTime ?? "n/a"}\nAlready booked slots: ${bookedList}` },
     ], { model: settings.modelName, temperature: settings.temperature, maxTokens: settings.maxTokens });
-    logUsage("suggest-slot", (appt.subject ?? "").length, JSON.stringify(result).length, Date.now() - t0);
-    res.json({ slot: result });
+    // Deterministic guard: never hand back a slot that actually clashes with a
+    // booked one (the LLM is only *instructed* to avoid clashes). If it does,
+    // walk forward to the next free office slot.
+    let slot = result;
+    const proposedTime = (result.time ?? "").slice(0, 5);
+    const pd = new Date(`${result.date}T00:00:00Z`);
+    const proposedDate = Number.isNaN(pd.getTime()) ? result.date : pd.toISOString().slice(0, 10);
+    if (proposedTime && bookedSet.has(`${proposedDate} ${proposedTime}`)) {
+      const free = nextFreeOfficeSlot(proposedDate, proposedTime, bookedSet);
+      slot = { date: free.date, time: free.time, reason: `${result.reason} (adjusted to the next free slot to avoid a clash)` };
+    }
+    logUsage("suggest-slot", (appt.subject ?? "").length, JSON.stringify(slot).length, Date.now() - t0);
+    res.json({ slot });
   } catch (e) {
     res.status(500).json({ error: e instanceof Error ? e.message : "Failed" });
   }
