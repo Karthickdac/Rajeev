@@ -24,6 +24,14 @@ export interface LeaderConfig {
   logoInitial: string;
   districtEn: string;
   districtTa: string;
+  // Map / location fields (editable from Map & Location Settings)
+  mapCenterLat: number;
+  mapCenterLng: number;
+  mapZoom: number;
+  acNumber: string;
+  officialEmail: string;
+  secondaryPhone: string;
+  whatsappNumber: string;
 }
 
 export const DEFAULT_LEADER_CONFIG: LeaderConfig = {
@@ -49,6 +57,13 @@ export const DEFAULT_LEADER_CONFIG: LeaderConfig = {
   logoInitial: "S",
   districtEn: "Chengalpattu",
   districtTa: "செங்கல்பட்டு",
+  mapCenterLat: 12.924,
+  mapCenterLng: 80.117,
+  mapZoom: 12,
+  acNumber: "185",
+  officialEmail: "office@sarathkumar.in",
+  secondaryPhone: "",
+  whatsappNumber: "919876543210",
 };
 
 const LeaderConfigContext = createContext<LeaderConfig>(DEFAULT_LEADER_CONFIG);
