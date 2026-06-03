@@ -1,3 +1,1 @@
-- [Express 5 route gotchas](express5-routing.md) — param typing, public/admin router ordering, and per-route role guards on this Express 5 API server.
-- [Dev server rebuild](dev-server-rebuild.md) — the API server serves a build; route changes need a workflow restart before they take effect.
-- [Public ticket tracking convention](public-ticket-tracking.md) — grievances & appointments use enumerable APT/GRV-YYYY-NNNN tickets on unauthenticated public track endpoints, no rate limiting.
+- [requireRole vs requireStaff auth](auth-require-role.md) — requireRole now self-authenticates; routers using it need no separate auth guard, but watch double-auth when combined with requireStaff.
