@@ -17,9 +17,9 @@ function key(): string {
 
 export interface ChatMessage { role: "system" | "user" | "assistant"; content: string }
 
-export async function chat(messages: ChatMessage[], opts: { json?: boolean; temperature?: number; maxTokens?: number } = {}): Promise<string> {
+export async function chat(messages: ChatMessage[], opts: { json?: boolean; temperature?: number; maxTokens?: number; model?: string } = {}): Promise<string> {
   const body: Record<string, unknown> = {
-    model: CHAT_MODEL,
+    model: opts.model || CHAT_MODEL,
     messages,
     temperature: opts.temperature ?? 0.3,
   };
@@ -35,8 +35,8 @@ export async function chat(messages: ChatMessage[], opts: { json?: boolean; temp
   return data.choices?.[0]?.message?.content ?? "";
 }
 
-export async function chatJson<T = unknown>(messages: ChatMessage[]): Promise<T> {
-  const txt = await chat(messages, { json: true, temperature: 0.1 });
+export async function chatJson<T = unknown>(messages: ChatMessage[], opts: { temperature?: number; maxTokens?: number; model?: string } = {}): Promise<T> {
+  const txt = await chat(messages, { json: true, temperature: opts.temperature ?? 0.1, maxTokens: opts.maxTokens, model: opts.model });
   return JSON.parse(txt) as T;
 }
 

@@ -232,6 +232,7 @@ export const adminApi = {
   getHeadlineSuggestions: (data: unknown) => authFetch("/admin/ai/headline-suggestions", { method: "POST", body: JSON.stringify(data) }),
   expandActivity: (data: unknown) => authFetch("/admin/ai/expand-activity", { method: "POST", body: JSON.stringify(data) }),
   askAi: (data: unknown) => authFetch("/admin/ai/ask", { method: "POST", body: JSON.stringify(data) }),
+  suggestSlot: (id: number) => authFetch(`/admin/appointments/${id}/suggest-slot`, { method: "POST" }),
   getAiUsageLog: () => authFetch("/admin/ai/usage-log"),
   getAiSettings: () => authFetch("/admin/settings").then((s: Record<string, unknown>) => (s?.ai_settings as Record<string, unknown> | null ?? null)),
   updateAiSettings: (data: unknown) => authFetch("/admin/settings/ai_settings", { method: "PUT", body: JSON.stringify(data) }),

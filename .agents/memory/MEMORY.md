@@ -1,1 +1,2 @@
 - [Admin settings allowlist](admin-settings-allowlist.md) — new site_config keys must be added to BOTH the GET and PUT allowlists in admin.ts or they silently won't persist.
+- [AI settings canonical shape](ai-settings-shape.md) — ai_settings shape must stay in lockstep across admin.ts Zod / ai-settings.ts defaults / AiToolsAdmin UI; thread temperature into every LLM call; toggles return 403.

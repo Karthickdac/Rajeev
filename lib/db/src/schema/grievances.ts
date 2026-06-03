@@ -76,6 +76,10 @@ export const grievancesTable = pgTable("grievances", {
   aiSummary: text("ai_summary"),
   aiSummaryTa: text("ai_summary_ta"),
   aiSuggestedRoute: text("ai_suggested_route"),
+  // Public-sentiment classification of the complaint text (positive/neutral/negative),
+  // populated by triage; powers the Analytics sentiment-trend card.
+  aiSentiment: text("ai_sentiment"),
+  aiSentimentScore: integer("ai_sentiment_score"), // -100..100
   aiEmbedding: text("ai_embedding"), // JSON-encoded number[]
   aiTriagedAt: timestamp("ai_triaged_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

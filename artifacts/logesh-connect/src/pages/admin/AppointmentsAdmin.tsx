@@ -10,6 +10,7 @@ import {
   CalendarCheck, Search, Download, X, ChevronLeft, ChevronRight,
   Clock, CheckCircle, CalendarClock, CheckCheck, XCircle, RotateCcw,
   Phone, Mail, MapPin, Users as UsersIcon, Loader2, Trash2, List, CalendarDays,
+  Sparkles,
 } from "lucide-react";
 import type { Language } from "@/lib/i18n";
 
@@ -228,12 +229,12 @@ export default function AppointmentsAdmin({ lang, role }: AppointmentsAdminProps
                           <div className="font-medium flex items-center gap-1.5">
                             {a.name}
                             {a.aiPriorityScore !== null && a.aiPriorityScore !== undefined && (
-                              <span title={`AI Priority: ${a.aiPriorityScore}/100`}
+                              <span title={`AI Priority: ${a.aiPriorityScore}/5`}
                                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                                  a.aiPriorityScore >= 75 ? "bg-red-100 text-red-700" :
-                                  a.aiPriorityScore >= 50 ? "bg-amber-100 text-amber-700" :
+                                  a.aiPriorityScore >= 4 ? "bg-red-100 text-red-700" :
+                                  a.aiPriorityScore >= 3 ? "bg-amber-100 text-amber-700" :
                                   "bg-green-100 text-green-700"
-                                }`}>AI:{a.aiPriorityScore}</span>
+                                }`}>AI:{a.aiPriorityScore}/5</span>
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground">{a.phone}</div>
@@ -392,6 +393,25 @@ function AppointmentDrawer({ lang, readOnly, canDelete, appointment, onClose, on
   const [notificationMessage, setNotificationMessage] = useState(a.notificationMessage ?? "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
+  const [slotHint, setSlotHint] = useState("");
+
+  async function handleSuggestSlot() {
+    setSuggesting(true);
+    setErr("");
+    setSlotHint("");
+    try {
+      const res = await adminApi.suggestSlot(a.id) as { slot?: { date?: string; time?: string; reason?: string } };
+      const slot = res?.slot;
+      if (slot?.date) setScheduledDate(slot.date.slice(0, 10));
+      if (slot?.time) setScheduledTime(slot.time);
+      if (slot?.reason) setSlotHint(slot.reason);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : lc("Suggestion failed", "பரிந்துரை தோல்வி"));
+    } finally {
+      setSuggesting(false);
+    }
+  }
 
   async function mutate(patch: Record<string, unknown>) {
     setBusy(true);
@@ -474,7 +494,14 @@ function AppointmentDrawer({ lang, readOnly, canDelete, appointment, onClose, on
             </div>
           ) : (
             <div className="border-t pt-3 space-y-3">
-              <p className="text-sm font-semibold">{lc("Manage", "நிர்வகி")}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">{lc("Manage", "நிர்வகி")}</p>
+                <Button variant="outline" size="sm" onClick={handleSuggestSlot} disabled={suggesting || busy} data-testid="button-suggest-slot">
+                  {suggesting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
+                  {lc("Suggest slot", "நேரம் பரிந்துரை")}
+                </Button>
+              </div>
+              {slotHint && <p className="text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1.5">{slotHint}</p>}
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs text-muted-foreground">{lc("Date", "தேதி")}</label>

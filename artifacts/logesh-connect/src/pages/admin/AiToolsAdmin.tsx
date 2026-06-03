@@ -375,35 +375,75 @@ function AdminQA() {
   );
 }
 
-const DEFAULT_SETTINGS = {
-  model: "gpt-4o-mini",
-  features: {
-    autoTriageGrievances: true, autoScoreAppointments: true,
-    pressReleaseGenerator: true, socialPostGenerator: true,
-    headlineSuggestions: true, activityExpander: true,
-    sentimentAnalyzer: true, adminQa: true,
+interface AiFeatureToggles {
+  autoTriage: boolean;
+  resolutionSuggestion: boolean;
+  postGenerator: boolean;
+  pressRelease: boolean;
+  headlineSuggestion: boolean;
+  appointmentScoring: boolean;
+}
+interface AiPromptTemplates {
+  triage: string; resolution: string; socialPost: string; pressRelease: string;
+  headline: string; activityExpand: string; appointmentScore: string;
+}
+interface AiSettings {
+  modelName: string;
+  temperature: number;
+  maxTokens: number;
+  featureToggles: AiFeatureToggles;
+  promptTemplates: AiPromptTemplates;
+}
+
+const DEFAULT_SETTINGS: AiSettings = {
+  modelName: "gpt-4o-mini",
+  temperature: 0.3,
+  maxTokens: 1200,
+  featureToggles: {
+    autoTriage: true, resolutionSuggestion: true, postGenerator: true,
+    pressRelease: true, headlineSuggestion: true, appointmentScoring: true,
+  },
+  promptTemplates: {
+    triage: "", resolution: "", socialPost: "", pressRelease: "",
+    headline: "", activityExpand: "", appointmentScore: "",
   },
 };
-const FEATURE_LABELS: Record<string, string> = {
-  autoTriageGrievances: "Auto-triage grievances on submit",
-  autoScoreAppointments: "Auto-score appointment priority on submit",
-  pressReleaseGenerator: "Press release generator",
-  socialPostGenerator: "Social post generator",
-  headlineSuggestions: "Headline suggestions (News editor)",
-  activityExpander: "Activity description expander",
-  sentimentAnalyzer: "Sentiment analyzer",
-  adminQa: "Constituency AI assistant (Q&A)",
+const FEATURE_LABELS: Record<keyof AiFeatureToggles, string> = {
+  autoTriage: "Auto-triage grievances on submit",
+  resolutionSuggestion: "Resolution suggestions (Grievances)",
+  postGenerator: "Social post generator",
+  pressRelease: "Press release generator",
+  headlineSuggestion: "Headline suggestions (News editor)",
+  appointmentScoring: "Auto-score appointment priority on submit",
+};
+const PROMPT_LABELS: Record<keyof AiPromptTemplates, string> = {
+  triage: "Grievance triage",
+  resolution: "Resolution suggestion",
+  socialPost: "Social post generator",
+  pressRelease: "Press release generator",
+  headline: "Headline suggestions",
+  activityExpand: "Activity description expander",
+  appointmentScore: "Appointment priority scoring",
 };
 
 function SettingsTab() {
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<AiSettings>(DEFAULT_SETTINGS);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
     adminApi.getAiSettings().then((s) => {
-      if (s) setSettings({ ...DEFAULT_SETTINGS, ...s, features: { ...DEFAULT_SETTINGS.features, ...(s.features as Record<string, boolean> ?? {}) } });
+      if (s) {
+        const raw = s as Partial<AiSettings>;
+        setSettings({
+          modelName: raw.modelName ?? DEFAULT_SETTINGS.modelName,
+          temperature: typeof raw.temperature === "number" ? raw.temperature : DEFAULT_SETTINGS.temperature,
+          maxTokens: typeof raw.maxTokens === "number" ? raw.maxTokens : DEFAULT_SETTINGS.maxTokens,
+          featureToggles: { ...DEFAULT_SETTINGS.featureToggles, ...(raw.featureToggles ?? {}) },
+          promptTemplates: { ...DEFAULT_SETTINGS.promptTemplates, ...(raw.promptTemplates ?? {}) },
+        });
+      }
       setLoaded(true);
     }).catch(() => setLoaded(true));
   }, []);
@@ -421,27 +461,56 @@ function SettingsTab() {
     <div className="space-y-4">
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold flex items-center gap-2"><Settings className="w-4 h-4 text-primary" /> Model Configuration</CardTitle></CardHeader>
-        <CardContent className="space-y-2">
-          <Label className="text-xs">Model</Label>
-          <Select value={settings.model} onValueChange={(v) => setSettings(s => ({ ...s, model: v }))}>
-            <SelectTrigger className="w-64"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gpt-4o-mini">gpt-4o-mini (fast, low cost)</SelectItem>
-              <SelectItem value="gpt-4o">gpt-4o (smarter, higher cost)</SelectItem>
-              <SelectItem value="gpt-4-turbo">gpt-4-turbo</SelectItem>
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">Saved as a preference. The API server defaults to gpt-4o-mini.</p>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-xs">Model</Label>
+            <Select value={settings.modelName} onValueChange={(v) => setSettings(s => ({ ...s, modelName: v }))}>
+              <SelectTrigger className="w-64"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt-4o-mini">gpt-4o-mini (fast, low cost)</SelectItem>
+                <SelectItem value="gpt-4o">gpt-4o (smarter, higher cost)</SelectItem>
+                <SelectItem value="gpt-4-turbo">gpt-4-turbo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-4 max-w-sm">
+            <div className="space-y-1">
+              <Label className="text-xs">Temperature ({settings.temperature.toFixed(1)})</Label>
+              <Input type="number" min={0} max={2} step={0.1} value={settings.temperature}
+                onChange={(e) => setSettings(s => ({ ...s, temperature: Math.min(2, Math.max(0, Number(e.target.value) || 0)) }))} />
+              <p className="text-[11px] text-muted-foreground">0 = focused, 2 = creative</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Max tokens</Label>
+              <Input type="number" min={100} max={8000} step={100} value={settings.maxTokens}
+                onChange={(e) => setSettings(s => ({ ...s, maxTokens: Math.min(8000, Math.max(100, Math.round(Number(e.target.value) || 0))) }))} />
+              <p className="text-[11px] text-muted-foreground">Per-response limit</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold flex items-center gap-2"><Zap className="w-4 h-4 text-primary" /> Feature Toggles</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          {Object.entries(settings.features).map(([key, enabled]) => (
+          {(Object.keys(settings.featureToggles) as Array<keyof AiFeatureToggles>).map((key) => (
             <div key={key} className="flex items-center justify-between">
               <Label className="text-sm font-normal cursor-pointer">{FEATURE_LABELS[key] ?? key}</Label>
-              <Switch checked={enabled} onCheckedChange={(v) => setSettings(s => ({ ...s, features: { ...s.features, [key]: v } }))} />
+              <Switch checked={settings.featureToggles[key]} onCheckedChange={(v) => setSettings(s => ({ ...s, featureToggles: { ...s.featureToggles, [key]: v } }))} />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Prompt Templates</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">Leave a field blank to use the built-in default prompt. Custom prompts must keep the JSON output instructions intact.</p>
+          {(Object.keys(settings.promptTemplates) as Array<keyof AiPromptTemplates>).map((key) => (
+            <div key={key} className="space-y-1">
+              <Label className="text-xs">{PROMPT_LABELS[key] ?? key}</Label>
+              <Textarea rows={3} placeholder="(using built-in default)" value={settings.promptTemplates[key]}
+                onChange={(e) => setSettings(s => ({ ...s, promptTemplates: { ...s.promptTemplates, [key]: e.target.value } }))} />
             </div>
           ))}
         </CardContent>

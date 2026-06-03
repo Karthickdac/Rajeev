@@ -13,6 +13,7 @@ import {
 
 import { requireStaff, requireRole, type AuthRequest } from "../lib/auth.js";
 import { logRouting } from "../lib/grievance-routing.js";
+import { invalidateAiSettings } from "../lib/ai-settings.js";
 import { eq, desc, asc, sql, gte, lte, and, inArray } from "drizzle-orm";
 import { z } from "zod";
 import multer from "multer";
@@ -860,6 +861,31 @@ const HomeHeroBody = z.object({
   volunteerCtaBodyTa: z.string().default(""),
 }).strict();
 
+// AI settings blob (model config, prompt overrides, feature toggles). All fields
+// optional — loadAiSettings() merges with defaults and clamps numeric ranges on read.
+const AiSettingsBody = z.object({
+  modelName: z.string().trim().min(1).max(100).optional(),
+  temperature: z.number().min(0).max(2).optional(),
+  maxTokens: z.number().int().min(100).max(8000).optional(),
+  featureToggles: z.object({
+    autoTriage: z.boolean(),
+    resolutionSuggestion: z.boolean(),
+    postGenerator: z.boolean(),
+    pressRelease: z.boolean(),
+    headlineSuggestion: z.boolean(),
+    appointmentScoring: z.boolean(),
+  }).partial().optional(),
+  promptTemplates: z.object({
+    triage: z.string().max(4000),
+    resolution: z.string().max(4000),
+    socialPost: z.string().max(4000),
+    pressRelease: z.string().max(4000),
+    headline: z.string().max(4000),
+    activityExpand: z.string().max(4000),
+    appointmentScore: z.string().max(4000),
+  }).partial().optional(),
+}).strip();
+
 router.put("/admin/settings/:key", requireRole("super_admin", "admin"), async (req: AuthRequest, res) => {
   try {
     const key = req.params["key"] as string;
@@ -868,6 +894,13 @@ router.put("/admin/settings/:key", requireRole("super_admin", "admin"), async (r
     let body: unknown = req.body;
     if (key === "home_hero") {
       const parsed = HomeHeroBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: "Invalid", details: parsed.error.issues });
+        return;
+      }
+      body = parsed.data;
+    } else if (key === "ai_settings") {
+      const parsed = AiSettingsBody.safeParse(req.body);
       if (!parsed.success) {
         res.status(400).json({ error: "Invalid", details: parsed.error.issues });
         return;
@@ -882,6 +915,8 @@ router.put("/admin/settings/:key", requireRole("super_admin", "admin"), async (r
     } else {
       await db.insert(siteConfigTable).values({ key, value });
     }
+    // AI behaviour is read from a short-lived cache — bust it on save.
+    if (key === "ai_settings") invalidateAiSettings();
     await logAudit(req, "UPDATE", `site_config:${key}`);
     res.json(req.body);
   } catch (err) {
