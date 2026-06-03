@@ -1,2 +1,3 @@
-- [Frontend tsc noise](frontend-tsc-noise.md) — `tsc --noEmit` in logesh-connect spews TS6305 + cascading TS7006; pre-existing build-artifact noise, Vite dev ignores it.
-- [Role portal gating](role-portal-gating.md) — Admin.tsx gates nav per role via allowlist/group-override; mutating UI must ALSO be gated in the shared GrievanceOfficer, not just nav.
+- [Express 5 route gotchas](express5-routing.md) — param typing, public/admin router ordering, and per-route role guards on this Express 5 API server.
+- [Dev server rebuild](dev-server-rebuild.md) — the API server serves a build; route changes need a workflow restart before they take effect.
+- [Public ticket tracking convention](public-ticket-tracking.md) — grievances & appointments use enumerable APT/GRV-YYYY-NNNN tickets on unauthenticated public track endpoints, no rate limiting.

@@ -9,6 +9,7 @@ import { adminApi } from "./api";
 import CdiCard from "./CdiCard";
 import { type Language } from "@/lib/i18n";
 import { useLeaderConfig, lc } from "@/lib/LeaderConfigContext";
+import TodaysAppointments from "@/components/admin/TodaysAppointments";
 
 interface EventItem {
   id: number;
@@ -191,6 +192,9 @@ export default function MinisterHome({ lang = "ta" }: { lang?: Language }) {
             )}
           </CardContent>
         </Card>
+
+        {/* Upcoming appointments (read-only) */}
+        <TodaysAppointments lang={lang} mode="next" limit={3} />
 
         {/* Latest press & news */}
         <Card>

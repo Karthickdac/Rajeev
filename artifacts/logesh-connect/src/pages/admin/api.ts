@@ -248,6 +248,25 @@ export const adminApi = {
   createTask: (data: unknown) => authFetch("/admin/tasks", { method: "POST", body: JSON.stringify(data) }),
   updateTask: (id: number, data: unknown) => authFetch(`/admin/tasks/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   deleteTask: (id: number) => authFetch(`/admin/tasks/${id}`, { method: "DELETE" }),
+  // Appointments
+  getAppointments: (params?: { page?: number; limit?: number; status?: string; category?: string; q?: string; from?: string; to?: string }) => {
+    const qp = new URLSearchParams();
+    if (params?.page) qp.set("page", String(params.page));
+    if (params?.limit) qp.set("limit", String(params.limit));
+    if (params?.status) qp.set("status", params.status);
+    if (params?.category) qp.set("category", params.category);
+    if (params?.q) qp.set("q", params.q);
+    if (params?.from) qp.set("from", params.from);
+    if (params?.to) qp.set("to", params.to);
+    const qs = qp.toString();
+    return authFetch(`/admin/appointments${qs ? `?${qs}` : ""}`);
+  },
+  getAppointment: (id: number) => authFetch(`/admin/appointments/${id}`),
+  getAppointmentStats: () => authFetch("/admin/appointments/stats"),
+  updateAppointment: (id: number, data: unknown) =>
+    authFetch(`/admin/appointments/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteAppointment: (id: number) => authFetch(`/admin/appointments/${id}`, { method: "DELETE" }),
+  exportAppointmentsCSV: () => authFetch("/admin/appointments/export"),
   // Image upload (multipart)
   uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
     const token = getToken();

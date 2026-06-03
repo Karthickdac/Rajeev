@@ -22,6 +22,7 @@ import Gallery from "@/pages/Gallery";
 import Activities from "@/pages/Activities";
 import Volunteer from "@/pages/Volunteer";
 import Grievance from "@/pages/Grievance";
+import Appointment from "@/pages/Appointment";
 import Contact from "@/pages/Contact";
 import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
@@ -92,6 +93,7 @@ function PublicRoutes({ lang, setLang, darkMode, setDarkMode }: {
         <Route path="/welfare" component={() => <Welfare lang={lang} />} />
         <Route path="/map" component={() => <MapPage lang={lang} />} />
         <Route path="/grievance" component={() => <Grievance lang={lang} />} />
+        <Route path="/appointment" component={() => <Appointment lang={lang} />} />
         <Route path="/contact" component={() => <Contact lang={lang} />} />
         <Route path="/volunteer" component={() => <Volunteer lang={lang} />} />
         <Route path="/donate" component={() => <Donate lang={lang} />} />

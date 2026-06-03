@@ -8,6 +8,7 @@ import {
   pincodesTable, pincodeWardsTable,
   officerAssignmentsTable, grievanceRoutingLogTable, volunteerAssignmentsTable,
   tasksTable,
+  appointmentsTable, APPOINTMENT_STATUSES, APPOINTMENT_CATEGORIES,
 } from "@workspace/db/schema";
 
 import { requireStaff, requireRole, type AuthRequest } from "../lib/auth.js";
@@ -2581,6 +2582,205 @@ router.get("/admin/assignments/routing-log", requireRole(...WARD_ROLES), async (
     res.json({ items: rows.map(r => ({ ...r, createdAt: r.createdAt.toISOString() })) });
   } catch (err) {
     console.error("[admin] routing log:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ──────────────────────────────────────────────────────────
+// APPOINTMENTS (staff) — list / detail / decide / delete / export
+// GETs are restricted to the appointment read roles (incl. minister read-only).
+// Mutations are restricted to the appointment-managing roles; DELETE is super_admin.
+// ──────────────────────────────────────────────────────────
+const APPT_MANAGE_ROLES = ["super_admin", "admin", "pa_staff"] as const;
+// Read access additionally includes the minister (read-only view of their schedule).
+const APPT_READ_ROLES = ["super_admin", "admin", "pa_staff", "minister"] as const;
+
+function serializeAppointment(a: typeof appointmentsTable.$inferSelect) {
+  return {
+    ...a,
+    preferredDate: a.preferredDate?.toISOString() ?? null,
+    scheduledDate: a.scheduledDate?.toISOString() ?? null,
+    completedAt: a.completedAt?.toISOString() ?? null,
+    createdAt: a.createdAt.toISOString(),
+    updatedAt: a.updatedAt.toISOString(),
+  };
+}
+
+// GET /api/admin/appointments — paginated list with optional filters
+router.get("/admin/appointments", requireRole(...APPT_READ_ROLES), async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(String(req.query.page ?? "1"), 10));
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit ?? "20"), 10)));
+    const status = typeof req.query.status === "string" && req.query.status ? req.query.status : null;
+    const category = typeof req.query.category === "string" && req.query.category ? req.query.category : null;
+    const q = typeof req.query.q === "string" && req.query.q.trim() ? req.query.q.trim() : null;
+    const from = typeof req.query.from === "string" && req.query.from ? new Date(req.query.from) : null;
+    const to = typeof req.query.to === "string" && req.query.to ? new Date(req.query.to) : null;
+
+    const conds = [];
+    if (status) conds.push(eq(appointmentsTable.status, status));
+    if (category) conds.push(eq(appointmentsTable.category, category));
+    if (q) conds.push(sql`(${appointmentsTable.name} ILIKE ${`%${q}%`} OR ${appointmentsTable.ticketNo} ILIKE ${`%${q}%`} OR ${appointmentsTable.subject} ILIKE ${`%${q}%`} OR ${appointmentsTable.phone} ILIKE ${`%${q}%`})`);
+    // Filter by scheduled date window when provided (calendar view month range),
+    // falling back to preferred date when not yet scheduled.
+    if (from && !Number.isNaN(from.getTime())) conds.push(sql`COALESCE(${appointmentsTable.scheduledDate}, ${appointmentsTable.preferredDate}) >= ${from.toISOString()}`);
+    if (to && !Number.isNaN(to.getTime())) conds.push(sql`COALESCE(${appointmentsTable.scheduledDate}, ${appointmentsTable.preferredDate}) <= ${to.toISOString()}`);
+    const where = conds.length ? and(...conds) : undefined;
+
+    const [rows, [{ total }]] = await Promise.all([
+      db.select().from(appointmentsTable).where(where)
+        .orderBy(desc(appointmentsTable.createdAt))
+        .limit(limit).offset((page - 1) * limit),
+      db.select({ total: sql<number>`count(*)::int` }).from(appointmentsTable).where(where),
+    ]);
+
+    res.json({
+      items: rows.map(serializeAppointment),
+      page, limit, total: Number(total),
+      totalPages: Math.max(1, Math.ceil(Number(total) / limit)),
+    });
+  } catch (err) {
+    console.error("[admin] appointments list:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/appointments/stats — small KPI summary for widgets
+router.get("/admin/appointments/stats", requireRole(...APPT_READ_ROLES), async (_req, res) => {
+  try {
+    const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
+    const byStatus = await db.select({ status: appointmentsTable.status, n: sql<number>`count(*)::int` })
+      .from(appointmentsTable).groupBy(appointmentsTable.status);
+    const [{ todayCount }] = await db.select({ todayCount: sql<number>`count(*)::int` })
+      .from(appointmentsTable)
+      .where(and(
+        inArray(appointmentsTable.status, ["Approved", "Rescheduled"]),
+        gte(appointmentsTable.scheduledDate, startOfToday),
+        lte(appointmentsTable.scheduledDate, endOfToday),
+      ));
+    res.json({
+      byStatus: byStatus.map(r => ({ status: r.status, count: Number(r.n) })),
+      today: Number(todayCount),
+    });
+  } catch (err) {
+    console.error("[admin] appointments stats:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/appointments/export — CSV
+router.get("/admin/appointments/export", requireRole(...APPT_READ_ROLES), async (_req, res) => {
+  try {
+    const rows = await db.select().from(appointmentsTable).orderBy(desc(appointmentsTable.createdAt)).limit(2000);
+    const headers = ["ID", "Ticket No", "Name", "Phone", "Category", "Subject", "Status", "Preferred", "Scheduled", "Location", "Submitted"];
+    const csv = [
+      headers.map(h => `"${h}"`).join(","),
+      ...rows.map(r => [
+        r.id, r.ticketNo, r.name, r.phone, r.category, (r.subject ?? "").replace(/"/g, '""'), r.status,
+        r.preferredDate ? new Date(r.preferredDate).toLocaleDateString("en-IN") : "",
+        r.scheduledDate ? new Date(r.scheduledDate).toLocaleDateString("en-IN") : "",
+        (r.location ?? "").replace(/"/g, '""'),
+        new Date(r.createdAt).toLocaleDateString("en-IN"),
+      ].map(v => `"${v}"`).join(",")),
+    ].join("\n");
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="appointments-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    console.error("[admin] appointments export:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/appointments/:id — single
+router.get("/admin/appointments/:id", requireRole(...APPT_READ_ROLES), async (req, res) => {
+  try {
+    const id = parseInt(req.params["id"] as string, 10);
+    if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+    const [appt] = await db.select().from(appointmentsTable).where(eq(appointmentsTable.id, id)).limit(1);
+    if (!appt) { res.status(404).json({ error: "Not found" }); return; }
+    res.json(serializeAppointment(appt));
+  } catch (err) {
+    console.error("[admin] appointment get:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+const AppointmentPatchBody = z.object({
+  status: z.enum(APPOINTMENT_STATUSES).optional(),
+  category: z.enum(APPOINTMENT_CATEGORIES).optional(),
+  scheduledDate: z.string().optional().nullable(),
+  scheduledTime: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  decisionNote: z.string().optional().nullable(),
+  rejectionReason: z.string().optional().nullable(),
+  notificationMessage: z.string().optional().nullable(),
+});
+
+// PATCH /api/admin/appointments/:id — decide (approve/reschedule/reject/complete/cancel) + edit
+router.patch("/admin/appointments/:id", requireRole(...APPT_MANAGE_ROLES), async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(req.params["id"] as string, 10);
+    if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+    const body = AppointmentPatchBody.safeParse(req.body);
+    if (!body.success) { res.status(400).json({ error: "Invalid request", details: body.error.issues }); return; }
+
+    const [existing] = await db.select().from(appointmentsTable).where(eq(appointmentsTable.id, id)).limit(1);
+    if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+
+    const d = body.data;
+    const patch: Record<string, unknown> = {};
+    if (d.category !== undefined) patch.category = d.category;
+    if (d.location !== undefined) patch.location = d.location;
+    if (d.decisionNote !== undefined) patch.decisionNote = d.decisionNote;
+    if (d.rejectionReason !== undefined) patch.rejectionReason = d.rejectionReason;
+    if (d.notificationMessage !== undefined) patch.notificationMessage = d.notificationMessage;
+    if (d.scheduledTime !== undefined) patch.scheduledTime = d.scheduledTime;
+    if (d.scheduledDate !== undefined) {
+      if (d.scheduledDate === null) {
+        patch.scheduledDate = null;
+      } else {
+        const sd = new Date(d.scheduledDate);
+        if (Number.isNaN(sd.getTime())) {
+          res.status(400).json({ error: "Invalid scheduledDate" });
+          return;
+        }
+        patch.scheduledDate = sd;
+      }
+    }
+    if (d.status !== undefined) {
+      patch.status = d.status;
+      patch.handledBy = req.user?.id ?? null;
+      patch.handledByName = req.user?.name ?? null;
+      if (d.status === "Completed") patch.completedAt = new Date();
+    }
+
+    const [updated] = await db.update(appointmentsTable).set(patch)
+      .where(eq(appointmentsTable.id, id)).returning();
+
+    await logAudit(req, d.status ? `appointment:${d.status.toLowerCase()}` : "appointment:update",
+      `appointment#${id} (${existing.ticketNo})`, d.decisionNote ?? d.rejectionReason ?? undefined);
+
+    res.json(serializeAppointment(updated));
+  } catch (err) {
+    console.error("[admin] appointment patch:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /api/admin/appointments/:id — super_admin only
+router.delete("/admin/appointments/:id", requireRole("super_admin"), async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(req.params["id"] as string, 10);
+    if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+    const [existing] = await db.select().from(appointmentsTable).where(eq(appointmentsTable.id, id)).limit(1);
+    if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+    await db.delete(appointmentsTable).where(eq(appointmentsTable.id, id));
+    await logAudit(req, "appointment:delete", `appointment#${id} (${existing.ticketNo})`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("[admin] appointment delete:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Newspaper, Calendar, Activity, Image,
   Users, MessageSquare, HelpCircle, UserCircle, LogOut, Menu, X,
-  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio, Sparkles, Newspaper as NewsIcon, Timer, Flame, Layers, CheckSquare, CalendarDays,
+  ChevronRight, ChevronDown, Settings, Megaphone, FileText, MapPin, ClipboardList, Network, Map as MapIcon, BarChart3, Home as HomeIcon, ShieldAlert, Share2, Trophy, Radio, Sparkles, Newspaper as NewsIcon, Timer, Flame, Layers, CheckSquare, CalendarDays, CalendarCheck,
 } from "lucide-react";
 import { isAuthenticated, removeToken, getToken } from "@/lib/auth";
 import { useGetMe } from "@workspace/api-client-react";
@@ -48,6 +48,7 @@ import HeatmapAdmin from "./admin/HeatmapAdmin";
 import Map3DAdmin from "./admin/Map3DAdmin";
 import TasksAdmin from "./admin/TasksAdmin";
 import CalendarAdmin from "./admin/CalendarAdmin";
+import AppointmentsAdmin from "./admin/AppointmentsAdmin";
 import MinisterHome from "./admin/MinisterHome";
 import PaHome from "./admin/PaHome";
 import MinisterReadOnly from "./admin/MinisterReadOnly";
@@ -119,6 +120,7 @@ const NAV_ITEMS: NavItem[] = [
   // Schedule
   { id: "tasks",    label: "Tasks",    icon: CheckSquare,   group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
   { id: "calendar", label: "Calendar", icon: CalendarDays,  group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
+  { id: "appointments", label: "Appointments", icon: CalendarCheck, group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
 
   // Grievances
   { id: "grievances",   label: "Grievances",          icon: MessageSquare, group: "grievances" },
@@ -173,7 +175,7 @@ const NAV_ITEMS: NavItem[] = [
 // items via an allowlist and present them under friendly group labels.
 const MINISTER_ALLOW = [
   "minister-home", "leader-dashboard", "grievances", "minister-events",
-  "minister-activities", "minister-promises", "minister-press",
+  "minister-activities", "minister-promises", "minister-press", "appointments",
 ];
 const MINISTER_GROUPS: NavGroup[] = [
   { id: "overview",   label: "Home",        icon: Crown },
@@ -197,7 +199,7 @@ const PA_GROUPS: NavGroup[] = [
 ];
 const PA_ITEM_GROUP: Record<string, NavGroupId> = {
   "pa-home": "overview", "leader-dashboard": "overview", "dashboard": "overview",
-  "tasks": "schedule", "calendar": "schedule", "events": "schedule", "activities": "schedule", "map": "schedule",
+  "tasks": "schedule", "calendar": "schedule", "appointments": "schedule", "events": "schedule", "activities": "schedule", "map": "schedule",
   "grievances": "grievances", "sla": "grievances", "escalations": "grievances", "heatmap": "grievances", "map3d": "grievances",
   "news": "content", "press": "content", "press-coverage": "content", "gallery": "content", "banners": "content",
   "volunteers": "people", "voters-search": "people", "constituency": "people",
@@ -576,6 +578,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           {active === "dashboard"    && <Dashboard lang={lang} />}
           {active === "tasks"        && <TasksAdmin lang={lang} />}
           {active === "calendar"     && <CalendarAdmin lang={lang} />}
+          {active === "appointments" && <AppointmentsAdmin lang={lang} role={role} />}
           {active === "grievances"   && <GrievanceOfficer lang={lang} token={token} userRole={role} />}
           {active === "assignments"  && <AssignmentsAdmin token={token} />}
           {active === "map"          && (

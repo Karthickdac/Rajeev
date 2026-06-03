@@ -24,6 +24,7 @@ const navLinks = [
   { href: "/gallery", key: "gallery" as const },
   { href: "/map", key: "map" as const },
   { href: "/grievance", key: "grievance" as const },
+  { href: "/appointment", key: "appointment" as const },
   { href: "/volunteer", key: "volunteer" as const },
   { href: "/contact", key: "contact" as const },
 ];

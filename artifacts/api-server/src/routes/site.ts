@@ -1,6 +1,7 @@
 import { Router } from "express";
+import { z } from "zod";
 import { db } from "@workspace/db";
-import { siteConfigTable, wardsTable, zonesTable, areasTable, pollingStationsTable, pincodesTable, pincodeWardsTable } from "@workspace/db/schema";
+import { siteConfigTable, wardsTable, zonesTable, areasTable, pollingStationsTable, pincodesTable, pincodeWardsTable, appointmentsTable, APPOINTMENT_CATEGORIES } from "@workspace/db/schema";
 import { eq, asc } from "drizzle-orm";
 
 const router: ReturnType<typeof Router> = Router();
@@ -187,6 +188,103 @@ router.get("/about", async (_req, res) => {
     res.json(JSON.parse(row.value));
   } catch (err) {
     console.error("[site] about get:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ──────────────────────────────────────────────────────────
+// APPOINTMENTS (public) — citizens request meetings + track status
+// ──────────────────────────────────────────────────────────
+
+function generateAppointmentTicket(): string {
+  const year = new Date().getFullYear();
+  const rand = String(Math.floor(Math.random() * 90000) + 10000);
+  return `APT-${year}-${rand}`;
+}
+
+const AppointmentSubmitBody = z.object({
+  name: z.string().min(2),
+  phone: z.string().min(7),
+  email: z.string().email().optional().nullable(),
+  address: z.string().optional().nullable(),
+  ward: z.string().optional().nullable(),
+  constituency: z.string().optional().nullable(),
+  category: z.enum(APPOINTMENT_CATEGORIES).optional(),
+  subject: z.string().min(3),
+  description: z.string().optional().nullable(),
+  partySize: z.coerce.number().int().min(1).max(50).optional(),
+  preferredDate: z.string().optional().nullable(),
+  preferredTime: z.string().optional().nullable(),
+});
+
+// POST /api/appointments/submit — public
+router.post("/appointments/submit", async (req, res) => {
+  try {
+    const body = AppointmentSubmitBody.safeParse(req.body);
+    if (!body.success) {
+      res.status(400).json({ error: "Invalid request", details: body.error.issues });
+      return;
+    }
+
+    let ticketNo = generateAppointmentTicket();
+    const existing = await db.select({ id: appointmentsTable.id }).from(appointmentsTable)
+      .where(eq(appointmentsTable.ticketNo, ticketNo)).limit(1);
+    if (existing.length > 0) ticketNo = generateAppointmentTicket();
+
+    const preferredDate = body.data.preferredDate ? new Date(body.data.preferredDate) : null;
+
+    const [appointment] = await db.insert(appointmentsTable).values({
+      ticketNo,
+      name: body.data.name,
+      phone: body.data.phone,
+      email: body.data.email ?? null,
+      address: body.data.address ?? null,
+      ward: body.data.ward ?? null,
+      constituency: body.data.constituency ?? null,
+      category: body.data.category ?? "General",
+      subject: body.data.subject,
+      description: body.data.description ?? null,
+      partySize: body.data.partySize ?? 1,
+      preferredDate: preferredDate && !Number.isNaN(preferredDate.getTime()) ? preferredDate : null,
+      preferredTime: body.data.preferredTime ?? null,
+      status: "Pending",
+    }).returning();
+
+    res.status(201).json({ ticketNo: appointment.ticketNo });
+  } catch (err) {
+    console.error("[site] appointment submit:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/appointments/track/:ticketNo — public (no PII beyond what citizen gave)
+router.get("/appointments/track/:ticketNo", async (req, res) => {
+  try {
+    const { ticketNo } = req.params;
+    const [appt] = await db.select().from(appointmentsTable)
+      .where(eq(appointmentsTable.ticketNo, ticketNo)).limit(1);
+    if (!appt) {
+      res.status(404).json({ error: "Appointment not found" });
+      return;
+    }
+    res.json({
+      ticketNo: appt.ticketNo,
+      category: appt.category,
+      subject: appt.subject,
+      status: appt.status,
+      preferredDate: appt.preferredDate?.toISOString() ?? null,
+      preferredTime: appt.preferredTime,
+      scheduledDate: appt.scheduledDate?.toISOString() ?? null,
+      scheduledTime: appt.scheduledTime,
+      location: appt.location,
+      decisionNote: appt.decisionNote,
+      rejectionReason: appt.rejectionReason,
+      notificationMessage: appt.notificationMessage,
+      createdAt: appt.createdAt.toISOString(),
+      updatedAt: appt.updatedAt.toISOString(),
+    });
+  } catch (err) {
+    console.error("[site] appointment track:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

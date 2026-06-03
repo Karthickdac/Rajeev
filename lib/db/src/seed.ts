@@ -14,6 +14,7 @@ import {
   pollingStationsTable,
   siteConfigTable,
   tasksTable,
+  appointmentsTable,
 } from "./schema/index.js";
 import { createHmac, randomBytes } from "crypto";
 import { eq, sql } from "drizzle-orm";
@@ -503,6 +504,85 @@ async function seed() {
         dueDate: day(-3), priority: "high", status: "done",
         category: "official", assignedTo: adminUser.id, createdBy: adminUser.id,
         completedAt: day(-3),
+      },
+    ]).onConflictDoNothing();
+
+    const year = new Date().getFullYear();
+    await db.insert(appointmentsTable).values([
+      {
+        ticketNo: `APT-${year}-0001`,
+        name: "Ramesh Kumar", phone: "9840012345", email: "ramesh@example.com",
+        ward: "Ward 12", address: "Selaiyur, Tambaram",
+        category: "Constituency Meeting", subject: "Road repair request for our street",
+        description: "Our street has had potholes for months. Requesting a meeting to discuss repair work.",
+        partySize: 3, preferredDate: day(-2), preferredTime: "10:00",
+        status: "Approved", scheduledDate: day(0), scheduledTime: "11:00",
+        location: "MLA Office, Tambaram", decisionNote: "Confirmed. Please arrive 10 mins early.",
+        notificationMessage: "Your appointment is confirmed for today at 11:00 AM at the MLA Office.",
+        handledBy: adminUser.id, handledByName: "Admin",
+      },
+      {
+        ticketNo: `APT-${year}-0002`,
+        name: "Lakshmi Narayanan", phone: "9790054321", email: null,
+        ward: "Ward 8", address: "Camp Road, Selaiyur",
+        category: "Grievance Hearing", subject: "Water supply issue follow-up",
+        description: "Following up on water grievance submitted last week.",
+        partySize: 1, preferredDate: day(0), preferredTime: "14:30",
+        status: "Approved", scheduledDate: day(0), scheduledTime: "15:00",
+        location: "MLA Office, Tambaram",
+        notificationMessage: "Approved for today 3:00 PM.",
+        handledBy: adminUser.id, handledByName: "Admin",
+      },
+      {
+        ticketNo: `APT-${year}-0003`,
+        name: "Anand Selvam", phone: "9551098765", email: "anand.s@example.com",
+        ward: "Ward 15", address: "East Tambaram",
+        category: "Official Visit", subject: "Inauguration invitation for community hall",
+        description: "Requesting the Minister to inaugurate our newly built community hall.",
+        partySize: 5, preferredDate: day(2), preferredTime: "17:00",
+        status: "Pending",
+      },
+      {
+        ticketNo: `APT-${year}-0004`,
+        name: "Priya Dharshini", phone: "9445567890", email: null,
+        ward: "Ward 3", address: "West Tambaram",
+        category: "General", subject: "Scholarship guidance for students",
+        description: "Group of students seeking guidance on government scholarships.",
+        partySize: 8, preferredDate: day(3), preferredTime: "11:00",
+        status: "Pending",
+      },
+      {
+        ticketNo: `APT-${year}-0005`,
+        name: "Mohammed Irfan", phone: "9362011223", email: "irfan@example.com",
+        ward: "Ward 20", address: "Mudichur Road",
+        category: "Media", subject: "Interview request on welfare schemes",
+        description: "Local news channel requesting a short interview.",
+        partySize: 2, preferredDate: day(1), preferredTime: "16:00",
+        status: "Rescheduled", scheduledDate: day(4), scheduledTime: "10:30",
+        location: "MLA Office, Tambaram", decisionNote: "Rescheduled due to prior engagement.",
+        notificationMessage: "Your interview has been rescheduled. New slot: see confirmed schedule.",
+        handledBy: adminUser.id, handledByName: "Admin",
+      },
+      {
+        ticketNo: `APT-${year}-0006`,
+        name: "Geetha Raman", phone: "9698034567", email: null,
+        ward: "Ward 7", address: "Sembakkam",
+        category: "Constituency Meeting", subject: "Streetlight installation",
+        partySize: 4, preferredDate: day(-5), preferredTime: "09:00",
+        status: "Completed", scheduledDate: day(-4), scheduledTime: "09:30",
+        location: "MLA Office, Tambaram", decisionNote: "Meeting held; work order issued.",
+        handledBy: adminUser.id, handledByName: "Admin", completedAt: day(-4),
+      },
+      {
+        ticketNo: `APT-${year}-0007`,
+        name: "Suresh Babu", phone: "9123045678", email: null,
+        ward: "Ward 5", address: "Rajakilpakkam",
+        category: "General", subject: "Personal financial assistance request",
+        description: "Request that falls outside constituency office scope.",
+        partySize: 1, preferredDate: day(-1), preferredTime: "12:00",
+        status: "Rejected", rejectionReason: "This request should be routed to the district welfare office.",
+        notificationMessage: "Unable to schedule. Please contact the district welfare office.",
+        handledBy: adminUser.id, handledByName: "Admin",
       },
     ]).onConflictDoNothing();
   }

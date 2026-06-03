@@ -24,3 +24,4 @@ export * from "./social";
 export * from "./promises";
 export * from "./press_coverage";
 export * from "./tasks";
+export * from "./appointments";

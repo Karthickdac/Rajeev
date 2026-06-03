@@ -9,6 +9,7 @@ import {
 import { adminApi } from "./api";
 import { type Language } from "@/lib/i18n";
 import { lc } from "@/lib/LeaderConfigContext";
+import TodaysAppointments from "@/components/admin/TodaysAppointments";
 
 interface EventItem {
   id: number;
@@ -227,6 +228,8 @@ export default function PaHome({ lang = "ta" }: { lang?: Language }) {
           </CardContent>
         </Card>
       </div>
+
+      <TodaysAppointments lang={lang} mode="today" />
 
       <Card className="border-amber-200 bg-amber-50/50">
         <CardContent className="p-4 flex items-center gap-3">
