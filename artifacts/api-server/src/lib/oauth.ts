@@ -221,36 +221,96 @@ export async function refreshOAuthToken(platform: string, refreshToken: string):
 
 // ─────────────────────────────────────────────────────────
 // Basic profile fetch (populates account handle/id after connect)
+//
+// For Facebook: stores the PAGE access token (from /me/accounts),
+//   not the short-lived user token — page tokens are long-lived and
+//   required for pages_manage_posts / pages_read_engagement calls.
+//
+// For Instagram: resolves the IG Business Account ID linked to the
+//   Facebook Page, plus the Page access token (which is what the
+//   Instagram Graph API requires for media / stats endpoints).
 // ─────────────────────────────────────────────────────────
 export interface OAuthProfile {
   externalAccountId: string;
   handle: string;
   displayName?: string;
   profileUrl?: string;
+  /** For Facebook/Instagram: the long-lived Page access token.
+   *  The callback handler stores this instead of the short-lived user token. */
+  pageAccessToken?: string;
 }
 
 export async function fetchOAuthProfile(platform: string, accessToken: string): Promise<OAuthProfile | null> {
   try {
-    if (platform === "facebook" || platform === "instagram") {
-      const res = await fetch(`https://graph.facebook.com/v21.0/me/accounts?access_token=${encodeURIComponent(accessToken)}`);
-      const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-      const pages = json.data as Array<Record<string, unknown>> | undefined;
-      const page = pages?.[0];
+    if (platform === "facebook") {
+      // Fetch pages this user manages, including each page's access token
+      const res = await fetch(
+        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token&access_token=${encodeURIComponent(accessToken)}`
+      );
+      const json = (await res.json().catch(() => ({}))) as { data?: Array<Record<string, unknown>> };
+      const page = json.data?.[0];
       if (page) {
+        const pageToken = String(page.access_token ?? accessToken);
         return {
           externalAccountId: String(page.id),
           handle: String(page.name ?? page.id).toLowerCase().replace(/\s+/g, ""),
           displayName: String(page.name ?? ""),
           profileUrl: `https://facebook.com/${page.id}`,
+          pageAccessToken: pageToken,
         };
       }
-      // Fall back to user-level info
+      // No managed page — fall back to user identity (user token stored as-is)
       const me = (await fetch(`https://graph.facebook.com/v21.0/me?fields=id,name&access_token=${encodeURIComponent(accessToken)}`).then(r => r.json()).catch(() => ({}))) as Record<string, unknown>;
       return {
         externalAccountId: String(me.id ?? ""),
         handle: String(me.name ?? "unknown").toLowerCase().replace(/\s+/g, ""),
         displayName: String(me.name ?? ""),
         profileUrl: `https://facebook.com/${me.id}`,
+      };
+    }
+
+    if (platform === "instagram") {
+      // Step 1 — get managed Facebook Pages (+ their page tokens)
+      const pagesRes = await fetch(
+        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token&access_token=${encodeURIComponent(accessToken)}`
+      );
+      const pagesJson = (await pagesRes.json().catch(() => ({}))) as { data?: Array<Record<string, unknown>> };
+      const pages = pagesJson.data ?? [];
+
+      for (const page of pages) {
+        const pageToken = String(page.access_token ?? "");
+        if (!pageToken) continue;
+        const pageId = String(page.id);
+
+        // Step 2 — check if this Page has a linked IG Business Account
+        const igLinkRes = await fetch(
+          `https://graph.facebook.com/v21.0/${pageId}?fields=instagram_business_account&access_token=${encodeURIComponent(pageToken)}`
+        );
+        const igLink = (await igLinkRes.json().catch(() => ({}))) as { instagram_business_account?: { id?: string } };
+        const igId = igLink.instagram_business_account?.id;
+        if (!igId) continue;
+
+        // Step 3 — get IG Business Account details for handle / display name
+        const igRes = await fetch(
+          `https://graph.facebook.com/v21.0/${igId}?fields=id,username,name&access_token=${encodeURIComponent(pageToken)}`
+        );
+        const ig = (await igRes.json().catch(() => ({}))) as { id?: string; username?: string; name?: string };
+        return {
+          externalAccountId: String(ig.id ?? igId),
+          handle: ig.username ?? String(page.name ?? igId).toLowerCase().replace(/\s+/g, ""),
+          displayName: ig.name ?? String(page.name ?? ""),
+          profileUrl: `https://instagram.com/${ig.username ?? igId}`,
+          pageAccessToken: pageToken,
+        };
+      }
+
+      // No IG Business Account found — fall back to user identity
+      const me = (await fetch(`https://graph.facebook.com/v21.0/me?fields=id,name&access_token=${encodeURIComponent(accessToken)}`).then(r => r.json()).catch(() => ({}))) as Record<string, unknown>;
+      return {
+        externalAccountId: String(me.id ?? ""),
+        handle: String(me.name ?? "unknown").toLowerCase().replace(/\s+/g, ""),
+        displayName: String(me.name ?? ""),
+        profileUrl: `https://instagram.com/${String(me.name ?? "").toLowerCase().replace(/\s+/g, "")}`,
       };
     }
 

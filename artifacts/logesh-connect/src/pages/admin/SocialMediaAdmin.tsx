@@ -493,6 +493,14 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
 // ─────────────────────────────────────────────────────────
 // Compose Tab
 // ─────────────────────────────────────────────────────────
+// Per-platform character limits (hard/soft caps that affect publishing)
+const PLATFORM_CHAR_LIMITS: Record<string, { limit: number; label: string; hard: boolean }> = {
+  twitter:   { limit: 280,    label: "Twitter/X",  hard: true  },
+  instagram: { limit: 2200,   label: "Instagram",   hard: false },
+  facebook:  { limit: 63206,  label: "Facebook",    hard: false },
+  youtube:   { limit: 5000,   label: "YouTube",     hard: false },
+};
+
 function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () => void }) {
   const [content, setContent] = useState("");
   const [contentTa, setContentTa] = useState("");
@@ -504,6 +512,11 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
   const [msg, setMsg] = useState<string | null>(null);
 
   const activeAccounts = accounts.filter((a) => a.isActive);
+
+  // Derive which platforms are selected so we can show per-platform warnings
+  const selectedPlatforms = new Set(
+    activeAccounts.filter((a) => selected.has(a.id)).map((a) => a.platform)
+  );
 
   function toggle(id: number) {
     const next = new Set(selected);
@@ -568,8 +581,65 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
           <Label className="text-xs">Content (English / default)</Label>
           <Textarea rows={4} value={content} onChange={(e) => setContent(e.target.value)}
             placeholder="What do you want to share?" />
-          <p className="text-xs text-muted-foreground">{content.length} chars · Twitter limit ~280</p>
+          {/* Per-platform character limit indicators */}
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+            {selectedPlatforms.size === 0 ? (
+              <p className="text-xs text-muted-foreground">{content.length} chars</p>
+            ) : (
+              Array.from(selectedPlatforms).map((plat) => {
+                const cfg = PLATFORM_CHAR_LIMITS[plat];
+                if (!cfg) return <span key={plat} className="text-xs text-muted-foreground">{content.length} chars</span>;
+                const remaining = cfg.limit - content.length;
+                const over = remaining < 0;
+                const warn = !over && cfg.hard && remaining < 40;
+                return (
+                  <span key={plat} className={`text-xs font-medium ${over ? "text-red-600" : warn ? "text-amber-600" : "text-muted-foreground"}`}>
+                    {cfg.label}: {over
+                      ? `${Math.abs(remaining)} over limit${cfg.hard ? " ⚠ will be truncated" : ""}`
+                      : `${content.length}/${cfg.limit}`}
+                  </span>
+                );
+              })
+            )}
+          </div>
+          {/* Twitter hard-limit banner when selected and over */}
+          {selectedPlatforms.has("twitter") && content.length > 280 && (
+            <div className="flex items-center gap-1.5 text-xs bg-red-50 border border-red-200 text-red-700 rounded px-2 py-1">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              Twitter/X has a 280-character hard limit. Post will be truncated or fail to publish.
+            </div>
+          )}
+          {selectedPlatforms.has("twitter") && content.length > 240 && content.length <= 280 && (
+            <div className="flex items-center gap-1.5 text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded px-2 py-1">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              Approaching Twitter/X 280-character limit ({280 - content.length} chars remaining).
+            </div>
+          )}
         </div>
+
+        {/* Per-platform post preview */}
+        {selectedPlatforms.size > 0 && content.trim() && (
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Preview per platform</Label>
+            <div className="space-y-1.5">
+              {Array.from(selectedPlatforms).map((plat) => {
+                const cfg = PLATFORM_CHAR_LIMITS[plat];
+                const limit = cfg?.limit ?? Infinity;
+                const preview = content.length > limit ? content.slice(0, limit) + "…" : content;
+                const meta = PLATFORM_META[plat] ?? PLATFORM_META.other;
+                const Icon = meta.Icon;
+                return (
+                  <div key={plat} className="border rounded p-2 bg-gray-50 text-xs">
+                    <div className="flex items-center gap-1 mb-1 font-medium">
+                      <Icon className={`w-3 h-3 ${meta.color}`} />{meta.label}
+                    </div>
+                    <p className="text-muted-foreground whitespace-pre-wrap break-words">{preview}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className="space-y-1">
           <Label className="text-xs">தமிழ் (Tamil version, optional)</Label>
           <Textarea rows={3} value={contentTa} onChange={(e) => setContentTa(e.target.value)}

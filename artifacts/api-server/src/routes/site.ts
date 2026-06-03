@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "@workspace/db";
-import { siteConfigTable, wardsTable, zonesTable, areasTable, pollingStationsTable, pincodesTable, pincodeWardsTable, appointmentsTable, APPOINTMENT_CATEGORIES } from "@workspace/db/schema";
+import { siteConfigTable, wardsTable, zonesTable, areasTable, pollingStationsTable, pincodesTable, pincodeWardsTable, appointmentsTable, APPOINTMENT_CATEGORIES, socialAccountsTable } from "@workspace/db/schema";
 import { eq, asc } from "drizzle-orm";
 
 const router: ReturnType<typeof Router> = Router();
@@ -188,6 +188,32 @@ router.get("/about", async (_req, res) => {
     res.json(JSON.parse(row.value));
   } catch (err) {
     console.error("[site] about get:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ──────────────────────────────────────────────────────────
+// SOCIAL LINKS (public) — active connected social accounts
+// Canonical public endpoint used by the footer and any public
+// consumer. Mirrors GET /api/social/accounts from social.ts.
+// ──────────────────────────────────────────────────────────
+router.get("/social-links", async (_req, res) => {
+  try {
+    const rows = await db
+      .select({
+        id: socialAccountsTable.id,
+        platform: socialAccountsTable.platform,
+        handle: socialAccountsTable.handle,
+        displayName: socialAccountsTable.displayName,
+        profileUrl: socialAccountsTable.profileUrl,
+        displayOrder: socialAccountsTable.displayOrder,
+      })
+      .from(socialAccountsTable)
+      .where(eq(socialAccountsTable.isActive, true))
+      .orderBy(asc(socialAccountsTable.displayOrder), asc(socialAccountsTable.id));
+    res.json({ accounts: rows });
+  } catch (err) {
+    console.error("[site] social-links:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

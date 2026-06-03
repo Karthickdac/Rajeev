@@ -115,12 +115,14 @@ export function requireStaff(req: AuthRequest, res: Response, next: NextFunction
 /** Factory: allow only the listed roles (apply per-route for privilege escalation). */
 export function requireRole(...roles: string[]): (req: AuthRequest, res: Response, next: NextFunction) => void {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
-    const role = req.user?.role;
-    if (!role || !roles.includes(role)) {
-      res.status(403).json({ error: `Forbidden: requires one of [${roles.join(", ")}]` });
-      return;
-    }
-    next();
+    requireAuth(req, res, () => {
+      const role = req.user?.role;
+      if (!role || !roles.includes(role)) {
+        res.status(403).json({ error: `Forbidden: requires one of [${roles.join(", ")}]` });
+        return;
+      }
+      next();
+    });
   };
 }
 

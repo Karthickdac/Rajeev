@@ -29,7 +29,7 @@ export function Footer({ lang }: FooterProps) {
 
   useEffect(() => {
     const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "/api";
-    fetch(`${BASE}/social/accounts`)
+    fetch(`${BASE}/social-links`)
       .then((r) => r.json())
       .then((d: { accounts?: SocialAccount[] }) => setSocialAccounts(d.accounts ?? []))
       .catch(() => {});

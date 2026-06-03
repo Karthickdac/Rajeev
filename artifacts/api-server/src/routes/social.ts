@@ -464,10 +464,18 @@ router.get("/social/oauth/callback/:platform", async (req, res) => {
     const tokens = await exchangeCode(platform, code, stateData.codeVerifier);
     const profile = await fetchOAuthProfile(platform, tokens.accessToken);
 
+    // For Facebook/Instagram: store the Page access token rather than the
+    // short-lived user token. The Page token is long-lived and required for
+    // Graph API calls (pages_manage_posts, IG Business media/stats).
+    const storedToken =
+      (platform === "facebook" || platform === "instagram") && profile?.pageAccessToken
+        ? profile.pageAccessToken
+        : tokens.accessToken;
+
     // Upsert: match on (platform, externalAccountId) if possible
     let finalId: number;
     const base = {
-      accessToken: tokens.accessToken,
+      accessToken: storedToken,
       refreshToken: tokens.refreshToken ?? null,
       tokenExpiresAt: tokens.expiresAt ?? null,
       lastSyncedAt: new Date(),
