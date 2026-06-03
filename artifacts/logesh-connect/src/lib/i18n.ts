@@ -36,6 +36,8 @@ export const translations = {
     contactUs: "Contact Us",
     loading: "Loading...",
     noData: "No data available",
+    followUs: "Follow Us",
+    socialConnect: "Connect with us on social media",
   },
   ta: {
     home: "முகப்பு",
@@ -72,6 +74,8 @@ export const translations = {
     contactUs: "தொடர்பு கொள்ளுங்கள்",
     loading: "ஏற்றுகிறது...",
     noData: "தரவு இல்லை",
+    followUs: "எங்களை பின்தொடரவும்",
+    socialConnect: "சமூக ஊடகங்களில் எங்களுடன் இணையுங்கள்",
   },
 } as const;
 

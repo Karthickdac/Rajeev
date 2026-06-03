@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import {
   Facebook, Instagram, Twitter, Youtube, Globe, Send, Trash2, Plus, RefreshCw,
   Calendar, Link as LinkIcon, ExternalLink, CheckCircle2, AlertCircle, Clock,
-  Pencil, X, Eye, EyeOff,
+  Pencil, X, Eye, EyeOff, Wifi, WifiOff, ImageIcon,
 } from "lucide-react";
 import { adminApi } from "./api";
+import { getToken } from "@/lib/auth";
 
 type Platform = "facebook" | "instagram" | "twitter" | "youtube" | "linkedin" | "telegram" | "whatsapp" | "threads" | "other";
 
@@ -65,7 +66,8 @@ interface LatestStat {
 }
 
 interface Capabilities {
-  platforms: { platform: string; apiSupported: boolean }[];
+  platforms: { platform: string; apiSupported: boolean; oauthConfigured?: boolean }[];
+  oauthPlatforms?: string[];
 }
 
 const PLATFORM_META: Record<string, { label: string; color: string; Icon: React.ComponentType<{ className?: string }> }> = {
@@ -170,10 +172,13 @@ function emptyAccount(): Partial<Account> {
   return { platform: "facebook" as Platform, handle: "", profileUrl: "", isActive: true, displayOrder: 0 };
 }
 
+const OAUTH_PLATFORMS_UI = ["facebook", "instagram", "twitter", "youtube"] as const;
+
 function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: Capabilities | null; onChange: () => void }) {
   const [editing, setEditing] = useState<Partial<Account> | null>(null);
   const [showToken, setShowToken] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [connecting, setConnecting] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
   function startNew() { setEditing(emptyAccount()); setShowToken(false); setMsg(null); }
@@ -181,6 +186,7 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
   function cancel() { setEditing(null); }
 
   const supportsApi = (p: string) => caps?.platforms.find((x) => x.platform === p)?.apiSupported ?? false;
+  const oauthConfigured = (p: string) => caps?.platforms.find((x) => x.platform === p)?.oauthConfigured ?? false;
 
   async function save() {
     if (!editing) return;
@@ -196,7 +202,6 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
         isActive: editing.isActive ?? true,
         displayOrder: editing.displayOrder ?? 0,
       };
-      // Only send accessToken when the user typed something new
       if ((editing as Account & { accessToken?: string }).accessToken) {
         payload.accessToken = (editing as Account & { accessToken?: string }).accessToken;
       }
@@ -220,21 +225,122 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
     onChange();
   }
 
+  async function disconnect(id: number) {
+    if (!window.confirm("Disconnect this account? The OAuth token will be cleared but the account record is kept.")) return;
+    try {
+      await adminApi.disconnectSocialAccount(id);
+      onChange();
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Disconnect failed");
+    }
+  }
+
+  async function connectOAuth(platform: string) {
+    setConnecting(platform);
+    setMsg(null);
+    try {
+      const { authUrl } = await adminApi.getSocialOAuthUrl(platform);
+      const popup = window.open(authUrl, `oauth-${platform}`, "width=620,height=720,scrollbars=yes,resizable=yes");
+      if (!popup) {
+        setMsg("Popup blocked — please allow popups for this page, then try again.");
+        return;
+      }
+      const handler = (e: MessageEvent) => {
+        if (e.data?.type === "oauth_complete") {
+          window.removeEventListener("message", handler);
+          clearInterval(poll);
+          if (!e.data.success) setMsg(e.data.message ?? "OAuth failed");
+          onChange();
+        }
+      };
+      window.addEventListener("message", handler);
+      const poll = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(poll);
+          window.removeEventListener("message", handler);
+          onChange();
+        }
+      }, 500);
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Failed to start OAuth");
+    } finally {
+      setConnecting(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
+
+      {/* OAuth Quick Connect */}
+      <div className="border rounded-md p-3 bg-gray-50 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Wifi className="w-4 h-4 text-green-600" />
+            <span className="text-sm font-medium">One-click OAuth Connect</span>
+          </div>
+          <span className="text-xs text-muted-foreground">Tokens auto-refresh every 6 hours</span>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          {OAUTH_PLATFORMS_UI.map((p) => {
+            const meta = PLATFORM_META[p] ?? PLATFORM_META.other;
+            const Icon = meta.Icon;
+            const connected = accounts.filter((a) => a.platform === p && a.hasAccessToken);
+            const configured = oauthConfigured(p);
+            const notConfiguredMsg = p === "twitter"
+              ? "Set TWITTER_CLIENT_ID + TWITTER_CLIENT_SECRET"
+              : p === "youtube"
+              ? "Set GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET"
+              : "Set FB_APP_ID + FB_APP_SECRET";
+            return (
+              <div key={p} className="border rounded-md p-2 bg-white flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Icon className={`w-4 h-4 ${meta.color}`} />
+                  <span className="text-xs font-medium flex-1">{meta.label}</span>
+                  {connected.length > 0 && (
+                    <span className="text-xs text-green-600 flex items-center gap-0.5">
+                      <CheckCircle2 className="w-3 h-3" /> {connected.length}
+                    </span>
+                  )}
+                </div>
+                {connected.map((a) => (
+                  <div key={a.id} className="flex items-center gap-1 text-xs">
+                    <span className="flex-1 truncate text-green-700">@{a.handle}</span>
+                    <button onClick={() => disconnect(a.id)}
+                      title="Disconnect" className="text-muted-foreground hover:text-red-600">
+                      <WifiOff className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                <Button size="sm" variant={connected.length > 0 ? "outline" : "default"}
+                  className="w-full text-xs h-7"
+                  disabled={!configured || connecting === p}
+                  title={!configured ? notConfiguredMsg : ""}
+                  onClick={() => connectOAuth(p)}
+                >
+                  {connecting === p ? "Opening…" : connected.length > 0 ? "Add account" : "Connect"}
+                  {!configured && <span className="ml-1 opacity-60">(not configured)</span>}
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+        {msg && <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded p-2">{msg}</div>}
+      </div>
+
       <div className="flex justify-end">
-        <Button onClick={startNew} size="sm"><Plus className="w-4 h-4 mr-1" /> Add Account</Button>
+        <Button onClick={startNew} size="sm"><Plus className="w-4 h-4 mr-1" /> Add Account Manually</Button>
       </div>
 
       {accounts.length === 0 ? (
         <div className="text-sm text-muted-foreground border rounded-md p-6 text-center">
-          No social accounts yet. Click "Add Account" to add your first one.
+          No social accounts yet. Use OAuth Connect above or click "Add Account Manually".
         </div>
       ) : (
         <div className="grid gap-2">
           {accounts.map((a) => {
             const meta = PLATFORM_META[a.platform] ?? PLATFORM_META.other;
             const Icon = meta.Icon;
+            const isOAuthPlatform = OAUTH_PLATFORMS_UI.includes(a.platform as typeof OAUTH_PLATFORMS_UI[number]);
             return (
               <div key={a.id} className="border rounded-md p-3 flex items-center gap-3 bg-white">
                 <Icon className={`w-5 h-5 ${meta.color}`} />
@@ -243,13 +349,26 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
                     <span className="font-medium text-sm">{a.displayName || a.handle}</span>
                     <span className="text-xs text-muted-foreground">@{a.handle}</span>
                     {!a.isActive && <Badge variant="secondary" className="text-xs">Hidden</Badge>}
-                    {a.hasAccessToken && <Badge variant="outline" className="text-xs">Token set</Badge>}
+                    {a.hasAccessToken
+                      ? <Badge variant="outline" className="text-xs text-green-700 border-green-300">Connected</Badge>
+                      : <Badge variant="secondary" className="text-xs">No token</Badge>}
+                    {a.tokenExpiresAt && (
+                      <span className="text-xs text-muted-foreground">
+                        expires {new Date(a.tokenExpiresAt).toLocaleDateString()}
+                      </span>
+                    )}
                   </div>
                   <a href={a.profileUrl} target="_blank" rel="noopener noreferrer"
                     className="text-xs text-blue-600 hover:underline flex items-center gap-1 truncate">
                     {a.profileUrl} <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
+                {isOAuthPlatform && a.hasAccessToken && (
+                  <Button variant="ghost" size="sm" onClick={() => disconnect(a.id)} title="Disconnect OAuth token"
+                    className="text-muted-foreground hover:text-red-600">
+                    <WifiOff className="w-4 h-4" />
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" onClick={() => startEdit(a)}><Pencil className="w-4 h-4" /></Button>
                 <Button variant="ghost" size="sm" onClick={() => remove(a.id)} className="text-red-600">
                   <Trash2 className="w-4 h-4" />
@@ -377,7 +496,8 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
 function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () => void }) {
   const [content, setContent] = useState("");
   const [contentTa, setContentTa] = useState("");
-  const [media, setMedia] = useState("");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaUploading, setMediaUploading] = useState(false);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [scheduledAt, setScheduledAt] = useState("");
   const [busy, setBusy] = useState(false);
@@ -391,13 +511,35 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
     setSelected(next);
   }
 
+  async function handleImageUpload(file: File) {
+    setMediaUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "/api";
+      const token = getToken() ?? "";
+      const res = await fetch(`${BASE}/admin/upload`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      const json = await res.json() as { url?: string; error?: string };
+      if (!res.ok) throw new Error(json.error ?? "Upload failed");
+      setMediaUrl(json.url ?? "");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Image upload failed");
+    } finally {
+      setMediaUploading(false);
+    }
+  }
+
   async function submit(publishNow: boolean) {
     setMsg(null);
     if (!content.trim()) { setMsg("Content is required"); return; }
     if (selected.size === 0) { setMsg("Select at least one account"); return; }
     setBusy(true);
     try {
-      const mediaUrls = media.split("\n").map((s) => s.trim()).filter(Boolean);
+      const mediaUrls = mediaUrl.trim() ? [mediaUrl.trim()] : [];
       const payload = {
         content: content.trim(),
         contentTa: contentTa.trim() || undefined,
@@ -409,7 +551,7 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
       if (publishNow) {
         await adminApi.publishSocialPost(post.id);
       }
-      setContent(""); setContentTa(""); setMedia(""); setSelected(new Set()); setScheduledAt("");
+      setContent(""); setContentTa(""); setMediaUrl(""); setSelected(new Set()); setScheduledAt("");
       setMsg(publishNow ? "Published. Check History for per-platform results." : "Saved.");
       onPosted();
     } catch (e) {
@@ -434,9 +576,32 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
             placeholder="தமிழில் உரை..." />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Media URLs (one per line — must be publicly accessible)</Label>
-          <Textarea rows={2} value={media} onChange={(e) => setMedia(e.target.value)}
-            placeholder="https://example.com/photo.jpg" />
+          <Label className="text-xs flex items-center gap-1"><ImageIcon className="w-3 h-3" /> Attach Image (optional)</Label>
+          <div className="flex gap-2">
+            <Input
+              value={mediaUrl}
+              onChange={(e) => setMediaUrl(e.target.value)}
+              placeholder="Paste image URL or upload below…"
+              className="flex-1 text-xs"
+            />
+            <label className="cursor-pointer">
+              <input type="file" accept="image/*" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleImageUpload(f); e.target.value = ""; }}
+              />
+              <span className={`inline-flex items-center gap-1 px-3 py-2 rounded-md border text-xs font-medium transition-colors
+                ${mediaUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50 cursor-pointer"}`}>
+                {mediaUploading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />}
+                {mediaUploading ? "Uploading…" : "Upload"}
+              </span>
+            </label>
+          </div>
+          {mediaUrl && (
+            <div className="flex items-center gap-2 mt-1">
+              <img src={mediaUrl} alt="" className="h-12 w-12 object-cover rounded border" onError={() => {}} />
+              <span className="text-xs text-muted-foreground truncate flex-1">{mediaUrl}</span>
+              <button onClick={() => setMediaUrl("")} className="text-muted-foreground hover:text-red-600"><X className="w-3 h-3" /></button>
+            </div>
+          )}
         </div>
         <div className="space-y-1">
           <Label className="text-xs flex items-center gap-1"><Calendar className="w-3 h-3" /> Schedule for later (optional)</Label>

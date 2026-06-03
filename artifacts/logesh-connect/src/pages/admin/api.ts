@@ -211,6 +211,8 @@ export const adminApi = {
   deleteSocialPost: (id: number) => authFetch(`/admin/social/posts/${id}`, { method: "DELETE" }),
   publishSocialPost: (id: number) => authFetch(`/admin/social/posts/${id}/publish`, { method: "POST" }),
   getSocialCapabilities: () => authFetch("/admin/social/capabilities"),
+  getSocialOAuthUrl: (platform: string) => authFetch(`/admin/social/oauth/start/${encodeURIComponent(platform)}`),
+  disconnectSocialAccount: (id: number) => authFetch(`/admin/social/accounts/${id}/disconnect`, { method: "POST" }),
   // Promises
   getPromises: () => authFetch("/admin/promises"),
   getPublicPromises: () => authFetch("/promises"),

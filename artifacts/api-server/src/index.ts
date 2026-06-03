@@ -1,7 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { startVoterExportSweeper } from "./lib/voterExportSweeper";
-import { processScheduledPosts } from "./routes/social";
+import { processScheduledPosts, refreshExpiringTokens } from "./routes/social";
 
 // Background jobs (PDF parsing, OCR via pdfjs/tesseract) can produce
 // detached promise rejections deep inside their worker pipelines that
@@ -43,4 +43,8 @@ app.listen(port, (err) => {
   setInterval(() => {
     processScheduledPosts().catch((err) => logger.error({ err }, "social scheduler tick failed"));
   }, 60_000);
+  // OAuth token refresh worker — refreshes tokens expiring within 2 days, runs every 6 hours.
+  setInterval(() => {
+    refreshExpiringTokens().catch((err) => logger.error({ err }, "oauth token refresh tick failed"));
+  }, 6 * 60 * 60_000);
 });

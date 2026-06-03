@@ -5,10 +5,15 @@ import {
   socialStatsSnapshotsTable, auditLogTable,
   SOCIAL_PLATFORMS, POST_STATUSES,
 } from "@workspace/db/schema";
-import { eq, desc, and, inArray, asc, lte, sql } from "drizzle-orm";
+import { eq, desc, and, inArray, asc, lte, sql, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { requireRole, type AuthRequest } from "../lib/auth.js";
 import { getAdapter, supportsApi } from "../lib/social/index.js";
+import {
+  generateState, consumeState, generateCodeVerifier, generateCodeChallenge,
+  buildAuthUrl, exchangeCode, fetchOAuthProfile, isOAuthConfigured,
+  refreshOAuthToken, OAUTH_PLATFORMS,
+} from "../lib/oauth.js";
 
 const router = Router();
 
@@ -381,9 +386,198 @@ router.get("/admin/social/capabilities", requireSocialRole, (_req, res) => {
       apiSupported: supportsApi(p),
       canPublish: CAN_PUBLISH.has(p),
       canFetchStats: CAN_FETCH_STATS.has(p),
+      oauthConfigured: isOAuthConfigured(p),
     })),
+    oauthPlatforms: OAUTH_PLATFORMS,
     postStatuses: POST_STATUSES,
   });
 });
+
+// ─────────────────────────────────────────────────────────
+// OAuth — initiation (staff-only, returns auth URL for popup)
+// ─────────────────────────────────────────────────────────
+router.get("/admin/social/oauth/start/:platform", requireSocialRole, (req, res) => {
+  const platform = req.params["platform"] as string;
+  if (!OAUTH_PLATFORMS.includes(platform as typeof OAUTH_PLATFORMS[number])) {
+    res.status(400).json({ error: "OAuth not supported for this platform" });
+    return;
+  }
+  if (!isOAuthConfigured(platform)) {
+    res.status(503).json({
+      error: `OAuth credentials not configured for ${platform}. Set FB_APP_ID/FB_APP_SECRET, TWITTER_CLIENT_ID/TWITTER_CLIENT_SECRET, or GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET environment variables.`,
+    });
+    return;
+  }
+  let codeVerifier: string | undefined;
+  let codeChallenge: string | undefined;
+  if (platform === "twitter") {
+    codeVerifier = generateCodeVerifier();
+    codeChallenge = generateCodeChallenge(codeVerifier);
+  }
+  const state = generateState(platform, codeVerifier);
+  const authUrl = buildAuthUrl(platform, state, codeChallenge);
+  if (!authUrl) {
+    res.status(503).json({ error: "Failed to build OAuth authorization URL" });
+    return;
+  }
+  res.json({ authUrl });
+});
+
+// ─────────────────────────────────────────────────────────
+// OAuth — callback (public, called by browser after platform redirect)
+// State token + PKCE provide CSRF/replay protection.
+// Returns an HTML page that closes the popup and notifies the opener.
+// ─────────────────────────────────────────────────────────
+function popupHtml(success: boolean, message: string): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Connecting…</title></head><body>
+<p style="font-family:sans-serif;padding:24px">${success ? "✓ Connected" : "✗ Failed"}: ${message.replace(/</g, "&lt;")}</p>
+<script>
+  try {
+    if (window.opener) {
+      window.opener.postMessage(${JSON.stringify({ type: "oauth_complete", success, message })}, "*");
+      setTimeout(function(){ window.close(); }, 800);
+    }
+  } catch(e) {}
+</script>
+</body></html>`;
+}
+
+router.get("/social/oauth/callback/:platform", async (req, res) => {
+  const platform = req.params["platform"] as string;
+  const code = req.query["code"] as string | undefined;
+  const state = req.query["state"] as string | undefined;
+  const oauthError = req.query["error"] as string | undefined;
+
+  const html = (ok: boolean, msg: string) => {
+    res.status(200).set("Content-Type", "text/html").send(popupHtml(ok, msg));
+  };
+
+  if (oauthError) { html(false, `OAuth error: ${oauthError}`); return; }
+  if (!code || !state) { html(false, "Missing code or state"); return; }
+
+  const stateData = consumeState(state);
+  if (!stateData || stateData.platform !== platform) {
+    html(false, "Invalid or expired state token"); return;
+  }
+
+  try {
+    const tokens = await exchangeCode(platform, code, stateData.codeVerifier);
+    const profile = await fetchOAuthProfile(platform, tokens.accessToken);
+
+    // Upsert: match on (platform, externalAccountId) if possible
+    let finalId: number;
+    const base = {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken ?? null,
+      tokenExpiresAt: tokens.expiresAt ?? null,
+      lastSyncedAt: new Date(),
+    };
+    if (profile?.externalAccountId) {
+      const existing = await db
+        .select({ id: socialAccountsTable.id })
+        .from(socialAccountsTable)
+        .where(and(
+          eq(socialAccountsTable.platform, platform),
+          eq(socialAccountsTable.externalAccountId, profile.externalAccountId),
+        ))
+        .limit(1);
+      if (existing.length > 0) {
+        await db.update(socialAccountsTable).set({
+          ...base,
+          ...(profile.handle ? { handle: profile.handle } : {}),
+          ...(profile.displayName ? { displayName: profile.displayName } : {}),
+          ...(profile.profileUrl ? { profileUrl: profile.profileUrl } : {}),
+        }).where(eq(socialAccountsTable.id, existing[0].id));
+        finalId = existing[0].id;
+      } else {
+        const [row] = await db.insert(socialAccountsTable).values({
+          platform,
+          handle: profile.handle,
+          displayName: profile.displayName ?? null,
+          profileUrl: profile.profileUrl ?? `https://${platform}.com`,
+          externalAccountId: profile.externalAccountId,
+          ...base,
+          isActive: true,
+        }).returning({ id: socialAccountsTable.id });
+        finalId = row.id;
+      }
+    } else {
+      const [row] = await db.insert(socialAccountsTable).values({
+        platform,
+        handle: profile?.handle ?? platform,
+        displayName: profile?.displayName ?? null,
+        profileUrl: profile?.profileUrl ?? `https://${platform}.com`,
+        externalAccountId: profile?.externalAccountId ?? null,
+        ...base,
+        isActive: true,
+      }).returning({ id: socialAccountsTable.id });
+      finalId = row.id;
+    }
+
+    await db.insert(auditLogTable).values({
+      actorId: null,
+      actorName: "oauth",
+      action: "CONNECT",
+      target: `social_account#${finalId}`,
+      detail: `${platform} via OAuth`,
+    });
+    html(true, `${platform} connected successfully`);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    console.error("[oauth callback]", platform, msg);
+    html(false, msg);
+  }
+});
+
+// ─────────────────────────────────────────────────────────
+// Disconnect — clears tokens but keeps the account row
+// ─────────────────────────────────────────────────────────
+router.post("/admin/social/accounts/:id/disconnect", requireSocialRole, async (req: AuthRequest, res) => {
+  const id = Number(req.params["id"]);
+  if (!Number.isFinite(id)) { res.status(400).json({ error: "Bad id" }); return; }
+  const [row] = await db.update(socialAccountsTable).set({
+    accessToken: null,
+    refreshToken: null,
+    tokenExpiresAt: null,
+  }).where(eq(socialAccountsTable.id, id)).returning();
+  if (!row) { res.status(404).json({ error: "Not found" }); return; }
+  await db.insert(auditLogTable).values({
+    actorId: req.user?.id ?? null,
+    actorName: req.user?.name ?? "system",
+    action: "DISCONNECT",
+    target: `social_account#${id}`,
+    detail: `${row.platform}:${row.handle}`,
+  });
+  res.json({ account: publicAccount(row) });
+});
+
+// ─────────────────────────────────────────────────────────
+// Background worker: refresh expiring OAuth tokens
+// Called from index.ts on a timer (every 6 hours).
+// ─────────────────────────────────────────────────────────
+export async function refreshExpiringTokens(): Promise<void> {
+  const twoDaysFromNow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+  const expiring = await db.select().from(socialAccountsTable).where(
+    and(
+      isNotNull(socialAccountsTable.refreshToken),
+      lte(socialAccountsTable.tokenExpiresAt, twoDaysFromNow),
+    ),
+  );
+  for (const acc of expiring) {
+    if (!acc.refreshToken) continue;
+    try {
+      const tokens = await refreshOAuthToken(acc.platform, acc.refreshToken);
+      await db.update(socialAccountsTable).set({
+        accessToken: tokens.accessToken,
+        ...(tokens.refreshToken ? { refreshToken: tokens.refreshToken } : {}),
+        tokenExpiresAt: tokens.expiresAt ?? undefined,
+        lastSyncedAt: new Date(),
+      }).where(eq(socialAccountsTable.id, acc.id));
+      console.info(`[oauth] refreshed token for ${acc.platform}#${acc.id}`);
+    } catch (e) {
+      console.warn(`[oauth] token refresh failed for ${acc.platform}#${acc.id}:`, e instanceof Error ? e.message : e);
+    }
+  }
+}
 
 export default router;

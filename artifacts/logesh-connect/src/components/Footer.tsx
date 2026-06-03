@@ -1,8 +1,23 @@
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Phone, Mail, MapPin, ExternalLink } from "lucide-react";
+import { Phone, Mail, MapPin, ExternalLink, Facebook, Instagram, Twitter, Youtube, Globe } from "lucide-react";
 import type { Language } from "@/lib/i18n";
-import { t } from "@/lib/i18n";
 import { useLeaderConfig } from "@/lib/LeaderConfigContext";
+
+const SOCIAL_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  facebook: Facebook,
+  instagram: Instagram,
+  twitter: Twitter,
+  youtube: Youtube,
+};
+
+interface SocialAccount {
+  id: number;
+  platform: string;
+  handle: string;
+  profileUrl: string;
+  displayName: string | null;
+}
 
 interface FooterProps {
   lang: Language;
@@ -10,6 +25,15 @@ interface FooterProps {
 
 export function Footer({ lang }: FooterProps) {
   const lc = useLeaderConfig();
+  const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([]);
+
+  useEffect(() => {
+    const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "/api";
+    fetch(`${BASE}/social/accounts`)
+      .then((r) => r.json())
+      .then((d: { accounts?: SocialAccount[] }) => setSocialAccounts(d.accounts ?? []))
+      .catch(() => {});
+  }, []);
 
   return (
     <footer className="bg-gray-950 dark:bg-black text-gray-300 mt-16">
@@ -108,7 +132,33 @@ export function Footer({ lang }: FooterProps) {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
+        {socialAccounts.length > 0 && (
+          <div className="mt-8 pt-6 border-t border-gray-800">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">
+              {lang === "ta" ? "எங்களை பின்தொடரவும்" : "Follow Us"}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {socialAccounts.map((acc) => {
+                const Icon = SOCIAL_ICONS[acc.platform] ?? Globe;
+                return (
+                  <a
+                    key={acc.id}
+                    href={acc.profileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-gray-400 hover:text-primary transition-colors text-sm"
+                    title={acc.displayName ?? acc.handle}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-xs">@{acc.handle}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-6 pt-6 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-500">
             &copy; {new Date().getFullYear()} {lc.siteTitle}.{" "}
             {lang === "ta"
