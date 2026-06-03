@@ -22,6 +22,7 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import type { Language } from "@/lib/i18n";
 import { mapTranslations, tMap } from "@/lib/mapI18n";
+import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 
 // Fix the broken default icon URLs that Vite's bundler exposes as
 // hashed assets — Leaflet's stock paths point at /images/* which 404.
@@ -33,9 +34,7 @@ L.Icon.Default.mergeOptions({
 
 const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 
-// Rasipuram constituency centroid (approx, Namakkal District).
-const DEFAULT_CENTER: [number, number] = [10.0765, 78.7730];
-const DEFAULT_ZOOM = 13;
+const DEFAULT_ZOOM = 12;
 const CLUSTER_DISABLE_ZOOM = 16; // show individual markers when zoomed in
 
 type WardBoundaryFeature = Feature<Geometry, { wardId: number; name?: string }>;
@@ -200,6 +199,10 @@ export default function ConstituencyMap({
   const [jumpWardId, setJumpWardId] = useState<number | null>(null);
   const [mineOnly, setMineOnly] = useState(false);
   const pinsLoadedRef = useRef(false);
+
+  const leader = useLeaderConfig();
+  const mapCenter: [number, number] = [leader.mapCenterLat, leader.mapCenterLng];
+  const mapZoom = leader.mapZoom ?? DEFAULT_ZOOM;
 
   const tr = mapTranslations[lang];
 
@@ -398,8 +401,8 @@ export default function ConstituencyMap({
       {/* Map */}
       <div className="flex-1 relative">
         <MapContainer
-          center={DEFAULT_CENTER}
-          zoom={DEFAULT_ZOOM}
+          center={mapCenter}
+          zoom={mapZoom}
           style={{ width: "100%", height: "100%" }}
           scrollWheelZoom
         >

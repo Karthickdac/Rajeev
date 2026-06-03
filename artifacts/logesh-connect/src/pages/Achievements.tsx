@@ -5,11 +5,13 @@ import { Award, TrendingUp, CheckCircle } from "lucide-react";
 import { useGetConstituencyStats } from "@workspace/api-client-react";
 import type { Language } from "@/lib/i18n";
 import { t } from "@/lib/i18n";
+import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 
 interface AchievementsProps { lang: Language; }
 
 export default function Achievements({ lang }: AchievementsProps) {
   const { data: stats, isLoading } = useGetConstituencyStats();
+  const leader = useLeaderConfig();
 
   const achievements = [
     { title: lang === "ta" ? "சாலை கட்டுமானம்" : "Road Construction", desc: lang === "ta" ? "தொகுதியில் புதிய மற்றும் மேம்படுத்தப்பட்ட சாலைகள்" : "New and upgraded roads across the constituency", category: lang === "ta" ? "உள்கட்டமைப்பு" : "Infrastructure" },
@@ -24,7 +26,7 @@ export default function Achievements({ lang }: AchievementsProps) {
     <div className="max-w-7xl mx-auto px-4 py-12">
       <SectionHeader
         title={lang === "ta" ? "சாதனைகள்" : "Key Achievements"}
-        subtitle={lang === "ta" ? "ராசிபுரம் தொகுதியில் நடந்த முக்கிய சாதனைகள்" : "Major milestones achieved for the Rasipuram constituency"}
+        subtitle={lang === "ta" ? `${leader.constituencyTa} தொகுதியில் நடந்த முக்கிய சாதனைகள்` : `Major milestones achieved for the ${leader.constituencyEn} constituency`}
       />
 
       {/* Stats */}

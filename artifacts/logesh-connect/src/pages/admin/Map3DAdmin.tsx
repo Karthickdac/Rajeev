@@ -12,15 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Boxes, Layers as LayersIcon, RotateCw, Loader2 } from "lucide-react";
 import { adminApi } from "./api";
-
-// Rasipuram (AC 195), Namakkal district.
-const RASIPURAM: MapViewState = {
-  longitude: 78.1840,
-  latitude: 11.4595,
-  zoom: 11.5,
-  pitch: 55,
-  bearing: -15,
-};
+import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 
 // Free OSM raster style — no API key required.
 const MAP_STYLE: StyleSpecification = {
@@ -44,13 +36,21 @@ type Mode = "hex" | "column" | "grid";
 const today = (off = 0) => { const d = new Date(); d.setDate(d.getDate() + off); return d.toISOString().slice(0, 10); };
 
 export default function Map3DAdmin() {
+  const leader = useLeaderConfig();
   const [from, setFrom] = useState(today(-90));
   const [to, setTo] = useState(today(0));
   const [mode, setMode] = useState<Mode>("hex");
   const [data, setData] = useState<HeatResp | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [view, setView] = useState<MapViewState>(RASIPURAM);
+  const defaultView: MapViewState = {
+    longitude: leader.mapCenterLng,
+    latitude: leader.mapCenterLat,
+    zoom: leader.mapZoom ?? 11.5,
+    pitch: 55,
+    bearing: -15,
+  };
+  const [view, setView] = useState<MapViewState>(defaultView);
 
   async function load() {
     setBusy(true); setErr(null);
@@ -182,7 +182,7 @@ export default function Map3DAdmin() {
             {modeButton("column", "Columns")}
             {modeButton("grid", "Heat Grid")}
           </div>
-          <Button variant="outline" size="sm" onClick={() => setView(RASIPURAM)}>
+          <Button variant="outline" size="sm" onClick={() => setView(defaultView)}>
             <RotateCw className="w-4 h-4 mr-1" /> Reset view
           </Button>
         </CardContent>

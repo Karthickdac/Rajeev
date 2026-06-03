@@ -22,7 +22,7 @@ export function createDefaultAboutConfig(lc: LeaderConfig): AboutConfig {
     bioBrief: `Hon. ${lc.nameEn} serves as ${lc.titleEn} for the ${lc.constituencyEn} constituency under the ${lc.partyEn}.`,
     bioBriefTa: `${lc.nameTa} அவர்கள் ${lc.constituencyTa} தொகுதியின் ${lc.titleTa}ராக திகழ்கிறார்.`,
     bioFull: `A dedicated public servant committed to the holistic development of ${lc.constituencyEn}, known for a ground-level approach and direct engagement with citizens. Significant strides have been made in infrastructure development, educational improvement, and healthcare access.`,
-    bioFullTa: `மக்களுடன் நேரடியாக தொடர்பு வைத்துக்கொண்டு, அவர்களின் பிரச்சினைகளை உடனடியாக தீர்க்கும் இவர், தாம்பரத்தின் உள்கட்டமைப்பு வளர்ச்சி, கல்வி மேம்பாடு, முன்னாள் இராணுவ வீரர் நல சேவைகளில் குறிப்பிடத்தக்க பங்காற்றியுள்ளார்.`,
+    bioFullTa: `மக்களுடன் நேரடியாக தொடர்பு வைத்துக்கொண்டு, அவர்களின் பிரச்சினைகளை உடனடியாக தீர்க்கும் இவர், ${lc.constituencyTa} தொகுதியின் உள்கட்டமைப்பு வளர்ச்சி, கல்வி மேம்பாடு, முன்னாள் இராணுவ வீரர் நல சேவைகளில் குறிப்பிடத்தக்க பங்காற்றியுள்ளார்.`,
     education: "",
     born: "",
     phone: lc.phone,
@@ -119,8 +119,8 @@ export function AboutView({ config, lang, embedded = false }: AboutViewProps) {
       <SectionHeader
         title={t("About the Leader", "தலைவரைப் பற்றி")}
         subtitle={t(
-          "Learn about D. Logesh Tamilselvan, Minister of Commercial Taxes, Registration and Stamp Duty, Rasipuram Constituency",
-          "D. லோகேஷ் தமிழ்செல்வன் அவர்களைப் பற்றி அறிந்துகொள்ளுங்கள்"
+          `Learn about ${config.name || "the Leader"}, ${config.designation || ""}, ${config.constituency || ""} Constituency`,
+          `${config.nameTa || "தலைவர்"} அவர்களைப் பற்றி அறிந்துகொள்ளுங்கள்`
         )}
       />
 

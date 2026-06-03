@@ -10,10 +10,12 @@ import { useListEvents } from "@workspace/api-client-react";
 import type { Language } from "@/lib/i18n";
 import { t } from "@/lib/i18n";
 import { format } from "date-fns";
+import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 
 interface EventsProps { lang: Language; }
 
 export default function Events({ lang }: EventsProps) {
+  const leader = useLeaderConfig();
   const [page, setPage] = useState(1);
   const { data, isLoading } = useListEvents({ page, limit: 9 });
 
@@ -21,7 +23,7 @@ export default function Events({ lang }: EventsProps) {
     <section className="max-w-7xl mx-auto px-4 py-12">
       <SectionHeader
         title={lang === "ta" ? "நிகழ்வுகள் & பிரசாரங்கள்" : "Events & Campaigns"}
-        subtitle={lang === "ta" ? "வரவிருக்கும் மற்றும் கடந்த நிகழ்வுகள்" : "Upcoming and past events organized by D. Sarath Kumar"}
+        subtitle={lang === "ta" ? "வரவிருக்கும் மற்றும் கடந்த நிகழ்வுகள்" : `Upcoming and past events organized by ${leader.nameEn}`}
       />
 
       {isLoading ? (

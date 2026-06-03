@@ -13,6 +13,7 @@ import { CheckCircle, Users, Heart, Star } from "lucide-react";
 import { useRegisterVolunteer } from "@workspace/api-client-react";
 import type { Language } from "@/lib/i18n";
 import { useWards } from "@/lib/useWards";
+import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 
 interface VolunteerProps { lang: Language; }
 
@@ -29,6 +30,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function Volunteer({ lang }: VolunteerProps) {
+  const leader = useLeaderConfig();
   const [submitted, setSubmitted] = useState(false);
   const mutation = useRegisterVolunteer();
   const { data: wards = [] } = useWards();
@@ -37,7 +39,7 @@ export default function Volunteer({ lang }: VolunteerProps) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: "", phone: "", email: "", ward: "",
-      constituency: "Rasipuram", skills: "", message: "",
+      constituency: leader.constituencyEn, skills: "", message: "",
     },
   });
 
@@ -59,8 +61,8 @@ export default function Volunteer({ lang }: VolunteerProps) {
       <SectionHeader
         title={lang === "ta" ? "தன்னார்வலராக பதிவு செய்யுங்கள்" : "Volunteer Registration"}
         subtitle={lang === "ta"
-          ? "தாம்பரத்தின் வளர்ச்சிக்கு பங்காற்றுங்கள்"
-          : "Join our growing team of volunteers dedicated to serving Tambaram"}
+          ? `${leader.constituencyTa} வளர்ச்சிக்கு பங்காற்றுங்கள்`
+          : `Join our growing team of volunteers dedicated to serving ${leader.constituencyEn}`}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">

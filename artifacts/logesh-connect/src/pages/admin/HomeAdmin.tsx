@@ -26,7 +26,7 @@ const SAMPLE_NEWS = [
   { id: 2, title: "Another announcement", titleTa: "மற்றொரு அறிவிப்பு", category: "Press", publishedAt: new Date().toISOString(), thumbnailUrl: null, imageUrl: null },
 ];
 const SAMPLE_EVENTS = [
-  { id: 1, title: "Public meeting", titleTa: "பொதுக் கூட்டம்", eventDate: new Date(Date.now() + 86400000 * 3).toISOString(), venue: "Rasipuram", thumbnailUrl: null, imageUrl: null },
+  { id: 1, title: "Public meeting", titleTa: "பொதுக் கூட்டம்", eventDate: new Date(Date.now() + 86400000 * 3).toISOString(), venue: "Constituency Office", thumbnailUrl: null, imageUrl: null },
 ];
 const SAMPLE_ACTIVITIES = [
   { title: "Road inspection completed", titleTa: "சாலை ஆய்வு", location: "Ward 12", activityDate: new Date().toISOString() },

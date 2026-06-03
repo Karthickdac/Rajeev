@@ -16,9 +16,9 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Fallback centroid: Rasipuram (Namakkal District). Callers may override
+// Fallback centroid: Tambaram (Chengalpattu District). Callers may override
 // with a constituency-derived centroid via the `defaultCenter` prop.
-const FALLBACK_CENTRE: [number, number] = [9.9252, 78.1198];
+const FALLBACK_CENTRE: [number, number] = [12.924, 80.117];
 
 interface Props {
   lat: number | null;

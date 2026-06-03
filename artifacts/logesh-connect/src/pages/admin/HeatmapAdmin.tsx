@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Map as MapIcon, Play, Pause, RefreshCw, Loader2 } from "lucide-react";
 import { adminApi } from "./api";
+import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 
 interface Point { lat: number; lng: number; weight: number; categories: Record<string, number> }
 interface HeatResp {
@@ -17,10 +18,9 @@ interface HeatResp {
 }
 
 const today = (off = 0) => { const d = new Date(); d.setDate(d.getDate() + off); return d.toISOString().slice(0, 10); };
-// Rasipuram (Namakkal district) — used as default centre when there are no points.
-const DEFAULT_CENTER: [number, number] = [11.4595, 78.1840];
 
 export default function HeatmapAdmin() {
+  const leader = useLeaderConfig();
   const [from, setFrom] = useState(today(-90));
   const [to, setTo] = useState(today(0));
   const [data, setData] = useState<HeatResp | null>(null);
@@ -49,7 +49,7 @@ export default function HeatmapAdmin() {
   // Init leaflet map exactly once.
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const map = L.map(containerRef.current).setView(DEFAULT_CENTER, 11);
+    const map = L.map(containerRef.current).setView([leader.mapCenterLat, leader.mapCenterLng], leader.mapZoom ?? 11);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap contributors",
       maxZoom: 19,

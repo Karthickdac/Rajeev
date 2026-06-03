@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { Language } from "@/lib/i18n";
+import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 import {
   listGrievances,
   updateGrievanceStatus,
@@ -143,6 +144,7 @@ async function fetchStaffDetail(id: number, token: string): Promise<StaffGrievan
 }
 
 export default function GrievanceOfficer({ lang, token, userRole = "" }: GrievanceOfficerProps) {
+  const leader = useLeaderConfig();
   // Officers default to their own inbox; admins/coordinators default to all.
   const isOfficer = userRole === "grievance_officer";
   // Minister has a read-only-plus-remarks view: they can read grievances and
@@ -548,7 +550,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
         y += 9;
 
         // District derived from constituency (no district column in schema)
-        const district = detail.constituency === "Rasipuram" ? "Namakkal" : "—";
+        const district = detail.constituency === leader.constituencyEn ? leader.districtEn : "—";
 
         // Petitioner & filing details table
         autoTable(doc, {
@@ -561,7 +563,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
             ["Filed",         new Date(detail.createdAt).toLocaleString("en-IN")],
             ["Last updated",  new Date(detail.updatedAt).toLocaleString("en-IN")],
             ["Resolved",      detail.resolvedAt ? new Date(detail.resolvedAt).toLocaleString("en-IN") : "—"],
-            ["Scope",         detail.constituency === "Tamil Nadu" ? "Tamil Nadu State (Human Resources & Ex-Servicemen Welfare)" : "Tambaram Constituency"],
+            ["Scope",         detail.constituency === "Tamil Nadu" ? "Tamil Nadu State (Human Resources & Ex-Servicemen Welfare)" : `${leader.constituencyEn} Constituency`],
             ["District",      district],
             ["Constituency",  detail.constituency],
             ["Ward",          detail.ward || "—"],
@@ -832,9 +834,9 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
         doc.rect(0, 0, pageW, HEADER_H, "F");
         doc.setTextColor(255, 255, 255);
         doc.setFont("helvetica", "bold"); doc.setFontSize(13);
-        doc.text("Ungaludan Sarath — Grievance Report", M, 9);
+        doc.text(`${leader.siteTitle} — Grievance Report`, M, 9);
         doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-        doc.text("Office of D. Sarath Kumar, Minister for Human Resources Management and Ex-Servicemen Welfare", M, 14);
+        doc.text(`Office of ${leader.nameEn}, ${leader.titleEn}`, M, 14);
         doc.setFontSize(7.5);
         doc.text(`Generated: ${generatedAt}  ·  Confidential`, M, 19);
         // Ticket # top-right
@@ -1020,8 +1022,8 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{lang === "ta" ? "அனைத்தும்" : "All scopes"}</SelectItem>
-                <SelectItem value="Rasipuram">
-                  <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{lang === "ta" ? "ராசிபுரம் தொகுதி" : "Rasipuram Constituency"}</span>
+                <SelectItem value={leader.constituencyEn}>
+                  <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{lang === "ta" ? `${leader.constituencyTa} தொகுதி` : `${leader.constituencyEn} Constituency`}</span>
                 </SelectItem>
                 <SelectItem value="Tamil Nadu">
                   <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />{lang === "ta" ? "தமிழ்நாடு மாநிலம்" : "Tamil Nadu State"}</span>
@@ -1279,7 +1281,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${detail.constituency === "Tamil Nadu" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-green-50 text-green-800 border border-green-200"}`}>
                 {detail.constituency === "Tamil Nadu"
                   ? <><Globe className="w-4 h-4" />{lang === "ta" ? "தமிழ்நாடு மாநில புகார் — மனித வளம் / முன்னாள் இராணுவ வீரர் நலன்" : "Tamil Nadu State Complaint — Human Resources & Ex-Servicemen Welfare"}</>
-                  : <><Building2 className="w-4 h-4" />{lang === "ta" ? "தாம்பரம் தொகுதி புகார்" : "Tambaram Constituency Complaint"}</>
+                  : <><Building2 className="w-4 h-4" />{lang === "ta" ? `${leader.constituencyTa} தொகுதி புகார்` : `${leader.constituencyEn} Constituency Complaint`}</>
                 }
               </div>
 

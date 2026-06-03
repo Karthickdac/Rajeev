@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { AlertCircle, Lock } from "lucide-react";
 import { useLogin } from "@workspace/api-client-react";
 import { setToken } from "@/lib/auth";
+import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 
 /** Decode the role claim from a JWT payload without verifying the signature. */
 function roleFromToken(token: string): string | null {
@@ -30,6 +31,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function Login() {
+  const leader = useLeaderConfig();
   const [, setLocation] = useLocation();
   const [error, setError] = useState("");
   const mutation = useLogin();
@@ -62,9 +64,9 @@ export default function Login() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
-            T
+            {leader.logoInitial}
           </div>
-          <h1 className="text-xl font-bold text-white">Ungaludan Sarath</h1>
+          <h1 className="text-xl font-bold text-white">{leader.siteTitle}</h1>
           <p className="text-white/70 text-sm mt-1">Admin Portal</p>
         </div>
 

@@ -11,8 +11,8 @@ import { useUnsavedChangesGuard } from "@/lib/unsavedChanges";
 
 const DEFAULT_CONFIG: AboutConfig = {
   ...DEFAULT_ABOUT_CONFIG,
-  bioBrief: "Serving the people of Rasipuram with dedication and commitment.",
-  bioBriefTa: "ராசிபுரம் மக்களுக்கு அர்ப்பணிப்புடன் சேவை செய்கிறோம்.",
+  bioBrief: "",
+  bioBriefTa: "",
   bioFull: "",
   bioFullTa: "",
 };

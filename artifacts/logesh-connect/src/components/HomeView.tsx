@@ -9,7 +9,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import type { Language } from "@/lib/i18n";
 import { t } from "@/lib/i18n";
 import { format } from "date-fns";
-import { type LeaderConfig, DEFAULT_LEADER_CONFIG } from "@/lib/LeaderConfigContext";
+import { type LeaderConfig, DEFAULT_LEADER_CONFIG, useLeaderConfig } from "@/lib/LeaderConfigContext";
 
 export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
   return {
@@ -20,7 +20,7 @@ export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
     subheadline: `${lc.titleEn} – ${lc.constituencyEn} Constituency, Tamil Nadu`,
     subheadlineTa: `${lc.titleTa} – ${lc.constituencyTa} தொகுதி`,
     description: `A leader dedicated to the people of ${lc.constituencyEn} — committed to development, transparency, and citizen welfare.`,
-    descriptionTa: `மக்களுக்கான சேவையில், வளர்ச்சியில் உறுதிபூண்ட தாம்பரத்தின் குரல்.`,
+    descriptionTa: `மக்களுக்கான சேவையில், வளர்ச்சியில் உறுதிபூண்ட ${lc.constituencyTa} தொகுதியின் குரல்.`,
     primaryCtaLabel: "Submit Grievance",
     primaryCtaLabelTa: "புகார் அளிக்க",
     primaryCtaHref: "/grievance",
@@ -31,7 +31,7 @@ export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
     statsHeadline: "Constituency Development at a Glance",
     statsHeadlineTa: "தொகுதி வளர்ச்சி புள்ளிவிவரம்",
     statsSubheadline: `Key development milestones in ${lc.constituencyEn}`,
-    statsSubheadlineTa: `தாம்பரத்தில் நடந்த வளர்ச்சி பணிகள்`,
+    statsSubheadlineTa: `${lc.constituencyTa} தொகுதியில் நடந்த வளர்ச்சி பணிகள்`,
     grievanceCtaTitle: "Your Voice Matters",
     grievanceCtaTitleTa: "உங்கள் குரல் முக்கியம்",
     grievanceCtaBody: "Report issues in your area directly to the office. Submit your grievance and track its resolution in real time.",
@@ -39,7 +39,7 @@ export function createDefaultHomeHero(lc: LeaderConfig): HomeHeroConfig {
     volunteerCtaTitle: "Join the Movement",
     volunteerCtaTitleTa: "இயக்கத்தில் இணையுங்கள்",
     volunteerCtaBody: `Be part of positive change in ${lc.constituencyEn}. Register as a volunteer and contribute to our community.`,
-    volunteerCtaBodyTa: `தாம்பரத்தின் வளர்ச்சிக்கு பங்காற்றுங்கள். தன்னார்வலராக பதிவு செய்யுங்கள்.`,
+    volunteerCtaBodyTa: `${lc.constituencyTa} தொகுதியின் வளர்ச்சிக்கு பங்காற்றுங்கள். தன்னார்வலராக பதிவு செய்யுங்கள்.`,
   };
 }
 
@@ -193,6 +193,7 @@ export function HomeView({
   gallery,
   embedded = false,
 }: HomeViewProps) {
+  const leader = useLeaderConfig();
   const tx = (en: string, ta: string) => (lang === "ta" ? (ta || en) : en);
   const photoSrc = config.photoUrl || "";
   const heroMinH = embedded ? "min-h-[420px]" : "min-h-[90vh]";
@@ -214,7 +215,7 @@ export function HomeView({
             <div className="lg:hidden flex justify-center mb-5">
               <div className="relative">
                 <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/20 bg-primary/60 flex items-center justify-center">
-                  {photoSrc ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" /> : <span className="text-4xl font-bold text-yellow-400">{config.logoInitial ?? "D"}</span>}
+                  {photoSrc ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" /> : <span className="text-4xl font-bold text-yellow-400">{(tx(config.headline, config.headlineTa) || "D").trim().charAt(0).toUpperCase()}</span>}
                 </div>
                 <span className="absolute -bottom-1 -right-1 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
                   Minister
@@ -353,7 +354,7 @@ export function HomeView({
                     </div>
                     <div className="mt-5 text-center">
                       <p className="text-white/85 text-[12px] font-semibold leading-tight">
-                        {tx("D. Sarath Kumar", "D. சரத் குமார்")}
+                        {tx(config.headline, config.headlineTa)}
                       </p>
                       <p className="text-yellow-400/70 text-[10px] mt-0.5 leading-tight max-w-[120px] mx-auto">
                         {tx("HR & Ex-SM Welfare", "மனித வளம் & முன்னாள் வீரர் நலன்")}
@@ -463,7 +464,7 @@ export function HomeView({
               {/* Party endorsement line */}
               <div className="flex items-center gap-3 justify-center md:justify-start flex-wrap">
                 <span className="text-xs text-white/50 uppercase tracking-wider">
-                  {tx("Tambaram Constituency is proud to serve under", "தாம்பரம் தொகுதி பெருமையுடன் உழைக்கிறது")}
+                  {tx(`${leader.constituencyEn} Constituency is proud to serve under`, `${leader.constituencyTa} தொகுதி பெருமையுடன் உழைக்கிறது`)}
                 </span>
                 <span className="text-yellow-400 font-bold text-xs">
                   {tx("TVK Leadership", "TVK தலைமை")}
@@ -521,8 +522,8 @@ export function HomeView({
             </h2>
             <p className="text-white/65 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
               {tx(
-                "D. Sarath Kumar, as Minister for Human Resources Management and Ex-Servicemen Welfare, is committed to the welfare, dignity, and rehabilitation of veterans and their families in Tambaram and across Tamil Nadu.",
-                "மனித வள மேலாண்மை மற்றும் முன்னாள் இராணுவ வீரர் நலன் அமைச்சராக, D. சரத் குமார் தாம்பரம் மற்றும் தமிழ்நாடு முழுவதும் உள்ள வீரர்கள் மற்றும் அவர்களது குடும்பங்களுக்கு சேவை செய்ய உறுதிபூண்டுள்ளார்."
+                `${leader.nameEn}, as ${leader.titleEn}, is committed to the welfare, dignity, and rehabilitation of veterans and their families in ${leader.constituencyEn} and across Tamil Nadu.`,
+                `${leader.titleTa}, ${leader.nameTa} ${leader.constituencyTa} மற்றும் தமிழ்நாடு முழுவதும் உள்ள வீரர்கள் மற்றும் அவர்களது குடும்பங்களுக்கு சேவை செய்ய உறுதிபூண்டுள்ளார்.`
               )}
             </p>
           </div>

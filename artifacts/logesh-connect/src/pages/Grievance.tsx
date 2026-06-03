@@ -27,6 +27,7 @@ import { useWards } from "@/lib/useWards";
 import { getConstituenciesForDistrict } from "@/lib/tn-constituencies";
 import GpsPicker, { type GpsValue } from "@/components/GpsPicker";
 import { SRO_ZONES } from "@/lib/sroData";
+import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 
 interface GrievanceProps { lang: Language; }
 
@@ -241,6 +242,7 @@ function TrackResult({ data, lang, ticketNo }: { data: GrievanceTrackResponse; l
 }
 
 export default function Grievance({ lang }: GrievanceProps) {
+  const leader = useLeaderConfig();
   const [submitted, setSubmitted] = useState(false);
   const [ticketNo, setTicketNo] = useState("");
   const [trackInput, setTrackInput] = useState("");
@@ -293,7 +295,7 @@ export default function Grievance({ lang }: GrievanceProps) {
           ? [data.assemblyConstituency, data.address].filter(Boolean).join(" — ") || null
           : data.address || null,
         ward: isSro ? (data.sroDistrict || null) : (isState ? (data.district || null) : (data.ward || null)),
-        constituency: isSro ? (data.sroZone || "Tamil Nadu") : (isState ? "Tamil Nadu" : "Rasipuram"),
+        constituency: isSro ? (data.sroZone || "Tamil Nadu") : (isState ? "Tamil Nadu" : leader.constituencyEn),
         areaId: isState ? null : (data.areaId ?? null),
         pollingStationId: isState ? null : (data.pollingStationId ?? null),
         latitude: gps?.lat ?? null,
@@ -362,7 +364,7 @@ export default function Grievance({ lang }: GrievanceProps) {
         title={lang === "ta" ? "மக்கள் புகார் மையம்" : "Public Grievance Portal"}
         subtitle={lang === "ta"
           ? "உங்கள் பகுதியில் உள்ள பிரச்சினைகளை நேரடியாக தெரிவியுங்கள்"
-          : "Submit complaints directly to D. Sarath Kumar's office and track resolution progress"}
+          : `Submit complaints directly to ${leader.nameEn}'s office and track resolution progress`}
       />
 
       <Tabs defaultValue="submit" className="space-y-6">
@@ -444,7 +446,7 @@ export default function Grievance({ lang }: GrievanceProps) {
                             <p className={`font-semibold text-sm ${complaintScope === "constituency" ? "text-orange-700 dark:text-orange-400" : ""}`}>
                               {lang === "ta" ? "தொகுதி புகார்" : "Constituency Complaint"}
                             </p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? "ராசிபுரம்" : "Rasipuram"}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{lang === "ta" ? leader.constituencyTa : leader.constituencyEn}</p>
                           </div>
                         </button>
                         <button

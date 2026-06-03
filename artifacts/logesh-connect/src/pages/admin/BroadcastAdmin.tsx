@@ -159,7 +159,7 @@ export default function BroadcastAdmin() {
           <CardContent className="p-4 space-y-3">
             <div className="space-y-1">
               <Label className="text-xs">Headline (English)</Label>
-              <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="e.g. Inaugurated new community health centre at Rasipuram" />
+              <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="e.g. Inaugurated new community health centre" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">தலைப்பு (Tamil)</Label>
