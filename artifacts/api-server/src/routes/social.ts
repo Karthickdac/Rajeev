@@ -442,7 +442,7 @@ function popupHtml(success: boolean, message: string): string {
 </body></html>`;
 }
 
-router.get("/social/oauth/callback/:platform", async (req, res) => {
+router.get("/admin/social/oauth/callback/:platform", async (req, res) => {
   const platform = req.params["platform"] as string;
   const code = req.query["code"] as string | undefined;
   const state = req.query["state"] as string | undefined;

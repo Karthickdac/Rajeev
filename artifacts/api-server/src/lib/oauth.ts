@@ -117,7 +117,7 @@ export function getRedirectBase(): string {
 export function buildAuthUrl(platform: string, state: string, codeChallenge?: string): string | null {
   const config = cfg()[platform as OAuthPlatform];
   if (!config?.clientId) return null;
-  const redirect = `${getRedirectBase()}/api/social/oauth/callback/${platform}`;
+  const redirect = `${getRedirectBase()}/api/admin/social/oauth/callback/${platform}`;
   const params = new URLSearchParams({
     client_id: config.clientId,
     redirect_uri: redirect,
@@ -148,7 +148,7 @@ export interface TokenResult {
 export async function exchangeCode(platform: string, code: string, codeVerifier?: string): Promise<TokenResult> {
   const config = cfg()[platform as OAuthPlatform];
   if (!config) throw new Error(`Unsupported OAuth platform: ${platform}`);
-  const redirect = `${getRedirectBase()}/api/social/oauth/callback/${platform}`;
+  const redirect = `${getRedirectBase()}/api/admin/social/oauth/callback/${platform}`;
   const body: Record<string, string> = {
     grant_type: "authorization_code",
     code,

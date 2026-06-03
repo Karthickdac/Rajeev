@@ -43,7 +43,8 @@ app.listen(port, (err) => {
   setInterval(() => {
     processScheduledPosts().catch((err) => logger.error({ err }, "social scheduler tick failed"));
   }, 60_000);
-  // OAuth token refresh worker — refreshes tokens expiring within 2 days, runs every 6 hours.
+  // OAuth token refresh worker — run immediately on startup then every 6 hours.
+  refreshExpiringTokens().catch((err) => logger.error({ err }, "oauth startup token refresh failed"));
   setInterval(() => {
     refreshExpiringTokens().catch((err) => logger.error({ err }, "oauth token refresh tick failed"));
   }, 6 * 60 * 60_000);

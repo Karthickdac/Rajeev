@@ -17,12 +17,14 @@ export const youtubeAdapter: PlatformAdapter = {
   },
 
   async fetchStats(account: SocialAccount): Promise<StatsResult> {
-    if (!account.accessToken) throw new PlatformError("Missing API key / access token", "youtube");
+    if (!account.accessToken) throw new PlatformError("Missing access token", "youtube");
+    // Use OAuth bearer auth. Query by channel ID if known; fall back to mine=true.
     const channelId = account.externalAccountId;
-    if (!channelId) throw new PlatformError("Missing channel id", "youtube");
-    // Public stats can use API key in URL; OAuth bearer also works.
-    const url = `${API}/channels?part=statistics&id=${encodeURIComponent(channelId)}&key=${encodeURIComponent(account.accessToken)}`;
-    const res = await fetch(url);
+    const idParam = channelId ? `id=${encodeURIComponent(channelId)}` : `mine=true`;
+    const url = `${API}/channels?part=statistics&${idParam}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${account.accessToken}` },
+    });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new PlatformError(json?.error?.message ?? `HTTP ${res.status}`, "youtube", res.status);
     const stats = json?.items?.[0]?.statistics ?? {};
