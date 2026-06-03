@@ -215,6 +215,7 @@ const AppointmentSubmitBody = z.object({
   partySize: z.coerce.number().int().min(1).max(50).optional(),
   preferredDate: z.string().optional().nullable(),
   preferredTime: z.string().optional().nullable(),
+  alternateDate: z.string().optional().nullable(),
 });
 
 // POST /api/appointments/submit — public
@@ -232,6 +233,7 @@ router.post("/appointments/submit", async (req, res) => {
     if (existing.length > 0) ticketNo = generateAppointmentTicket();
 
     const preferredDate = body.data.preferredDate ? new Date(body.data.preferredDate) : null;
+    const alternateDate = body.data.alternateDate ? new Date(body.data.alternateDate) : null;
 
     const [appointment] = await db.insert(appointmentsTable).values({
       ticketNo,
@@ -247,6 +249,7 @@ router.post("/appointments/submit", async (req, res) => {
       partySize: body.data.partySize ?? 1,
       preferredDate: preferredDate && !Number.isNaN(preferredDate.getTime()) ? preferredDate : null,
       preferredTime: body.data.preferredTime ?? null,
+      alternateDate: alternateDate && !Number.isNaN(alternateDate.getTime()) ? alternateDate : null,
       status: "Pending",
     }).returning();
 
@@ -277,7 +280,6 @@ router.get("/appointments/track/:ticketNo", async (req, res) => {
       scheduledDate: appt.scheduledDate?.toISOString() ?? null,
       scheduledTime: appt.scheduledTime,
       location: appt.location,
-      decisionNote: appt.decisionNote,
       rejectionReason: appt.rejectionReason,
       notificationMessage: appt.notificationMessage,
       createdAt: appt.createdAt.toISOString(),

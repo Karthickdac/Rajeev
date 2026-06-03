@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeader } from "@/components/SectionHeader";
-import { Phone, Mail, MapPin, Clock, MessageSquare } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, MessageSquare, CalendarCheck } from "lucide-react";
+import { Link } from "wouter";
 import type { Language } from "@/lib/i18n";
 import { useLeaderConfig } from "@/lib/LeaderConfigContext";
 
@@ -77,6 +78,31 @@ export default function Contact({ lang }: ContactProps) {
               <p className="text-sm">{lang === "ta" ? lc.districtTa : lc.districtEn}, Tamil Nadu</p>
             </div>
           </div>
+
+          <Card className="border-l-4 border-l-primary">
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <CalendarCheck className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold mb-0.5">
+                  {lang === "ta" ? "சந்திப்பு கோரிக்கை" : "Request an Appointment"}
+                </h3>
+                <p className="text-muted-foreground text-sm mb-3">
+                  {lang === "ta"
+                    ? "அமைச்சரை நேரில் சந்திக்க ஆன்லைனில் கோரிக்கை செய்யுங்கள்"
+                    : "Book a meeting with the Minister's office online"}
+                </p>
+                <Link
+                  href="/appointment"
+                  className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold hover:bg-primary/90 transition-colors text-sm"
+                  data-testid="contact-book-appointment"
+                >
+                  {lang === "ta" ? "சந்திப்பு பதிவு செய்யுங்கள்" : "Book Appointment"}
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card className="bg-primary text-primary-foreground">
             <CardContent className="p-5 text-center">

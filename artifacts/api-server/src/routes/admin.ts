@@ -2673,12 +2673,13 @@ router.get("/admin/appointments/stats", requireRole(...APPT_READ_ROLES), async (
 router.get("/admin/appointments/export", requireRole(...APPT_READ_ROLES), async (_req, res) => {
   try {
     const rows = await db.select().from(appointmentsTable).orderBy(desc(appointmentsTable.createdAt)).limit(2000);
-    const headers = ["ID", "Ticket No", "Name", "Phone", "Category", "Subject", "Status", "Preferred", "Scheduled", "Location", "Submitted"];
+    const headers = ["ID", "Ticket No", "Name", "Phone", "Category", "Subject", "Status", "Preferred", "Alternate", "Scheduled", "Location", "Submitted"];
     const csv = [
       headers.map(h => `"${h}"`).join(","),
       ...rows.map(r => [
         r.id, r.ticketNo, r.name, r.phone, r.category, (r.subject ?? "").replace(/"/g, '""'), r.status,
         r.preferredDate ? new Date(r.preferredDate).toLocaleDateString("en-IN") : "",
+        r.alternateDate ? new Date(r.alternateDate).toLocaleDateString("en-IN") : "",
         r.scheduledDate ? new Date(r.scheduledDate).toLocaleDateString("en-IN") : "",
         (r.location ?? "").replace(/"/g, '""'),
         new Date(r.createdAt).toLocaleDateString("en-IN"),

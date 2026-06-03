@@ -266,7 +266,14 @@ export const adminApi = {
   updateAppointment: (id: number, data: unknown) =>
     authFetch(`/admin/appointments/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   deleteAppointment: (id: number) => authFetch(`/admin/appointments/${id}`, { method: "DELETE" }),
-  exportAppointmentsCSV: () => authFetch("/admin/appointments/export"),
+  exportAppointmentsCSV: async () => {
+    const token = getToken();
+    const res = await fetch(`${BASE}/admin/appointments/export`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.text();
+  },
   // Image upload (multipart)
   uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
     const token = getToken();

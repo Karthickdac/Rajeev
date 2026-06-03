@@ -30,6 +30,7 @@ interface Appointment {
   status: string;
   preferredDate: string | null;
   preferredTime: string | null;
+  alternateDate: string | null;
   scheduledDate: string | null;
   scheduledTime: string | null;
   location: string | null;
@@ -108,7 +109,8 @@ export default function AppointmentsAdmin({ lang, role }: AppointmentsAdminProps
     const to = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 0, 23, 59, 59);
     try {
       const res = await adminApi.getAppointments({ limit: 100, from: from.toISOString(), to: to.toISOString() });
-      setCalItems(res.items ?? []);
+      const items = (res.items ?? []).filter((a: any) => a.status === "Approved" || a.status === "Rescheduled");
+      setCalItems(items);
     } catch {
       setCalItems([]);
     }
@@ -444,6 +446,11 @@ function AppointmentDrawer({ lang, readOnly, canDelete, appointment, onClose, on
             <p className="text-xs text-muted-foreground">
               {lc("Preferred:", "விரும்பியது:")} {a.preferredDate ? new Date(a.preferredDate).toLocaleDateString(lang === "ta" ? "ta-IN" : "en-IN") : "—"} {a.preferredTime ?? ""}
             </p>
+            {a.alternateDate && (
+              <p className="text-xs text-muted-foreground">
+                {lc("Alternate:", "மாற்று:")} {new Date(a.alternateDate).toLocaleDateString(lang === "ta" ? "ta-IN" : "en-IN")}
+              </p>
+            )}
             {a.handledByName && <p className="text-xs text-muted-foreground">{lc("Handled by:", "கையாண்டவர்:")} {a.handledByName}</p>}
           </div>
 

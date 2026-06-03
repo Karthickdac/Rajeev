@@ -49,6 +49,7 @@ const schema = z.object({
   partySize: z.coerce.number().int().min(1).max(50).optional(),
   preferredDate: z.string().optional(),
   preferredTime: z.string().optional(),
+  alternateDate: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -62,7 +63,6 @@ interface TrackResult {
   scheduledDate: string | null;
   scheduledTime: string | null;
   location: string | null;
-  decisionNote: string | null;
   rejectionReason: string | null;
   notificationMessage: string | null;
   createdAt: string;
@@ -82,7 +82,7 @@ export default function Appointment({ lang }: AppointmentProps) {
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", phone: "", email: "", category: "", subject: "", description: "", ward: "", address: "", partySize: 1, preferredDate: "", preferredTime: "" },
+    defaultValues: { name: "", phone: "", email: "", category: "", subject: "", description: "", ward: "", address: "", partySize: 1, preferredDate: "", preferredTime: "", alternateDate: "" },
   });
 
   async function onSubmit(values: FormData) {
@@ -101,6 +101,7 @@ export default function Appointment({ lang }: AppointmentProps) {
         partySize: values.partySize ?? 1,
         preferredDate: values.preferredDate || null,
         preferredTime: values.preferredTime || null,
+        alternateDate: values.alternateDate || null,
       };
       const res = await fetch(`${BASE}/api/appointments/submit`, {
         method: "POST",
@@ -278,6 +279,13 @@ export default function Appointment({ lang }: AppointmentProps) {
                           <FormMessage />
                         </FormItem>
                       )} />
+                      <FormField control={form.control} name="alternateDate" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{lc("Alternate Date", "மாற்று தேதி")}</FormLabel>
+                          <FormControl><Input {...field} type="date" data-testid="input-appt-alt-date" /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
                       <FormField control={form.control} name="partySize" render={({ field }) => (
                         <FormItem>
                           <FormLabel>{lc("People Attending", "வருபவர் எண்")}</FormLabel>
@@ -381,10 +389,10 @@ export default function Appointment({ lang }: AppointmentProps) {
                       </div>
                     )}
 
-                    {trackData.decisionNote && (
+                    {trackData.notificationMessage && (
                       <div className="bg-muted/50 rounded-lg p-3 text-sm flex gap-2">
                         <MessageSquare className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                        <p>{trackData.decisionNote}</p>
+                        <p>{trackData.notificationMessage}</p>
                       </div>
                     )}
                   </div>

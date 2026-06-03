@@ -24,6 +24,8 @@ export const appointmentsTable = pgTable("appointments", {
   // Citizen's preferred slot (free-form date + HH:MM time string)
   preferredDate: timestamp("preferred_date", { withTimezone: true }),
   preferredTime: text("preferred_time"), // "HH:MM" 24h, optional
+  // Citizen's fallback date if the preferred slot is unavailable
+  alternateDate: timestamp("alternate_date", { withTimezone: true }),
 
   // Lifecycle
   status: text("status").notNull().default("Pending"),
@@ -34,7 +36,7 @@ export const appointmentsTable = pgTable("appointments", {
   location: text("location"),
 
   // Decision metadata
-  decisionNote: text("decision_note"), // internal/public note shown to citizen on track
+  decisionNote: text("decision_note"), // internal-only staff note; never returned by the public track endpoint
   rejectionReason: text("rejection_reason"),
   handledBy: integer("handled_by"), // FK users.id (staff who acted)
   handledByName: text("handled_by_name"),
