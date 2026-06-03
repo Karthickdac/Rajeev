@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { adminApi } from "./api";
 import RichTextEditor from "@/components/RichTextEditor";
 import ImageUploader from "@/components/ImageUploader";
@@ -44,6 +44,8 @@ export default function NewsAdmin({ fixedCategory, categoryLabel = "Article", se
   const [form, setForm] = useState({ title: "", titleTa: "", content: "", contentTa: "", imageUrl: "", thumbnailUrl: "", category: defaultCategory, featured: false, publishedAt: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [suggestingH, setSuggestingH] = useState(false);
+  const [suggestedH, setSuggestedH] = useState<Array<{ en: string; ta: string }>>([]);
 
   const load = (p = page) => {
     setLoading(true);
@@ -103,6 +105,20 @@ export default function NewsAdmin({ fixedCategory, categoryLabel = "Article", se
     if (!confirm("Delete this article?")) return;
     await adminApi.deleteNews(id).catch(() => null);
     load();
+  }
+
+  async function suggestHeadlines() {
+    if (!form.content || form.content.length < 10) return;
+    setSuggestingH(true); setSuggestedH([]);
+    try {
+      const r = await adminApi.getHeadlineSuggestions({ content: form.content, category: form.category || undefined });
+      setSuggestedH(r.headlines ?? []);
+    } catch (e: unknown) {
+      setSuggestedH([]);
+      const msg = (e as Error)?.message || "";
+      setError(/503|OPENAI_API_KEY|not configured/i.test(msg) ? "AI is not configured (missing OpenAI API key)." : "Failed to suggest headlines.");
+    }
+    finally { setSuggestingH(false); }
   }
 
   const totalPages = Math.ceil(total / 15);
@@ -182,6 +198,28 @@ export default function NewsAdmin({ fixedCategory, categoryLabel = "Article", se
                 <Input value={form.titleTa} onChange={e => setForm(f => ({ ...f, titleTa: e.target.value }))} className="mt-1 text-sm" />
               </div>
             </div>
+            {/* AI headline suggestions */}
+            {form.content.length >= 10 && (
+              <div>
+                <Button type="button" size="sm" variant="outline" onClick={suggestHeadlines} disabled={suggestingH} className="gap-1.5 text-xs h-7">
+                  {suggestingH ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-primary" />}
+                  Suggest headlines with AI
+                </Button>
+                {suggestedH.length > 0 && (
+                  <div className="mt-2 space-y-1.5">
+                    {suggestedH.map((h, i) => (
+                      <div key={i} className="border rounded px-2 py-1.5 bg-muted/30 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium truncate">{h.en}</span>
+                          <Button type="button" size="sm" variant="ghost" className="h-5 text-[10px] px-1 ml-1" onClick={() => setForm(f => ({ ...f, title: h.en, titleTa: h.ta }))}>Use</Button>
+                        </div>
+                        <div className="text-muted-foreground truncate">{h.ta}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <Label className="text-xs">Content (English) *</Label>
               <RichTextEditor

@@ -39,6 +39,7 @@ interface Appointment {
   notificationMessage: string | null;
   handledByName: string | null;
   completedAt: string | null;
+  aiPriorityScore: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -224,7 +225,17 @@ export default function AppointmentsAdmin({ lang, role }: AppointmentsAdminProps
                       <tr key={a.id} onClick={() => setSelected(a)} className="border-t hover:bg-muted/30 cursor-pointer" data-testid={`row-appointment-${a.id}`}>
                         <td className="px-4 py-2.5 font-mono text-xs text-primary">{a.ticketNo}</td>
                         <td className="px-4 py-2.5">
-                          <div className="font-medium">{a.name}</div>
+                          <div className="font-medium flex items-center gap-1.5">
+                            {a.name}
+                            {a.aiPriorityScore !== null && a.aiPriorityScore !== undefined && (
+                              <span title={`AI Priority: ${a.aiPriorityScore}/100`}
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                  a.aiPriorityScore >= 75 ? "bg-red-100 text-red-700" :
+                                  a.aiPriorityScore >= 50 ? "bg-amber-100 text-amber-700" :
+                                  "bg-green-100 text-green-700"
+                                }`}>AI:{a.aiPriorityScore}</span>
+                            )}
+                          </div>
                           <div className="text-xs text-muted-foreground">{a.phone}</div>
                         </td>
                         <td className="px-4 py-2.5 hidden md:table-cell">{a.category}</td>

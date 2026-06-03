@@ -280,6 +280,11 @@ router.post("/appointments/submit", async (req, res) => {
     }).returning();
 
     res.status(201).json({ ticketNo: appointment.ticketNo });
+
+    // Async AI priority scoring — fire-and-forget
+    setImmediate(() => {
+      import("./ai.js").then(({ scoreAppointment }) => scoreAppointment(appointment.id)).catch(() => {});
+    });
   } catch (err) {
     console.error("[site] appointment submit:", err);
     res.status(500).json({ error: "Internal server error" });

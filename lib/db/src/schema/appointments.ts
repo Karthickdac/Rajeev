@@ -45,6 +45,9 @@ export const appointmentsTable = pgTable("appointments", {
   notificationMessage: text("notification_message"),
   notified: boolean("notified").notNull().default(false),
 
+  // AI-generated urgency score (1–100, async, non-blocking after submit)
+  aiPriorityScore: integer("ai_priority_score"),
+
   completedAt: timestamp("completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

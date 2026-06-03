@@ -40,6 +40,7 @@ import SocialMediaAdmin from "./admin/SocialMediaAdmin";
 import PromisesAdmin from "./admin/PromisesAdmin";
 import BroadcastAdmin from "./admin/BroadcastAdmin";
 import AiToolsAdmin from "./admin/AiToolsAdmin";
+import AskAiWidget from "./admin/AskAiWidget";
 import PressCoverageAdmin from "./admin/PressCoverageAdmin";
 import SlaAdmin from "./admin/SlaAdmin";
 import EscalationsAdmin from "./admin/EscalationsAdmin";
@@ -632,7 +633,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           {active === "social"       && <SocialMediaAdmin />}
           {active === "promises"     && <PromisesAdmin />}
           {active === "broadcast"    && <BroadcastAdmin />}
-          {active === "ai-tools"     && <AiToolsAdmin />}
+          {active === "ai-tools"     && <AiToolsAdmin lang={lang} role={role} />}
           {active === "press-coverage" && <PressCoverageAdmin />}
           {active === "sla"          && <SlaAdmin />}
           {active === "escalations"  && <EscalationsAdmin />}
@@ -646,6 +647,8 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           {active === "voter-exports" && <VoterExportsAdmin />}
         </main>
       </div>
+      {/* Floating AI assistant widget — visible to all admin roles */}
+      <AskAiWidget />
     </div>
   );
 }

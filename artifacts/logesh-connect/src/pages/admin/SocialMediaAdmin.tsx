@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Facebook, Instagram, Twitter, Youtube, Globe, Send, Trash2, Plus, RefreshCw,
   Calendar, Link as LinkIcon, ExternalLink, CheckCircle2, AlertCircle, Clock,
-  Pencil, X, Eye, EyeOff, Wifi, WifiOff, ImageIcon,
+  Pencil, X, Eye, EyeOff, Wifi, WifiOff, ImageIcon, Sparkles, Loader2,
 } from "lucide-react";
 import { adminApi } from "./api";
 import { getToken } from "@/lib/auth";
@@ -510,6 +510,9 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
   const [scheduledAt, setScheduledAt] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [showAiGen, setShowAiGen] = useState(false);
 
   const activeAccounts = accounts.filter((a) => a.isActive);
 
@@ -574,9 +577,45 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
     }
   }
 
+  async function generateWithAi() {
+    if (!aiTopic.trim()) return;
+    setAiGenerating(true);
+    try {
+      const platform = selectedPlatforms.size > 0 ? [...selectedPlatforms][0] : "facebook";
+      const r = await adminApi.generateSocialPost({ topic: aiTopic.trim(), platform, tone: "warm" });
+      if (r.post) {
+        setContent(r.post.content_en ?? "");
+        setContentTa(r.post.content_ta ?? "");
+      }
+      setShowAiGen(false); setAiTopic("");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "AI generation failed");
+    } finally { setAiGenerating(false); }
+  }
+
   return (
     <div className="grid lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-3">
+        {/* AI Post Generator */}
+        <div>
+          <Button type="button" size="sm" variant="outline" onClick={() => setShowAiGen(v => !v)} className="gap-1.5 text-xs h-7">
+            <Sparkles className="w-3 h-3 text-primary" /> Generate with AI
+          </Button>
+          {showAiGen && (
+            <div className="mt-2 flex gap-2">
+              <input
+                className="flex-1 border rounded px-2 py-1 text-xs"
+                value={aiTopic}
+                onChange={(e) => setAiTopic(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") generateWithAi(); }}
+                placeholder="Describe the topic or event to post about…"
+              />
+              <Button size="sm" onClick={generateWithAi} disabled={aiGenerating || !aiTopic.trim()} className="h-7 text-xs">
+                {aiGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : "Generate"}
+              </Button>
+            </div>
+          )}
+        </div>
         <div className="space-y-1">
           <Label className="text-xs">Content (English / default)</Label>
           <Textarea rows={4} value={content} onChange={(e) => setContent(e.target.value)}

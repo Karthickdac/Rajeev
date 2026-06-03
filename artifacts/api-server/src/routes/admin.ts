@@ -813,7 +813,7 @@ router.put("/admin/about", requireRole("super_admin", "admin", "pa_staff"), asyn
 router.get("/admin/settings", async (_req, res) => {
   try {
     const rows = await db.select().from(siteConfigTable)
-      .where(sql`key IN ('social_links','contact_info','emergency_contacts','home_hero','milestone_targets')`);
+      .where(sql`key IN ('social_links','contact_info','emergency_contacts','home_hero','milestone_targets','ai_settings')`);
     const result: Record<string, unknown> = {};
     for (const row of rows) {
       try { result[row.key] = JSON.parse(row.value); } catch { result[row.key] = row.value; }
@@ -863,7 +863,7 @@ const HomeHeroBody = z.object({
 router.put("/admin/settings/:key", requireRole("super_admin", "admin"), async (req: AuthRequest, res) => {
   try {
     const key = req.params["key"] as string;
-    const allowed = ["social_links", "contact_info", "emergency_contacts", "home_hero", "milestone_targets"];
+    const allowed = ["social_links", "contact_info", "emergency_contacts", "home_hero", "milestone_targets", "ai_settings"];
     if (!allowed.includes(key)) { res.status(400).json({ error: "Invalid settings key" }); return; }
     let body: unknown = req.body;
     if (key === "home_hero") {

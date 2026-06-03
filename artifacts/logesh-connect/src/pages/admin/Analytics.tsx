@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { BarChart3, MapPin, Filter as FilterIcon, AlertTriangle, Download, FileText, TrendingUp } from "lucide-react";
 import { getToken } from "@/lib/auth";
+import { adminApi } from "./api";
 import type { Language } from "@/lib/i18n";
 import { tAnalytics } from "@/lib/mapI18n";
 import { exportAnalyticsCsv, exportAnalyticsPdf } from "@/lib/analyticsExport";
@@ -45,6 +46,45 @@ interface AnalyticsProps {
 
 const STATUS_OPTIONS = ["Submitted", "Under Review", "Assigned", "In Progress", "Resolved", "Closed"] as const;
 const CATEGORY_OPTIONS = ["Roads", "Water Supply", "EB / Electricity Issues", "Sewage", "Healthcare", "Education", "Women Safety", "Corruption", "Ration", "Transport", "Pension", "Housing", "Agriculture", "Employment", "Others"] as const;
+
+function SentimentTrendCard({ lang }: { lang: Language }) {
+  const [data, setData] = useState<Array<{ day: string; positive: number; negative: number; neutral: number }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    adminApi.getSentimentTrend(30)
+      .then((r) => setData(r.trend ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading || data.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-primary" />
+          {lang === "ta" ? "உணர்வு நிலை (30 நாட்கள்)" : "Sentiment Trend (30 days)"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="day" tick={{ fontSize: 10 }} />
+            <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+            <Tooltip />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <Line type="monotone" dataKey="positive" stroke="#16a34a" strokeWidth={2} dot={false} name={lang === "ta" ? "நேர்மறை" : "Positive"} />
+            <Line type="monotone" dataKey="negative" stroke="#c9181e" strokeWidth={2} dot={false} name={lang === "ta" ? "எதிர்மறை" : "Negative"} />
+            <Line type="monotone" dataKey="neutral" stroke="#9ca3af" strokeWidth={2} dot={false} name={lang === "ta" ? "நடுநிலை" : "Neutral"} />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Analytics({ lang, officerWardIds, officerAreaIds, officerPollingStationIds }: AnalyticsProps) {
   const t = (k: Parameters<typeof tAnalytics>[1]) => tAnalytics(lang, k);
@@ -321,6 +361,9 @@ export default function Analytics({ lang, officerWardIds, officerAreaIds, office
               )}
             </CardContent>
           </Card>
+
+          {/* Sentiment Trend */}
+          <SentimentTrendCard lang={lang} />
 
           {/* Charts grid */}
           <div ref={chartsRef} className="grid grid-cols-1 lg:grid-cols-2 gap-4">

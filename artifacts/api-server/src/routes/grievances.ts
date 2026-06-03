@@ -246,6 +246,11 @@ router.post("/grievances/submit", upload.array("attachments", 10), async (req, r
     });
 
     res.status(201).json(serializeGrievance(grievance));
+
+    // Async AI triage — fire-and-forget, never blocks the response
+    setImmediate(() => {
+      import("./ai.js").then(({ triageGrievance }) => triageGrievance(grievance.id)).catch(() => {});
+    });
   } catch (err) {
     console.error("[grievances] submit error:", err);
     res.status(500).json({ error: "Internal server error" });

@@ -1,10 +1,10 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import {
-  grievancesTable, pressCoverageTable, siteConfigTable, faqsTable,
-  newsTable, eventsTable, promisesTable, auditLogTable,
+  grievancesTable, grievanceRemarksTable, pressCoverageTable, siteConfigTable, faqsTable,
+  newsTable, eventsTable, promisesTable, auditLogTable, appointmentsTable,
 } from "@workspace/db/schema";
-import { and, desc, eq, isNotNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireStaff, requireRole, type AuthRequest } from "../lib/auth.js";
 import { hasOpenAI, chat, chatJson, embed, cosineSimilarity, type ChatMessage } from "../lib/ai.js";
@@ -426,6 +426,218 @@ function stripCdata(s: string): string {
 }
 function decodeEntities(s: string): string {
   return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;/g, "'");
+}
+
+// ─────────────────────────────────────────────────────────
+// In-memory usage log ring buffer (last 50 AI calls)
+// ─────────────────────────────────────────────────────────
+interface UsageEntry { ts: string; feature: string; inLen: number; outLen: number; latencyMs: number }
+const usageLog: UsageEntry[] = [];
+function logUsage(feature: string, inLen: number, outLen: number, latencyMs: number) {
+  usageLog.push({ ts: new Date().toISOString(), feature, inLen, outLen, latencyMs });
+  if (usageLog.length > 50) usageLog.shift();
+}
+
+router.get("/admin/ai/usage-log", requireStaff, (_req, res) => {
+  res.json({ items: [...usageLog].reverse() });
+});
+
+// ─────────────────────────────────────────────────────────
+// 7. Resolution suggestion for a grievance
+// ─────────────────────────────────────────────────────────
+router.post("/admin/grievances/:id/suggest-resolution", requireContent, async (req: AuthRequest, res: Response) => {
+  if (!hasOpenAI()) return res.status(503).json({ error: "OPENAI_API_KEY not configured" });
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: "Bad id" });
+  const [g] = await db.select().from(grievancesTable).where(eq(grievancesTable.id, id));
+  if (!g) return res.status(404).json({ error: "Grievance not found" });
+  const remarks = await db.select({ content: grievanceRemarksTable.content })
+    .from(grievanceRemarksTable).where(eq(grievanceRemarksTable.grievanceId, id))
+    .orderBy(desc(grievanceRemarksTable.createdAt)).limit(5);
+  const t0 = Date.now();
+  try {
+    const result = await chatJson<{ resolution_en: string; resolution_ta: string; steps: string[]; department: string; expected_days: number }>([
+      { role: "system", content: `You are an expert assistant for an Indian MLA's constituency office. Suggest a concrete resolution plan for a citizen grievance. Respond ONLY with strict JSON: {"resolution_en":"<concise English plan>","resolution_ta":"<same in Tamil script>","steps":["<action 1>","<action 2>",…],"department":"<responsible government dept>","expected_days":<estimated calendar days>}. Tamil must use proper Tamil script. Keep steps short and actionable.` },
+      { role: "user", content: `Category: ${g.category}\nAI Category: ${g.aiCategory ?? "n/a"}\nPriority: ${g.aiPriority ?? g.priority}\nComplaint:\n${g.description}\n\nExisting remarks:\n${remarks.map((r) => `- ${r.content}`).join("\n") || "None"}` },
+    ]);
+    logUsage("suggest-resolution", (g.description ?? "").length, JSON.stringify(result).length, Date.now() - t0);
+    res.json({ suggestion: result });
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : "Failed" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────
+// 8. Sentiment trend — daily aggregation over press_coverage
+// ─────────────────────────────────────────────────────────
+router.get("/admin/analytics/sentiment-trend", requireMedia, async (req, res) => {
+  const days = Math.min(90, Math.max(7, Number(req.query.days) || 30));
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  try {
+    const rows = await db.select({
+      day: sql<string>`date_trunc('day', ${pressCoverageTable.publishedAt})::date::text`,
+      sentiment: pressCoverageTable.sentiment,
+      score: sql<number>`avg(${pressCoverageTable.sentimentScore})::numeric(5,1)`,
+      n: sql<number>`count(*)::int`,
+    })
+      .from(pressCoverageTable)
+      .where(and(isNotNull(pressCoverageTable.publishedAt), gte(pressCoverageTable.publishedAt, since)))
+      .groupBy(sql`date_trunc('day', ${pressCoverageTable.publishedAt})`, pressCoverageTable.sentiment)
+      .orderBy(sql`date_trunc('day', ${pressCoverageTable.publishedAt})`);
+
+    const byDay = new Map<string, Record<string, number>>();
+    for (const r of rows) {
+      const key = r.day;
+      if (!byDay.has(key)) byDay.set(key, { positive: 0, neutral: 0, negative: 0, mixed: 0, avgScore: 0, _total: 0 });
+      const d = byDay.get(key)!;
+      if (r.sentiment && r.sentiment in d) d[r.sentiment] = r.n;
+      const prevTotal = d._total;
+      d.avgScore = prevTotal === 0 ? r.score : (d.avgScore * prevTotal + r.score * r.n) / (prevTotal + r.n);
+      d._total += r.n;
+    }
+    const trend = Array.from(byDay.entries()).map(([day, d]) => {
+      const { _total: _, ...rest } = d;
+      return { day, ...rest };
+    });
+    res.json({ trend, days });
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : "Failed" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────
+// 9. Social post generator
+// ─────────────────────────────────────────────────────────
+router.post("/admin/ai/social-post", requireMedia, async (req: AuthRequest, res: Response) => {
+  if (!hasOpenAI()) return res.status(503).json({ error: "OPENAI_API_KEY not configured" });
+  const schema = z.object({
+    topic: z.string().min(5).max(2000),
+    platform: z.enum(["twitter", "facebook", "instagram", "youtube"]).optional(),
+    tone: z.enum(["formal", "warm", "celebratory", "urgent", "informative"]).default("warm"),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid payload", details: parsed.error.issues });
+  const { topic, platform, tone } = parsed.data;
+  const limits: Record<string, number> = { twitter: 280, facebook: 2000, instagram: 2200, youtube: 5000 };
+  const charLimit = platform ? (limits[platform] ?? 500) : 500;
+  const t0 = Date.now();
+  try {
+    const result = await chatJson<{ content_en: string; content_ta: string; hashtags: string[] }>([
+      { role: "system", content: `You are a social media manager for D. Sarath Kumar, Minister (TVK party), MLA of Tambaram Constituency, Chengalpattu District. Write an engaging ${platform ?? "social media"} post in a ${tone} tone. Keep English under ${charLimit} chars and Tamil under ${charLimit} chars. Include 3-5 relevant hashtags. Respond ONLY with strict JSON: {"content_en":"…","content_ta":"…","hashtags":["#tag1",…]}. Tamil must use proper Tamil script.` },
+      { role: "user", content: topic },
+    ]);
+    logUsage("social-post", topic.length, JSON.stringify(result).length, Date.now() - t0);
+    res.json({ post: result });
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : "Failed" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────
+// 10. Headline suggestions for news articles
+// ─────────────────────────────────────────────────────────
+router.post("/admin/ai/headline-suggestions", requireMedia, async (req: AuthRequest, res: Response) => {
+  if (!hasOpenAI()) return res.status(503).json({ error: "OPENAI_API_KEY not configured" });
+  const schema = z.object({
+    content: z.string().min(10).max(5000),
+    category: z.string().optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid payload" });
+  const t0 = Date.now();
+  try {
+    const result = await chatJson<{ headlines: Array<{ en: string; ta: string }> }>([
+      { role: "system", content: `You are an editor for D. Sarath Kumar MLA's official news portal. Generate 5 headline options for the given article. Respond ONLY with strict JSON: {"headlines":[{"en":"<English headline>","ta":"<Tamil headline in Tamil script>"},…]}. Headlines must be under 12 words, factual, and engaging.` },
+      { role: "user", content: `Category: ${parsed.data.category ?? "General"}\n\nContent:\n${parsed.data.content.slice(0, 3000)}` },
+    ]);
+    logUsage("headline-suggestions", parsed.data.content.length, JSON.stringify(result).length, Date.now() - t0);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : "Failed" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────
+// 11. Activity description expander
+// ─────────────────────────────────────────────────────────
+router.post("/admin/ai/expand-activity", requireMedia, async (req: AuthRequest, res: Response) => {
+  if (!hasOpenAI()) return res.status(503).json({ error: "OPENAI_API_KEY not configured" });
+  const schema = z.object({
+    title: z.string().min(3).max(500),
+    draft: z.string().max(3000).optional(),
+    category: z.string().optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid payload" });
+  const { title, draft, category } = parsed.data;
+  const t0 = Date.now();
+  try {
+    const result = await chatJson<{ description_en: string; description_ta: string }>([
+      { role: "system", content: `You are a content writer for D. Sarath Kumar MLA's official website. Expand a brief activity note into a well-written bilingual description. Write 2-3 warm, factual paragraphs. Respond ONLY with strict JSON: {"description_en":"…","description_ta":"…"}. Tamil must use proper Tamil script.` },
+      { role: "user", content: `Activity: ${title}\nCategory: ${category ?? "General"}\nDraft: ${draft ?? "(none)"}` },
+    ]);
+    logUsage("expand-activity", (title + (draft ?? "")).length, JSON.stringify(result).length, Date.now() - t0);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : "Failed" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────
+// 12. Admin Q&A — constituency assistant for staff
+// ─────────────────────────────────────────────────────────
+router.post("/admin/ai/ask", requireStaff, async (req: AuthRequest, res: Response) => {
+  if (!hasOpenAI()) return res.status(503).json({ error: "OPENAI_API_KEY not configured" });
+  const schema = z.object({
+    question: z.string().min(3).max(800),
+    context: z.enum(["general", "grievances", "appointments", "news"]).default("general"),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid payload" });
+  const { question, context: ctx } = parsed.data;
+
+  let ctxData = "";
+  if (ctx === "grievances") {
+    try {
+      const [stats] = await db.select({
+        total: sql<number>`count(*)::int`,
+        pending: sql<number>`count(*) filter (where ${grievancesTable.status} = 'Submitted')::int`,
+        inProgress: sql<number>`count(*) filter (where ${grievancesTable.status} = 'In Progress')::int`,
+        resolved: sql<number>`count(*) filter (where ${grievancesTable.status} = 'Resolved')::int`,
+      }).from(grievancesTable);
+      ctxData = `\nCurrent grievance stats: Total=${stats.total}, Pending=${stats.pending}, In Progress=${stats.inProgress}, Resolved=${stats.resolved}.`;
+    } catch { /* ignore */ }
+  }
+
+  const t0 = Date.now();
+  try {
+    const reply = await chat([
+      { role: "system", content: `You are an AI assistant for the constituency office of D. Sarath Kumar MLA (Tambaram, Chengalpattu District, TVK party). Answer questions about constituency management, governance, and operations concisely and helpfully. Mirror the user's language (Tamil or English).${ctxData}` },
+      { role: "user", content: question },
+    ], { temperature: 0.4, maxTokens: 500 });
+    logUsage("admin-ask", question.length, reply.length, Date.now() - t0);
+    res.json({ answer: reply });
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : "Failed" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────
+// Appointment priority scoring — exported for async use in site.ts
+// ─────────────────────────────────────────────────────────
+export async function scoreAppointment(id: number): Promise<void> {
+  if (!hasOpenAI()) return;
+  try {
+    const [appt] = await db.select().from(appointmentsTable).where(eq(appointmentsTable.id, id));
+    if (!appt) return;
+    const result = await chatJson<{ score: number; reason: string }>([
+      { role: "system", content: `You are a scheduling assistant for an Indian MLA's constituency office. Score the urgency/priority of an appointment request 1-100 (100 = most urgent). Consider category (Grievance Hearing → higher), subject seriousness, description, and party size. Respond ONLY with strict JSON: {"score":<1-100>,"reason":"<brief 1-line English reason>"}` },
+      { role: "user", content: `Category: ${appt.category}\nSubject: ${appt.subject}\nDescription: ${appt.description ?? "n/a"}\nParty size: ${appt.partySize}` },
+    ]);
+    const score = Math.min(100, Math.max(1, Math.round(result.score)));
+    await db.update(appointmentsTable).set({ aiPriorityScore: score }).where(eq(appointmentsTable.id, id));
+    logUsage("score-appointment", (appt.subject ?? "").length, String(score).length, 0);
+  } catch { /* non-blocking — ignore */ }
 }
 
 export default router;

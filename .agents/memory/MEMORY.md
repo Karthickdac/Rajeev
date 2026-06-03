@@ -1,1 +1,1 @@
-- [requireRole vs requireStaff auth](auth-require-role.md) — requireRole now self-authenticates; routers using it need no separate auth guard, but watch double-auth when combined with requireStaff.
+- [Admin settings allowlist](admin-settings-allowlist.md) — new site_config keys must be added to BOTH the GET and PUT allowlists in admin.ts or they silently won't persist.
