@@ -15,6 +15,7 @@ import {
   Clock, AlertTriangle, MessageSquare, Filter, X, Paperclip, Users,
   ListChecks, CalendarRange, FileDown, FileText, Inbox, UserCheck, UserX, Search,
   Image, Video, Music, MapPin, ExternalLink, Download, Globe, Building2,
+  Sparkles,
 } from "lucide-react";
 import type { Language } from "@/lib/i18n";
 import {
@@ -26,10 +27,26 @@ import {
   updateGrievancePriority,
 } from "@workspace/api-client-react";
 import type { GrievanceListItem } from "@workspace/api-client-react";
+import { adminApi } from "./admin/api";
 import { useWards } from "@/lib/useWards";
 import WardCombobox from "@/components/WardCombobox";
 
 interface GrievanceOfficerProps { lang: Language; token: string; userRole?: string }
+
+// AI assist response shapes (from /admin/grievances/:id/similar + /suggest-resolution)
+interface SimilarCase {
+  id: number; ticketNo: string; name: string; category: string;
+  description: string; status: string; score: number | null;
+}
+interface SimilarResponse {
+  similar: SimilarCase[];
+  resolvedTemplate: { grievanceId: number; ticketNo: string; score: number; remark: string } | null;
+  mode: string;
+}
+interface ResolutionSuggestion {
+  resolution_en: string; resolution_ta: string;
+  steps: string[]; department: string; expected_days: number;
+}
 
 // Full staff-view detail type — includes internal remarks and attachments
 interface StaffGrievanceDetail {
@@ -165,6 +182,35 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
   const [assignOfficerId, setAssignOfficerId] = useState<string>("");
   const [assignNote, setAssignNote] = useState("");
   const [newPriority, setNewPriority] = useState("");
+  // AI assist (similar cases + resolution draft) for the open grievance.
+  const [similar, setSimilar] = useState<SimilarResponse | null>(null);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const [resolution, setResolution] = useState<ResolutionSuggestion | null>(null);
+  const [resolutionLoading, setResolutionLoading] = useState(false);
+  const [aiErr, setAiErr] = useState("");
+
+  async function loadSimilar(id: number) {
+    setSimilarLoading(true);
+    try {
+      const res = await adminApi.similarGrievances(id) as SimilarResponse;
+      setSimilar(res);
+    } catch { setSimilar(null); }
+    finally { setSimilarLoading(false); }
+  }
+
+  async function suggestResolutionFor(id: number) {
+    setResolutionLoading(true);
+    setAiErr("");
+    setResolution(null);
+    try {
+      const res = await adminApi.suggestResolution(id) as { suggestion: ResolutionSuggestion };
+      setResolution(res.suggestion);
+    } catch (e) {
+      setAiErr(e instanceof Error ? e.message : (lang === "ta" ? "பரிந்துரை தோல்வி" : "Suggestion failed"));
+    } finally {
+      setResolutionLoading(false);
+    }
+  }
 
   const { data: officersData } = useQuery({
     queryKey: ["grievance-officers"],
@@ -236,6 +282,10 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
     setRemarkText("");
     setAssignOfficerId("");
     setAssignNote("");
+    setSimilar(null);
+    setResolution(null);
+    setAiErr("");
+    void loadSimilar(item.id);
     try {
       const d = await fetchStaffDetail(item.id, token);
       setDetail(d);
@@ -1403,6 +1453,77 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
                 </Button>
               </div>
               )}
+
+              {/* AI Assist — Similar Cases + Resolution suggestion */}
+              <div className="border rounded-lg p-4 space-y-3 bg-amber-50/40">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  {lang === "ta" ? "AI உதவி" : "AI Assist"}
+                </h4>
+
+                {/* Similar resolved cases */}
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">{lang === "ta" ? "ஒத்த வழக்குகள்" : "Similar Cases"}</p>
+                  {similarLoading ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 className="w-3.5 h-3.5 animate-spin" />{lang === "ta" ? "ஏற்றுகிறது…" : "Loading…"}</div>
+                  ) : similar && similar.similar.length > 0 ? (
+                    <ul className="space-y-1.5">
+                      {similar.similar.slice(0, 3).map((c) => (
+                        <li key={c.id} className="text-xs bg-background rounded px-2 py-1.5 border">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-mono text-primary">{c.ticketNo}</span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {c.status}{c.score != null ? ` · ${Math.round(c.score * 100)}%` : ""}
+                            </span>
+                          </div>
+                          <p className="text-muted-foreground line-clamp-2 mt-0.5">{c.description}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{lang === "ta" ? "ஒத்த வழக்குகள் இல்லை" : "No similar cases found."}</p>
+                  )}
+                  {similar?.resolvedTemplate && (
+                    <div className="text-xs bg-green-50 border border-green-200 rounded px-2 py-1.5 space-y-1">
+                      <p className="font-medium text-green-800">{lang === "ta" ? "முந்தைய தீர்வு வார்ப்புரு" : "Resolution template"} ({similar.resolvedTemplate.ticketNo})</p>
+                      <p className="text-green-900 line-clamp-3">{similar.resolvedTemplate.remark}</p>
+                      <Button size="sm" variant="outline" className="h-7 text-xs"
+                        onClick={() => setRemarkText(similar.resolvedTemplate!.remark)}>
+                        {lang === "ta" ? "வார்ப்புருவைப் பயன்படுத்து" : "Use as template"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Resolution suggestion */}
+                <div className="space-y-2 border-t pt-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-muted-foreground">{lang === "ta" ? "தீர்வு பரிந்துரை" : "Suggest Resolution"}</p>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => suggestResolutionFor(selected!.id)} disabled={resolutionLoading}>
+                      {resolutionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                      <span className="ml-1">{lang === "ta" ? "உருவாக்கு" : "Generate"}</span>
+                    </Button>
+                  </div>
+                  {aiErr && <p className="text-xs text-red-600">{aiErr}</p>}
+                  {resolution && (
+                    <div className="text-xs bg-background border rounded px-2 py-2 space-y-1.5">
+                      <p className="whitespace-pre-wrap">{lang === "ta" ? resolution.resolution_ta : resolution.resolution_en}</p>
+                      {resolution.steps?.length > 0 && (
+                        <ul className="list-disc ml-4 text-muted-foreground">
+                          {resolution.steps.map((s, i) => <li key={i}>{s}</li>)}
+                        </ul>
+                      )}
+                      <p className="text-[10px] text-muted-foreground">
+                        {resolution.department}{resolution.expected_days ? ` · ~${resolution.expected_days} ${lang === "ta" ? "நாட்கள்" : "days"}` : ""}
+                      </p>
+                      <Button size="sm" variant="outline" className="h-7 text-xs"
+                        onClick={() => setRemarkText(lang === "ta" ? resolution.resolution_ta : resolution.resolution_en)}>
+                        {lang === "ta" ? "குறிப்பாக நகலெடு" : "Copy to remark"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Add Remark */}
               <div className="border rounded-lg p-4 space-y-3">

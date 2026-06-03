@@ -4,7 +4,7 @@ import {
   grievancesTable, grievanceRemarksTable, pressCoverageTable, siteConfigTable, faqsTable,
   newsTable, eventsTable, promisesTable, auditLogTable, appointmentsTable,
 } from "@workspace/db/schema";
-import { and, desc, eq, gte, isNotNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireStaff, requireRole, type AuthRequest } from "../lib/auth.js";
 import { hasOpenAI, chat, chatJson, embed, cosineSimilarity, type ChatMessage } from "../lib/ai.js";
@@ -64,6 +64,8 @@ export async function triageGrievance(id: number): Promise<TriageResult | null> 
   await db.update(grievancesTable).set({
     aiCategory: result.category,
     aiPriority: result.priority,
+    // Spec: auto-triage sets the working `priority` (not just the AI shadow column).
+    priority: result.priority,
     aiSummary: result.summary_en,
     aiSummaryTa: result.summary_ta,
     aiSuggestedRoute: result.suggested_route,
@@ -118,7 +120,8 @@ router.get("/admin/grievances/:id/similar", requireContent, async (req: AuthRequ
   }
 
   if (!seedVec) {
-    // Fallback: simple full-text search on description (handy if no AI key)
+    // Fallback: simple category match (handy if no AI key). Spec: surface only
+    // previously resolved/closed cases so the officer gets a usable template.
     const rows = await db.select({
       id: grievancesTable.id, ticketNo: grievancesTable.ticketNo, name: grievancesTable.name,
       category: grievancesTable.category, description: grievancesTable.description,
@@ -126,8 +129,9 @@ router.get("/admin/grievances/:id/similar", requireContent, async (req: AuthRequ
     }).from(grievancesTable).where(and(
       ne(grievancesTable.id, id),
       eq(grievancesTable.category, seed.category),
+      inArray(grievancesTable.status, ["Resolved", "Closed"]),
     )).orderBy(desc(grievancesTable.createdAt)).limit(limit);
-    return res.json({ similar: rows.map((r) => ({ ...r, score: null })), mode: "fallback-category" });
+    return res.json({ similar: rows.map((r) => ({ ...r, score: null })), resolvedTemplate: null, mode: "fallback-category" });
   }
 
   // Pull only rows that already have an embedding (efficient subset).
@@ -145,7 +149,8 @@ router.get("/admin/grievances/:id/similar", requireContent, async (req: AuthRequ
   }).filter((c) => c.score >= threshold)
     .sort((a, b) => b.score - a.score);
 
-  const scored = allScored.slice(0, limit);
+  // Spec: the panel shows the top previously resolved/closed similar cases.
+  const scored = allScored.filter((c) => c.status === "Resolved" || c.status === "Closed").slice(0, limit);
 
   // Resolution template: surface how the most similar already-resolved case was
   // handled, so the officer can reuse a proven remark.
@@ -380,6 +385,7 @@ router.post("/admin/press-coverage/refresh", requireMedia, async (req: AuthReque
   if (!parsed.success) return res.status(400).json({ error: "Invalid payload" });
   const q = parsed.data.query || "\"Sarath Kumar\" OR \"Tambaram MLA\" OR TVK";
   const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-IN&gl=IN&ceid=IN:en`;
+  const settings = await loadAiSettings();
   try {
     const xml = await (await fetch(rssUrl)).text();
     const items = parseRssItems(xml).slice(0, 25);
@@ -398,7 +404,7 @@ router.post("/admin/press-coverage/refresh", requireMedia, async (req: AuthReque
           const ai = await chatJson<{ summary_en: string; summary_ta: string; sentiment: string; score: number; topics: string[] }>([
             { role: "system", content: `Summarise this news article about an Indian politician in 2 sentences (English + Tamil) and classify sentiment. Return strict JSON: {"summary_en":"…","summary_ta":"…","sentiment":"positive|neutral|negative|mixed","score":-100..100,"topics":[…]}` },
             { role: "user", content: `Source: ${it.source}\nTitle: ${it.title}\nSnippet: ${it.snippet}` },
-          ]);
+          ], { model: settings.modelName, temperature: settings.temperature, maxTokens: settings.maxTokens });
           summaryEn = ai.summary_en; summaryTa = ai.summary_ta;
           sentiment = ai.sentiment; sentimentScore = ai.score;
           topics = (ai.topics || []).join(",");
