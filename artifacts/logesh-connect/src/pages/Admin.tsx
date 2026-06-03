@@ -112,7 +112,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "minister-press",      label: "Press & News",     icon: Newspaper,    group: "content",  roles: ["minister"] },
 
   // Overview
-  { id: "leader-dashboard", label: "Leader Dashboard", icon: Trophy, group: "overview", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "leader-dashboard", label: "Leader Dashboard", icon: Trophy, group: "overview", roles: ["super_admin", "admin", "pa_staff", "grievance_officer", "minister"] },
   { id: "dashboard",  label: "Dashboard",   icon: LayoutDashboard, group: "overview" },
   { id: "analytics",  label: "Analytics",   icon: BarChart3,       group: "overview", roles: ["super_admin", "admin", "constituency_coordinator"] },
 
@@ -172,7 +172,7 @@ const NAV_ITEMS: NavItem[] = [
 // Minister sees a slim, read-only-focused sidebar. We restrict the visible
 // items via an allowlist and present them under friendly group labels.
 const MINISTER_ALLOW = [
-  "minister-home", "grievances", "minister-events",
+  "minister-home", "leader-dashboard", "grievances", "minister-events",
   "minister-activities", "minister-promises", "minister-press",
 ];
 const MINISTER_GROUPS: NavGroup[] = [
@@ -572,7 +572,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           {active === "minister-activities" && <MinisterReadOnly lang={lang} section="activities" />}
           {active === "minister-promises"   && <MinisterReadOnly lang={lang} section="promises" />}
           {active === "minister-press"      && <MinisterReadOnly lang={lang} section="press" />}
-          {active === "leader-dashboard" && <LeaderDashboard lang={lang} readOnly={role === "grievance_officer" || role === "pa_staff"} />}
+          {active === "leader-dashboard" && <LeaderDashboard lang={lang} readOnly={role === "grievance_officer" || role === "pa_staff" || role === "minister"} />}
           {active === "dashboard"    && <Dashboard lang={lang} />}
           {active === "tasks"        && <TasksAdmin lang={lang} />}
           {active === "calendar"     && <CalendarAdmin lang={lang} />}

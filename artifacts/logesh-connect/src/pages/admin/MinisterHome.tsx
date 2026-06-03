@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Sunrise, Sun, Sunset, CalendarClock, AlertTriangle, MessageSquare,
-  Newspaper, ExternalLink, ArrowRight, MapPin, Crown,
+  Newspaper, ExternalLink, ArrowRight, MapPin, Crown, LayoutDashboard,
 } from "lucide-react";
 import { adminApi } from "./api";
 import CdiCard from "./CdiCard";
@@ -222,10 +222,15 @@ export default function MinisterHome({ lang = "ta" }: { lang?: Language }) {
         </Card>
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex flex-wrap justify-center gap-3">
         <Button variant="outline" onClick={() => goToTab("grievances")} className="gap-2">
           <MessageSquare className="w-4 h-4" />
           {lc(lang, "Review Grievances", "புகார்களை பார்")}
+          <ArrowRight className="w-4 h-4" />
+        </Button>
+        <Button onClick={() => goToTab("leader-dashboard")} className="gap-2">
+          <LayoutDashboard className="w-4 h-4" />
+          {lc(lang, "View Full Dashboard", "முழு டாஷ்போர்டு பார்")}
           <ArrowRight className="w-4 h-4" />
         </Button>
       </div>

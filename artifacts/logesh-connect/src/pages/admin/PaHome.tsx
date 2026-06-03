@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   CalendarClock, MessageSquare, AlertTriangle, Users, MapPin,
   Plus, Newspaper, Activity as ActivityIcon, ClipboardList, Loader2,
+  UserCheck, Radio,
 } from "lucide-react";
 import { adminApi } from "./api";
 import { type Language } from "@/lib/i18n";
@@ -114,8 +115,8 @@ export default function PaHome({ lang = "ta" }: { lang?: Language }) {
     { label: lc(lang, "Log Activity", "செயல்பாடு பதிவு"), icon: ActivityIcon, tab: "activities" },
     { label: lc(lang, "Add Event", "நிகழ்வு சேர்"), icon: Plus, tab: "events" },
     { label: lc(lang, "Post News", "செய்தி இடு"), icon: Newspaper, tab: "news" },
-    { label: lc(lang, "Manage Grievances", "புகார்கள்"), icon: MessageSquare, tab: "grievances" },
-    { label: lc(lang, "Volunteers", "தன்னார்வலர்கள்"), icon: Users, tab: "volunteers" },
+    { label: lc(lang, "Assign Grievance", "புகார் ஒதுக்கு"), icon: UserCheck, tab: "grievances" },
+    { label: lc(lang, "Send Broadcast", "ஒளிபரப்பு அனுப்பு"), icon: Radio, tab: "broadcast" },
   ];
 
   if (loading) {

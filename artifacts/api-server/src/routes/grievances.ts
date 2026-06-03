@@ -13,7 +13,10 @@ import {
   auditLogTable,
   usersTable,
 } from "@workspace/db/schema";
-import { requireStaff, type AuthRequest } from "../lib/auth.js";
+import { requireStaff, requireStaffExcept, type AuthRequest } from "../lib/auth.js";
+
+// Staff who may VIEW grievances but never mutate them (read-only roles).
+const requireGrievanceManager = requireStaffExcept("minister");
 import { eq, desc, and, count, gte, lte, sql, inArray } from "drizzle-orm";
 import {
   resolveOwnerForGrievance, logRouting, resolveWardId,
@@ -415,7 +418,7 @@ router.get("/grievances/officers", requireStaff, async (_req, res) => {
 });
 
 // PATCH /api/grievances/:id/priority — staff only
-router.patch("/grievances/:id/priority", requireStaff, async (req: AuthRequest, res) => {
+router.patch("/grievances/:id/priority", requireGrievanceManager, async (req: AuthRequest, res) => {
   try {
     const id = parseInt(req.params.id as string);
     const PriorityBody = z.object({
@@ -520,7 +523,7 @@ router.get("/grievances/:id", requireStaff, async (req: AuthRequest, res) => {
 });
 
 // PATCH /api/grievances/:id/status — staff only
-router.patch("/grievances/:id/status", requireStaff, async (req: AuthRequest, res) => {
+router.patch("/grievances/:id/status", requireGrievanceManager, async (req: AuthRequest, res) => {
   try {
     const id = parseInt(req.params.id as string);
     const body = StatusUpdateBody.safeParse(req.body);
@@ -584,7 +587,7 @@ router.post("/grievances/:id/remarks", requireStaff, async (req: AuthRequest, re
 });
 
 // POST /api/grievances/:id/assign — staff only
-router.post("/grievances/:id/assign", requireStaff, async (req: AuthRequest, res) => {
+router.post("/grievances/:id/assign", requireGrievanceManager, async (req: AuthRequest, res) => {
   try {
     const id = parseInt(req.params.id as string);
     const body = AssignBody.safeParse(req.body);

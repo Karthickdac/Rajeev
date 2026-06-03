@@ -11,6 +11,18 @@ import { AlertCircle, Lock } from "lucide-react";
 import { useLogin } from "@workspace/api-client-react";
 import { setToken } from "@/lib/auth";
 
+/** Decode the role claim from a JWT payload without verifying the signature. */
+function roleFromToken(token: string): string | null {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    const json = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
+    return (JSON.parse(json) as { role?: string }).role ?? null;
+  } catch {
+    return null;
+  }
+}
+
 const schema = z.object({
   email: z.string().email("Valid email required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -34,6 +46,9 @@ export default function Login() {
       {
         onSuccess: (data) => {
           setToken(data.token);
+          const role = roleFromToken(data.token);
+          const home = role === "minister" ? "minister-home" : role === "pa_staff" ? "pa-home" : "";
+          if (home) window.location.hash = home;
           setLocation("/admin");
         },
         onError: () => setError("Invalid credentials. Please try again."),

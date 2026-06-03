@@ -123,3 +123,20 @@ export function requireRole(...roles: string[]): (req: AuthRequest, res: Respons
     next();
   };
 }
+
+/**
+ * Factory: allow any staff member EXCEPT the listed roles.
+ * Used for read-only staff roles (e.g. minister) who may view but not mutate.
+ */
+export function requireStaffExcept(...excluded: string[]): (req: AuthRequest, res: Response, next: NextFunction) => void {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    requireStaff(req, res, () => {
+      const role = req.user?.role;
+      if (role && excluded.includes(role)) {
+        res.status(403).json({ error: "Forbidden: read-only role cannot perform this action" });
+        return;
+      }
+      next();
+    });
+  };
+}
