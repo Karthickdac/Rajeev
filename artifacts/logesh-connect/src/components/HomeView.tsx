@@ -226,7 +226,7 @@ export function HomeView({
             <Badge className="mb-3 md:mb-4 bg-yellow-400/20 text-yellow-300 border-yellow-400/30 text-[11px] md:text-xs font-medium px-3 py-1">
               {tx(config.badge, config.badgeTa)}
             </Badge>
-            <h1 className="text-[28px] sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] mb-3 md:mb-4">
+            <h1 className="text-[34px] sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-3 md:mb-4">
               {tx(config.headline, config.headlineTa)}
             </h1>
             <p className="text-base sm:text-lg md:text-2xl text-yellow-300 font-semibold mb-3 md:mb-6 leading-snug">

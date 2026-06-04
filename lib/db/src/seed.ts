@@ -64,7 +64,7 @@ type PollingPdfBooth = {
 // ── Tenant leader configurations ─────────────────────────────────────
 const TENANT_CONFIGS: Record<string, object> = {
   logesh: {
-    nameEn: "VK Rajeev",
+    nameEn: "V.K. Rajeev",
     nameTa: "வி.கே. ராஜீவ்",
     titleEn: "Minister for Environment & Climate Change",
     titleTa: "சுற்றுச்சூழல் மற்றும் காலநிலை மாற்றம் அமைச்சர்",
@@ -112,7 +112,7 @@ async function seed() {
     },
     {
       email: "minister@ungalrajeev.in",
-      name: "VK Rajeev",
+      name: "V.K. Rajeev",
       passwordHash: hashPassword("Minister@2026"),
       role: "minister",
       isActive: "true",
@@ -154,9 +154,9 @@ async function seed() {
   // News
   await db.insert(newsTable).values([
     {
-      title: "VK Rajeev Launches Solar-Powered Street Lighting in Thiruvadanai",
+      title: "V.K. Rajeev Launches Solar-Powered Street Lighting in Thiruvadanai",
       titleTa: "திருவடனையில் சூரிய சக்தி தெரு விளக்கு திட்டம் – வி.கே. ராஜீவ் தொடக்கம்",
-      content: "VK Rajeev, Minister for Environment & Climate Change and MLA of Thiruvadanai, launched a solar-powered street lighting project covering 12 villages in the constituency. The initiative replaces 800 conventional bulbs with LED solar lamps, reducing carbon emissions and electricity costs.",
+      content: "V.K. Rajeev, Minister for Environment & Climate Change and MLA of Thiruvadanai, launched a solar-powered street lighting project covering 12 villages in the constituency. The initiative replaces 800 conventional bulbs with LED solar lamps, reducing carbon emissions and electricity costs.",
       contentTa: "சுற்றுச்சூழல் மற்றும் காலநிலை மாற்றம் அமைச்சர் வி.கே. ராஜீவ் திருவடனை தொகுதியில் 12 கிராமங்களை உள்ளடக்கிய சூரிய சக்தி தெரு விளக்கு திட்டத்தை தொடக்கி வைத்தார். 800 பழைய விளக்குகளை LED சூரிய விளக்குகளாக மாற்றும் இந்த திட்டம் மின் செலவை குறைக்கும்.",
       category: "development",
       featured: true,
@@ -165,7 +165,7 @@ async function seed() {
     {
       title: "Free Medical Camp Provides Treatment to 5,000 Residents in Thiruvadanai",
       titleTa: "திருவடனையில் 5,000 மக்களுக்கு இலவச மருத்துவ முகாம்",
-      content: "A mega free medical camp was organized by VK Rajeev's office in collaboration with government hospitals in Thiruvadanai. Over 5,000 residents received free consultation, medicines, and diagnostic tests.",
+      content: "A mega free medical camp was organized by V.K. Rajeev's office in collaboration with government hospitals in Thiruvadanai. Over 5,000 residents received free consultation, medicines, and diagnostic tests.",
       contentTa: "வி.கே. ராஜீவின் அலுவலகம் திருவடனை அரசு மருத்துவமனைகளுடன் இணைந்து மெகா இலவச மருத்துவ முகாம் ஏற்பாடு செய்தது. 5,000க்கும் மேற்பட்ட மக்கள் இலவச ஆலோசனை, மருந்துகள் பெற்றனர்.",
       category: "welfare",
       featured: true,
@@ -174,7 +174,7 @@ async function seed() {
     {
       title: "Mangrove Restoration Drive Covers 200 Acres in Thiruvadanai Coast",
       titleTa: "திருவடனை கடற்கரையில் 200 ஏக்கர் சதுப்பு நிலம் மறுவாழ்வு",
-      content: "Under the leadership of Minister VK Rajeev, a massive mangrove restoration drive was launched along the Thiruvadanai coastline. 200 acres of degraded coastal land were replanted with native mangrove species, protecting fishing communities from erosion and cyclones.",
+      content: "Under the leadership of Minister V.K. Rajeev, a massive mangrove restoration drive was launched along the Thiruvadanai coastline. 200 acres of degraded coastal land were replanted with native mangrove species, protecting fishing communities from erosion and cyclones.",
       contentTa: "அமைச்சர் வி.கே. ராஜீவின் தலைமையில் திருவடனை கடற்கரையில் சதுப்பு நில மறுவாழ்வு பணிகள் தொடங்கப்பட்டன. 200 ஏக்கர் சிதிலமடைந்த கடற்கரை நிலத்தில் உள்ளூர் சதுப்பு நில மரங்கள் நடப்பட்டன.",
       category: "development",
       featured: true,
@@ -223,7 +223,7 @@ async function seed() {
     {
       title: "Constituency Meeting & Public Hearing",
       titleTa: "தொகுதி கூட்டம் & பொது விசாரணை",
-      description: "Monthly public hearing where residents can directly present their issues to VK Rajeev. All are welcome. No appointment needed.",
+      description: "Monthly public hearing where residents can directly present their issues to V.K. Rajeev. All are welcome. No appointment needed.",
       descriptionTa: "மாதாந்திர பொது விசாரணை - மக்கள் நேரடியாக வி.கே. ராஜீவிடம் தங்கள் பிரச்சினைகளை தெரிவிக்கலாம்.",
       venue: "Town Panchayat Hall, Thiruvadanai",
       eventDate: futureDate1,
@@ -250,7 +250,7 @@ async function seed() {
     {
       title: "Coastal Clean-Up & Tree Plantation Drive – Green Thiruvadanai",
       titleTa: "கடற்கரை சுத்திகரிப்பு & மர நடவடிக்கை – பசுமை திருவடனை",
-      description: "VK Rajeev led a constituency-wide coastal clean-up and tree plantation drive with volunteers. Over 2,000 saplings were planted and 5 km of coastline cleaned.",
+      description: "V.K. Rajeev led a constituency-wide coastal clean-up and tree plantation drive with volunteers. Over 2,000 saplings were planted and 5 km of coastline cleaned.",
       descriptionTa: "வி.கே. ராஜீவ் தன்னார்வலர்களுடன் கடற்கரை சுத்திகரிப்பு மற்றும் மர நடவடிக்கையை நடத்தினார். 2,000 மரக்கன்றுகள் நடப்பட்டன; 5 கி.மீ. கடற்கரை சுத்தம் செய்யப்பட்டது.",
       venue: "Thiruvadanai Coastline",
       eventDate: pastDate1,
@@ -429,14 +429,14 @@ async function seed() {
   // FAQs
   await db.insert(faqsTable).values([
     {
-      question: "How do I submit a grievance to VK Rajeev's office?",
+      question: "How do I submit a grievance to V.K. Rajeev's office?",
       questionTa: "வி.கே. ராஜீவின் அலுவலகத்திற்கு புகார் எப்படி அனுப்புவது?",
       answer: "You can submit a grievance through the Grievance Portal on this website. Fill in your name, contact number, category, and description of the issue. You will receive a unique ticket number to track the status of your complaint.",
       answerTa: "இந்த வலைத்தளத்தில் உள்ள புகார் மையம் மூலம் புகார் அனுப்பலாம். பெயர், தொலைபேசி, வகை மற்றும் பிரச்சினையின் விவரங்களை பூர்த்தி செய்யுங்கள். உங்கள் புகாரின் நிலையை கண்காணிக்க தனித்துவமான புகார் எண் கிடைக்கும்.",
       order: 1,
     },
     {
-      question: "What are the office hours for VK Rajeev's constituency office?",
+      question: "What are the office hours for V.K. Rajeev's constituency office?",
       questionTa: "வி.கே. ராஜீவின் தொகுதி அலுவலகம் எப்போது திறந்திருக்கும்?",
       answer: "The constituency office is open Monday to Saturday, 9:00 AM to 6:00 PM. The office is closed on Sundays and public holidays.",
       answerTa: "தொகுதி அலுவலகம் திங்கள் முதல் சனி வரை, காலை 9:00 மணி முதல் மாலை 6:00 மணி வரை திறந்திருக்கும். ஞாயிறுகள் மற்றும் பொது விடுமுறை நாட்களில் மூடல்.",
