@@ -48,6 +48,14 @@ interface Appointment {
 const STATUSES = ["Pending", "Approved", "Rescheduled", "Completed", "Rejected", "Cancelled"];
 const CATEGORIES = ["Constituency Meeting", "Grievance Hearing", "Official Visit", "Media", "General"];
 
+const CATEGORY_TA: Record<string, string> = {
+  "Constituency Meeting": "தொகுதி சந்திப்பு",
+  "Grievance Hearing": "புகார் விசாரணை",
+  "Official Visit": "அதிகாரப்பூர்வ வருகை",
+  "Media": "ஊடகம்",
+  "General": "பொது",
+};
+
 const STATUS_META: Record<string, { ta: string; cls: string; icon: typeof Clock }> = {
   Pending: { ta: "நிலுவையில்", cls: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300", icon: Clock },
   Approved: { ta: "அங்கீகரிக்கப்பட்டது", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300", icon: CheckCircle },
@@ -195,7 +203,7 @@ export default function AppointmentsAdmin({ lang, role }: AppointmentsAdminProps
               <SelectTrigger className="w-[180px]" data-testid="select-filter-category"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{lc("All purposes", "எல்லா நோக்கங்கள்")}</SelectItem>
-                {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{lc(c, CATEGORY_TA[c] ?? c)}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -229,7 +237,7 @@ export default function AppointmentsAdmin({ lang, role }: AppointmentsAdminProps
                           <div className="font-medium flex items-center gap-1.5">
                             {a.name}
                             {a.aiPriorityScore !== null && a.aiPriorityScore !== undefined && (
-                              <span title={`AI Priority: ${a.aiPriorityScore}/5`}
+                              <span title={lc(`AI Priority: ${a.aiPriorityScore}/5`, `AI முன்னுரிமை: ${a.aiPriorityScore}/5`)}
                                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                                   a.aiPriorityScore >= 4 ? "bg-red-100 text-red-700" :
                                   a.aiPriorityScore >= 3 ? "bg-amber-100 text-amber-700" :
@@ -239,7 +247,7 @@ export default function AppointmentsAdmin({ lang, role }: AppointmentsAdminProps
                           </div>
                           <div className="text-xs text-muted-foreground">{a.phone}</div>
                         </td>
-                        <td className="px-4 py-2.5 hidden md:table-cell">{a.category}</td>
+                        <td className="px-4 py-2.5 hidden md:table-cell">{lc(a.category, CATEGORY_TA[a.category] ?? a.category)}</td>
                         <td className="px-4 py-2.5 hidden lg:table-cell text-muted-foreground">{fmtDate(a.preferredDate)} {a.preferredTime ?? ""}</td>
                         <td className="px-4 py-2.5 hidden lg:table-cell text-muted-foreground">{fmtDate(a.scheduledDate)} {a.scheduledTime ?? ""}</td>
                         <td className="px-4 py-2.5">
@@ -471,7 +479,7 @@ function AppointmentDrawer({ lang, readOnly, canDelete, appointment, onClose, on
           </div>
 
           <div className="border-t pt-3 space-y-2 text-sm">
-            <p><span className="font-medium">{lc("Purpose:", "நோக்கம்:")}</span> {a.category}</p>
+            <p><span className="font-medium">{lc("Purpose:", "நோக்கம்:")}</span> {lc(a.category, CATEGORY_TA[a.category] ?? a.category)}</p>
             <p><span className="font-medium">{lc("Subject:", "தலைப்பு:")}</span> {a.subject}</p>
             {a.description && <p className="text-muted-foreground whitespace-pre-wrap">{a.description}</p>}
             <p className="text-xs text-muted-foreground">

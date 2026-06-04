@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, ExternalLink, Trash2, Newspaper, Loader2, AlertCircle } from "lucide-react";
 import { adminApi } from "./api";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 interface Coverage {
   id: number;
@@ -29,6 +31,7 @@ const SENT_COLOR: Record<string, string> = {
 };
 
 export default function PressCoverageAdmin() {
+  const { lang } = useLanguage();
   const [items, setItems] = useState<Coverage[]>([]);
   const [query, setQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -41,7 +44,7 @@ export default function PressCoverageAdmin() {
     try {
       const r = await adminApi.getPressCoverage();
       setItems(r.items ?? []);
-    } catch (e) { setErr(e instanceof Error ? e.message : "Failed"); }
+    } catch (e) { setErr(e instanceof Error ? e.message : lc(lang, "Failed", "தோல்வியடைந்தது")); }
     finally { setLoading(false); }
   }
   useEffect(() => { void reload(); }, []);
@@ -50,14 +53,14 @@ export default function PressCoverageAdmin() {
     setRefreshing(true); setErr(null); setStatus(null);
     try {
       const r = await adminApi.refreshPressCoverage(query.trim() || undefined);
-      setStatus(`Added ${r.added} new article(s), ${r.skipped} already known.`);
+      setStatus(lc(lang, `Added ${r.added} new article(s), ${r.skipped} already known.`, `${r.added} புதிய கட்டுரை(கள்) சேர்க்கப்பட்டன, ${r.skipped} ஏற்கனவே உள்ளன.`));
       reload();
-    } catch (e) { setErr(e instanceof Error ? e.message : "Refresh failed"); }
+    } catch (e) { setErr(e instanceof Error ? e.message : lc(lang, "Refresh failed", "புதுப்பிப்பு தோல்வியடைந்தது")); }
     finally { setRefreshing(false); }
   }
 
   async function remove(id: number) {
-    if (!window.confirm("Remove this article?")) return;
+    if (!window.confirm(lc(lang, "Remove this article?", "இந்த கட்டுரையை நீக்கவா?"))) return;
     await adminApi.deletePressCoverage(id);
     reload();
   }
@@ -68,17 +71,28 @@ export default function PressCoverageAdmin() {
     return acc;
   }, {} as Record<string, number>);
 
+  const sentLabel = (k: string): string => {
+    switch (k) {
+      case "positive": return lc(lang, "positive", "சாதகம்");
+      case "neutral": return lc(lang, "neutral", "நடுநிலை");
+      case "negative": return lc(lang, "negative", "எதிர்மறை");
+      case "mixed": return lc(lang, "mixed", "கலப்பு");
+      case "unknown": return lc(lang, "unknown", "தெரியாதது");
+      default: return k;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-lg font-semibold flex items-center gap-2"><Newspaper className="w-5 h-5 text-primary" /> Press Coverage Tracker</h2>
-          <p className="text-sm text-muted-foreground">News mentions auto-pulled from Google News and summarised in Tamil + English by AI.</p>
+          <h2 className="text-lg font-semibold flex items-center gap-2"><Newspaper className="w-5 h-5 text-primary" /> {lc(lang, "Press Coverage Tracker", "செய்தி வெளியீட்டு கண்காணிப்பு")}</h2>
+          <p className="text-sm text-muted-foreground">{lc(lang, "News mentions auto-pulled from Google News and summarised in Tamil + English by AI.", "Google News-இல் இருந்து தானாக பெறப்பட்டு AI மூலம் தமிழ் + ஆங்கிலத்தில் சுருக்கப்பட்ட செய்தி குறிப்புகள்.")}</p>
         </div>
         <div className="flex gap-2 items-center flex-wrap">
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Override query (optional)" className="w-64" />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={lc(lang, "Override query (optional)", "தேடல் வினவலை மாற்று (விருப்பம்)")} className="w-64" />
           <Button onClick={refresh} disabled={refreshing}>
-            {refreshing ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Pulling…</> : <><RefreshCw className="w-4 h-4 mr-1" /> Pull latest</>}
+            {refreshing ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> {lc(lang, "Pulling…", "பெறுகிறது…")}</> : <><RefreshCw className="w-4 h-4 mr-1" /> {lc(lang, "Pull latest", "சமீபத்தியதைப் பெறு")}</>}
           </Button>
         </div>
       </div>
@@ -91,15 +105,15 @@ export default function PressCoverageAdmin() {
       {items.length > 0 && (
         <div className="flex flex-wrap gap-2 text-xs">
           {Object.entries(counts).map(([k, n]) => (
-            <Badge key={k} variant="outline" className={SENT_COLOR[k] ?? "bg-gray-50"}>{k}: {n}</Badge>
+            <Badge key={k} variant="outline" className={SENT_COLOR[k] ?? "bg-gray-50"}>{sentLabel(k)}: {n}</Badge>
           ))}
         </div>
       )}
 
-      {loading && <div className="text-center text-muted-foreground py-6">Loading…</div>}
+      {loading && <div className="text-center text-muted-foreground py-6">{lc(lang, "Loading…", "ஏற்றுகிறது…")}</div>}
       {!loading && items.length === 0 && (
         <div className="border rounded-md p-6 text-center text-sm text-muted-foreground">
-          No coverage yet. Click "Pull latest" to fetch from Google News.
+          {lc(lang, 'No coverage yet. Click "Pull latest" to fetch from Google News.', 'இதுவரை செய்திகள் இல்லை. Google News-இல் இருந்து பெற "சமீபத்தியதைப் பெறு" என்பதைக் கிளிக் செய்யவும்.')}
         </div>
       )}
 
@@ -113,7 +127,7 @@ export default function PressCoverageAdmin() {
                     <Badge variant="outline" className="text-xs">{it.source}</Badge>
                     {it.sentiment && (
                       <Badge variant="outline" className={`text-xs ${SENT_COLOR[it.sentiment] ?? ""}`}>
-                        {it.sentiment}{typeof it.sentimentScore === "number" ? ` ${it.sentimentScore}` : ""}
+                        {sentLabel(it.sentiment)}{typeof it.sentimentScore === "number" ? ` ${it.sentimentScore}` : ""}
                       </Badge>
                     )}
                     {it.publishedAt && <span className="text-xs text-muted-foreground">{new Date(it.publishedAt).toLocaleDateString()}</span>}

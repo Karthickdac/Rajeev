@@ -55,10 +55,11 @@ import PaHome from "./admin/PaHome";
 import MinisterReadOnly from "./admin/MinisterReadOnly";
 import type { Language } from "@/lib/i18n";
 import { useLeaderConfig, lc } from "@/lib/LeaderConfigContext";
+import { useLanguage } from "@/lib/LanguageContext";
+import { Globe } from "lucide-react";
 import { Crown } from "lucide-react";
 import { UnsavedChangesProvider, useConfirmDiscard } from "@/lib/unsavedChanges";
 
-interface AdminProps { lang?: Language }
 
 type NavGroupId =
   | "overview"
@@ -77,6 +78,7 @@ type NavGroupId =
 interface NavItem {
   id: string;
   label: string;
+  labelTa: string;
   icon: React.ComponentType<{ className?: string }>;
   roles?: string[];
   group: NavGroupId;
@@ -85,90 +87,91 @@ interface NavItem {
 interface NavGroup {
   id: NavGroupId;
   label: string;
+  labelTa: string;
   icon: React.ComponentType<{ className?: string }>;
 }
 
 // Ordered. Empty groups (after role filtering) are hidden automatically.
 const NAV_GROUPS: NavGroup[] = [
-  { id: "overview",   label: "Overview",      icon: LayoutDashboard },
-  { id: "schedule",   label: "Schedule",      icon: CalendarDays },
-  { id: "grievances", label: "Grievances",    icon: MessageSquare },
-  { id: "voters",     label: "Voters",        icon: Users },
-  { id: "maps",       label: "Maps",          icon: MapIcon },
-  { id: "content",    label: "Content",       icon: Newspaper },
-  { id: "outreach",   label: "Outreach",      icon: Trophy },
-  { id: "site",       label: "Site",          icon: Settings },
-  { id: "system",     label: "System",        icon: ClipboardList },
+  { id: "overview",   label: "Overview",   labelTa: "மேலோட்டம்",   icon: LayoutDashboard },
+  { id: "schedule",   label: "Schedule",   labelTa: "அட்டவணை",     icon: CalendarDays },
+  { id: "grievances", label: "Grievances", labelTa: "புகார்கள்",   icon: MessageSquare },
+  { id: "voters",     label: "Voters",     labelTa: "வாக்காளர்கள்", icon: Users },
+  { id: "maps",       label: "Maps",       labelTa: "வரைபடங்கள்",  icon: MapIcon },
+  { id: "content",    label: "Content",    labelTa: "உள்ளடக்கம்",  icon: Newspaper },
+  { id: "outreach",   label: "Outreach",   labelTa: "மக்கள் தொடர்பு", icon: Trophy },
+  { id: "site",       label: "Site",       labelTa: "தளம்",         icon: Settings },
+  { id: "system",     label: "System",     labelTa: "அமைப்பு",      icon: ClipboardList },
 ];
 
 // roles: undefined = all staff; listed = only those roles
 const NAV_ITEMS: NavItem[] = [
   // Role home pages
-  { id: "minister-home", label: "My Dashboard", icon: Crown,    group: "overview", roles: ["minister"] },
-  { id: "pa-home",       label: "PA Home",      icon: HomeIcon, group: "overview", roles: ["pa_staff"] },
+  { id: "minister-home", label: "My Dashboard", labelTa: "எனது கட்டுப்பாட்டகம்", icon: Crown,    group: "overview", roles: ["minister"] },
+  { id: "pa-home",       label: "PA Home",      labelTa: "உதவியாளர் முகப்பு",     icon: HomeIcon, group: "overview", roles: ["pa_staff"] },
 
   // Minister read-only feeds
-  { id: "minister-events",     label: "Today's Schedule", icon: CalendarDays, group: "schedule", roles: ["minister"] },
-  { id: "minister-activities", label: "Activities",       icon: Activity,     group: "schedule", roles: ["minister"] },
-  { id: "minister-promises",   label: "Promises",         icon: Trophy,       group: "outreach", roles: ["minister"] },
-  { id: "minister-press",      label: "Press & News",     icon: Newspaper,    group: "content",  roles: ["minister"] },
+  { id: "minister-events",     label: "Today's Schedule", labelTa: "இன்றைய அட்டவணை", icon: CalendarDays, group: "schedule", roles: ["minister"] },
+  { id: "minister-activities", label: "Activities",       labelTa: "நடவடிக்கைகள்",   icon: Activity,     group: "schedule", roles: ["minister"] },
+  { id: "minister-promises",   label: "Promises",         labelTa: "வாக்குறுதிகள்",  icon: Trophy,       group: "outreach", roles: ["minister"] },
+  { id: "minister-press",      label: "Press & News",     labelTa: "பத்திரிகை & செய்திகள்", icon: Newspaper, group: "content",  roles: ["minister"] },
 
   // Overview
-  { id: "leader-dashboard", label: "Leader Dashboard", icon: Trophy, group: "overview", roles: ["super_admin", "admin", "pa_staff", "grievance_officer", "minister"] },
-  { id: "dashboard",  label: "Dashboard",   icon: LayoutDashboard, group: "overview" },
-  { id: "analytics",  label: "Analytics",   icon: BarChart3,       group: "overview", roles: ["super_admin", "admin", "constituency_coordinator"] },
+  { id: "leader-dashboard", label: "Leader Dashboard", labelTa: "தலைவர் கட்டுப்பாட்டகம்", icon: Trophy, group: "overview", roles: ["super_admin", "admin", "pa_staff", "grievance_officer", "minister"] },
+  { id: "dashboard",  label: "Dashboard",   labelTa: "கட்டுப்பாட்டகம்", icon: LayoutDashboard, group: "overview" },
+  { id: "analytics",  label: "Analytics",   labelTa: "பகுப்பாய்வு",     icon: BarChart3,       group: "overview", roles: ["super_admin", "admin", "constituency_coordinator"] },
 
   // Schedule
-  { id: "tasks",    label: "Tasks",    icon: CheckSquare,   group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
-  { id: "calendar", label: "Calendar", icon: CalendarDays,  group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
-  { id: "appointments", label: "Appointments", icon: CalendarCheck, group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
+  { id: "tasks",    label: "Tasks",    labelTa: "பணிகள்",  icon: CheckSquare,   group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
+  { id: "calendar", label: "Calendar", labelTa: "நாட்காட்டி", icon: CalendarDays,  group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
+  { id: "appointments", label: "Appointments", labelTa: "சந்திப்புகள்", icon: CalendarCheck, group: "schedule", roles: ["super_admin", "admin", "minister", "pa_staff"] },
 
   // Grievances
-  { id: "grievances",   label: "Grievances",          icon: MessageSquare, group: "grievances" },
-  { id: "assignments",  label: "Officer Assignments", icon: Network,       group: "grievances", roles: ["super_admin", "admin", "constituency_coordinator"] },
-  { id: "sla",          label: "SLA Performance",     icon: Timer,         group: "grievances", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
-  { id: "escalations",  label: "Escalations",         icon: Flame,         group: "grievances", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "grievances",   label: "Grievances",          labelTa: "புகார்கள்",            icon: MessageSquare, group: "grievances" },
+  { id: "assignments",  label: "Officer Assignments", labelTa: "அதிகாரி ஒதுக்கீடுகள்", icon: Network,       group: "grievances", roles: ["super_admin", "admin", "constituency_coordinator"] },
+  { id: "sla",          label: "SLA Performance",     labelTa: "SLA செயல்திறன்",       icon: Timer,         group: "grievances", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "escalations",  label: "Escalations",         labelTa: "மேல்முறையீடுகள்",      icon: Flame,         group: "grievances", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
 
   // Voters
-  { id: "voters-search", label: "Voter Search",   icon: Users,      group: "voters", roles: ["super_admin", "admin", "constituency_coordinator", "grievance_officer", "pa_staff"] },
-  { id: "voters",        label: "Voter Roll",     icon: ShieldAlert, group: "voters", roles: ["super_admin"] },
-  { id: "voter-tags",    label: "Voter Tags",     icon: ShieldAlert, group: "voters", roles: ["super_admin"] },
-  { id: "voter-exports", label: "Voter Exports",  icon: Download,    group: "voters", roles: ["super_admin"] },
+  { id: "voters-search", label: "Voter Search",   labelTa: "வாக்காளர் தேடல்",   icon: Users,      group: "voters", roles: ["super_admin", "admin", "constituency_coordinator", "grievance_officer", "pa_staff"] },
+  { id: "voters",        label: "Voter Roll",     labelTa: "வாக்காளர் பட்டியல்", icon: ShieldAlert, group: "voters", roles: ["super_admin"] },
+  { id: "voter-tags",    label: "Voter Tags",     labelTa: "வாக்காளர் குறிச்சொற்கள்", icon: ShieldAlert, group: "voters", roles: ["super_admin"] },
+  { id: "voter-exports", label: "Voter Exports",  labelTa: "வாக்காளர் ஏற்றுமதி", icon: Download,    group: "voters", roles: ["super_admin"] },
 
   // Maps
-  { id: "map",     label: "Constituency Map", icon: MapIcon, group: "maps" },
-  { id: "heatmap", label: "Grievance Heatmap", icon: Layers,  group: "maps", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
-  { id: "map3d",   label: "3D Map",           icon: MapIcon, group: "maps", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "map",     label: "Constituency Map",  labelTa: "தொகுதி வரைபடம்",   icon: MapIcon, group: "maps" },
+  { id: "heatmap", label: "Grievance Heatmap", labelTa: "புகார் வெப்ப வரைபடம்", icon: Layers,  group: "maps", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
+  { id: "map3d",   label: "3D Map",            labelTa: "3D வரைபடம்",       icon: MapIcon, group: "maps", roles: ["super_admin", "admin", "pa_staff", "grievance_officer"] },
 
   // Content
-  { id: "news",           label: "News",           icon: Newspaper, group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
-  { id: "press",          label: "Press Releases", icon: FileText,  group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
-  { id: "press-coverage", label: "Press Coverage", icon: NewsIcon,  group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
-  { id: "events",         label: "Events",         icon: Calendar,  group: "content", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator", "media_team"] },
-  { id: "activities",     label: "Activities",     icon: Activity,  group: "content", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator", "media_team"] },
-  { id: "gallery",        label: "Gallery",        icon: Image,     group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
-  { id: "banners",        label: "Banners",        icon: Megaphone, group: "content", roles: ["super_admin", "admin", "pa_staff"] },
+  { id: "news",           label: "News",           labelTa: "செய்திகள்",          icon: Newspaper, group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "press",          label: "Press Releases", labelTa: "பத்திரிகை வெளியீடுகள்", icon: FileText,  group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "press-coverage", label: "Press Coverage", labelTa: "பத்திரிகை செய்திகள்", icon: NewsIcon,  group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "events",         label: "Events",         labelTa: "நிகழ்வுகள்",         icon: Calendar,  group: "content", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator", "media_team"] },
+  { id: "activities",     label: "Activities",     labelTa: "நடவடிக்கைகள்",       icon: Activity,  group: "content", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator", "media_team"] },
+  { id: "gallery",        label: "Gallery",        labelTa: "படத்தொகுப்பு",       icon: Image,     group: "content", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "banners",        label: "Banners",        labelTa: "பதாகைகள்",          icon: Megaphone, group: "content", roles: ["super_admin", "admin", "pa_staff"] },
 
   // Outreach
-  { id: "volunteers",   label: "Volunteers",         icon: Users,    group: "outreach", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
-  { id: "constituency", label: "Constituency & Wards", icon: MapPin, group: "outreach", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
+  { id: "volunteers",   label: "Volunteers",         labelTa: "தன்னார்வலர்கள்",   icon: Users,    group: "outreach", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
+  { id: "constituency", label: "Constituency & Wards", labelTa: "தொகுதி & வட்டாரங்கள்", icon: MapPin, group: "outreach", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
   // Broadcast cross-posts to website news + Social Media APIs, which only
   // accept super_admin / admin / media_team — keep the nav role aligned to
   // avoid pa_staff loading a page whose social calls would 403 silently.
-  { id: "broadcast",    label: "Broadcast",          icon: Radio,    group: "outreach", roles: ["super_admin", "admin", "media_team"] },
-  { id: "social",       label: "Social Media",       icon: Share2,   group: "outreach", roles: ["super_admin", "admin", "media_team"] },
-  { id: "promises",     label: "Promises Tracker",   icon: Trophy,   group: "outreach", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
-  { id: "outreach",     label: "Outreach Scorecard", icon: BarChart3, group: "outreach", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
+  { id: "broadcast",    label: "Broadcast",          labelTa: "ஒளிபரப்பு",        icon: Radio,    group: "outreach", roles: ["super_admin", "admin", "media_team"] },
+  { id: "social",       label: "Social Media",       labelTa: "சமூக ஊடகம்",       icon: Share2,   group: "outreach", roles: ["super_admin", "admin", "media_team"] },
+  { id: "promises",     label: "Promises Tracker",   labelTa: "வாக்குறுதி கண்காணிப்பு", icon: Trophy, group: "outreach", roles: ["super_admin", "admin", "pa_staff", "media_team"] },
+  { id: "outreach",     label: "Outreach Scorecard", labelTa: "மக்கள் தொடர்பு மதிப்பெண்", icon: BarChart3, group: "outreach", roles: ["super_admin", "admin", "pa_staff", "constituency_coordinator"] },
 
   // Site
-  { id: "home",      label: "Home CMS",    icon: HomeIcon,  group: "site", roles: ["super_admin", "admin"] },
-  { id: "about",     label: "About CMS",   icon: UserCircle, group: "site", roles: ["super_admin", "admin"] },
-  { id: "faqs",      label: "FAQs",        icon: HelpCircle, group: "site", roles: ["super_admin", "admin", "pa_staff"] },
-  { id: "settings",  label: "Site Settings", icon: Settings, group: "site", roles: ["super_admin", "admin"] },
-  { id: "ai-tools",  label: "AI Tools",    icon: Sparkles,  group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team", "grievance_officer"] },
+  { id: "home",      label: "Home CMS",      labelTa: "முகப்பு CMS",   icon: HomeIcon,  group: "site", roles: ["super_admin", "admin"] },
+  { id: "about",     label: "About CMS",     labelTa: "பற்றி CMS",     icon: UserCircle, group: "site", roles: ["super_admin", "admin"] },
+  { id: "faqs",      label: "FAQs",          labelTa: "கேள்வி பதில்கள்", icon: HelpCircle, group: "site", roles: ["super_admin", "admin", "pa_staff"] },
+  { id: "settings",  label: "Site Settings", labelTa: "தள அமைப்புகள்",  icon: Settings, group: "site", roles: ["super_admin", "admin"] },
+  { id: "ai-tools",  label: "AI Tools",      labelTa: "AI கருவிகள்",   icon: Sparkles,  group: "site", roles: ["super_admin", "admin", "pa_staff", "media_team", "grievance_officer"] },
 
   // System
-  { id: "audit", label: "Audit Log", icon: ClipboardList, group: "system", roles: ["super_admin", "admin"] },
+  { id: "audit", label: "Audit Log", labelTa: "தணிக்கை பதிவு", icon: ClipboardList, group: "system", roles: ["super_admin", "admin"] },
 ];
 
 // ── Role-specific portal layouts ───────────────────────────
@@ -179,24 +182,24 @@ const MINISTER_ALLOW = [
   "minister-activities", "minister-promises", "minister-press", "appointments",
 ];
 const MINISTER_GROUPS: NavGroup[] = [
-  { id: "overview",   label: "Home",        icon: Crown },
-  { id: "grievances", label: "Grievances",  icon: MessageSquare },
-  { id: "schedule",   label: "Schedule",    icon: CalendarDays },
-  { id: "content",    label: "Press & News", icon: Newspaper },
-  { id: "outreach",   label: "Promises",    icon: Trophy },
+  { id: "overview",   label: "Home",         labelTa: "முகப்பு",            icon: Crown },
+  { id: "grievances", label: "Grievances",   labelTa: "புகார்கள்",          icon: MessageSquare },
+  { id: "schedule",   label: "Schedule",     labelTa: "அட்டவணை",            icon: CalendarDays },
+  { id: "content",    label: "Press & News", labelTa: "பத்திரிகை & செய்திகள்", icon: Newspaper },
+  { id: "outreach",   label: "Promises",     labelTa: "வாக்குறுதிகள்",       icon: Trophy },
 ];
 
 // PA keeps full role-based access but the items are regrouped into a
 // daily-workflow layout. We override each item's group label without
 // touching the underlying NAV_ITEMS definitions.
 const PA_GROUPS: NavGroup[] = [
-  { id: "overview",   label: "Home",       icon: HomeIcon },
-  { id: "schedule",   label: "Schedule",   icon: CalendarDays },
-  { id: "grievances", label: "Grievances", icon: MessageSquare },
-  { id: "content",    label: "Content",    icon: Newspaper },
-  { id: "people",     label: "People",     icon: Users },
-  { id: "comms",      label: "Comms",      icon: Radio },
-  { id: "site",       label: "Settings",   icon: Settings },
+  { id: "overview",   label: "Home",       labelTa: "முகப்பு",       icon: HomeIcon },
+  { id: "schedule",   label: "Schedule",   labelTa: "அட்டவணை",       icon: CalendarDays },
+  { id: "grievances", label: "Grievances", labelTa: "புகார்கள்",     icon: MessageSquare },
+  { id: "content",    label: "Content",    labelTa: "உள்ளடக்கம்",    icon: Newspaper },
+  { id: "people",     label: "People",     labelTa: "மக்கள்",        icon: Users },
+  { id: "comms",      label: "Comms",      labelTa: "தொடர்பாடல்",    icon: Radio },
+  { id: "site",       label: "Settings",   labelTa: "அமைப்புகள்",    icon: Settings },
 ];
 const PA_ITEM_GROUP: Record<string, NavGroupId> = {
   "pa-home": "overview", "leader-dashboard": "overview", "dashboard": "overview",
@@ -234,15 +237,32 @@ function saveCollapsedGroups(set: Set<NavGroupId>): void {
   }
 }
 
-export default function Admin({ lang = "ta" }: AdminProps) {
+const ROLE_LABELS_TA: Record<string, string> = {
+  super_admin: "முதன்மை நிர்வாகி",
+  admin: "நிர்வாகி",
+  pa_staff: "தனிப்பட்ட உதவியாளர்",
+  grievance_officer: "புகார் அதிகாரி",
+  constituency_coordinator: "தொகுதி ஒருங்கிணைப்பாளர்",
+  media_team: "ஊடகக் குழு",
+  minister: "அமைச்சர்",
+  staff: "பணியாளர்",
+};
+
+function roleLabel(lang: Language, role: string): string {
+  if (lang === "ta" && ROLE_LABELS_TA[role]) return ROLE_LABELS_TA[role];
+  return role.replace(/_/g, " ");
+}
+
+export default function Admin() {
   return (
     <UnsavedChangesProvider>
-      <AdminInner lang={lang} />
+      <AdminInner />
     </UnsavedChangesProvider>
   );
 }
 
-function AdminInner({ lang = "ta" }: AdminProps) {
+function AdminInner() {
+  const { lang, setLang } = useLanguage();
   const [, setLocation] = useLocation();
   const confirmDiscard = useConfirmDiscard();
   const { data: me, error } = useGetMe();
@@ -267,7 +287,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
 
   async function logout() {
     const ok = await confirmDiscard(
-      "You have unsaved changes. If you sign out now, they will be lost.",
+      lc(lang, "You have unsaved changes. If you sign out now, they will be lost.", "சேமிக்கப்படாத மாற்றங்கள் உள்ளன. இப்போது வெளியேறினால் அவை இழக்கப்படும்."),
     );
     if (!ok) return;
     removeToken();
@@ -337,11 +357,11 @@ function AdminInner({ lang = "ta" }: AdminProps) {
         <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
           <span className="text-3xl">🚫</span>
         </div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">{lc(lang, "Access Denied", "அணுகல் மறுக்கப்பட்டது")}</h1>
         <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-          Your account (<strong>{me.email}</strong>) does not have staff privileges to access the admin panel.
+          {lc(lang, "Your account", "உங்கள் கணக்கு")} (<strong>{me.email}</strong>) {lc(lang, "does not have staff privileges to access the admin panel.", "நிர்வாக பலகையை அணுக பணியாளர் அனுமதி இல்லை.")}
         </p>
-        <Button variant="outline" onClick={logout}>Sign out</Button>
+        <Button variant="outline" onClick={logout}>{lc(lang, "Sign out", "வெளியேறு")}</Button>
       </div>
     );
   }
@@ -411,7 +431,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
   async function navigate(id: string) {
     if (id === active) { setSidebarOpen(false); return; }
     const ok = await confirmDiscard(
-      "You have unsaved changes on this page. Switch sections and discard them?",
+      lc(lang, "You have unsaved changes on this page. Switch sections and discard them?", "இந்தப் பக்கத்தில் சேமிக்கப்படாத மாற்றங்கள் உள்ளன. பிரிவை மாற்றி அவற்றை நீக்கவா?"),
     );
     if (!ok) return;
     setActive(id);
@@ -434,7 +454,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-sm shrink-0">{leader.logoInitial}</div>
             <div className="min-w-0">
               <p className="font-semibold text-sm truncate">{leader.siteTitle}</p>
-              <p className="text-xs text-gray-400 truncate">Admin Panel</p>
+              <p className="text-xs text-gray-400 truncate">{lc(lang, "Admin Panel", "நிர்வாக பலகை")}</p>
             </div>
           </div>
         </div>
@@ -459,7 +479,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           ) : (
             <div className="px-4 py-3 border-b border-white/10">
               <p className="text-sm font-medium truncate">{me.name}</p>
-              <p className="text-xs text-gray-400 capitalize truncate">{me.role.replace(/_/g, " ")}</p>
+              <p className="text-xs text-gray-400 capitalize truncate">{roleLabel(lang, me.role)}</p>
             </div>
           )
         )}
@@ -487,7 +507,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
                   `}
                 >
                   <GroupIcon className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{group.label}</span>
+                  <span className="truncate">{lc(lang, group.label, group.labelTa)}</span>
                   <span className="ml-auto flex items-center gap-1 text-gray-600 font-normal normal-case tracking-normal">
                     <span className="text-[10px]">{items.length}</span>
                     {isCollapsed
@@ -513,7 +533,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
                           `}
                         >
                           <Icon className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{item.label}</span>
+                          <span className="truncate">{lc(lang, item.label, item.labelTa)}</span>
                           {isActive && <ChevronRight className="w-3 h-3 ml-auto shrink-0 opacity-70" />}
                         </button>
                       );
@@ -533,7 +553,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/10 transition-all"
           >
             <LogOut className="w-4 h-4 shrink-0" />
-            <span>Logout</span>
+            <span>{lc(lang, "Logout", "வெளியேறு")}</span>
           </button>
         </div>
       </aside>
@@ -559,11 +579,22 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           {currentItem && (
             <div className="flex items-center gap-2">
               <currentItem.icon className="w-4 h-4 text-primary" />
-              <h1 className="font-semibold text-sm text-gray-900">{currentItem.label}</h1>
+              <h1 className="font-semibold text-sm text-gray-900">{lc(lang, currentItem.label, currentItem.labelTa)}</h1>
             </div>
           )}
-          <div className="ml-auto">
-            <span className="text-xs text-muted-foreground hidden sm:inline">{leader.constituencyEn} Constituency</span>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-muted-foreground hidden sm:inline">
+              {lc(lang, `${leader.constituencyEn} Constituency`, `${leader.constituencyTa} தொகுதி`)}
+            </span>
+            <button
+              data-testid="admin-lang-toggle"
+              onClick={() => setLang(lang === "en" ? "ta" : "en")}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border border-gray-200 hover:bg-gray-100 transition-colors"
+              aria-label={lc(lang, "Toggle language", "மொழியை மாற்று")}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>{lang === "en" ? "தமிழ்" : "EN"}</span>
+            </button>
           </div>
         </header>
 
@@ -583,7 +614,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
           {active === "grievances"   && <GrievanceOfficer lang={lang} token={token} userRole={role} />}
           {active === "assignments"  && <AssignmentsAdmin token={token} />}
           {active === "map"          && (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading map…</div>}>
+            <Suspense fallback={<div className="text-sm text-muted-foreground">{lc(lang, "Loading map…", "வரைபடம் ஏற்றுகிறது…")}</div>}>
               <ConstituencyMap
                 lang={lang}
                 adminMode
@@ -618,7 +649,7 @@ function AdminInner({ lang = "ta" }: AdminProps) {
               </div>
               <details className="border-t pt-4 group">
                 <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground select-none">
-                  Legacy ward coordinator list (flat view)
+                  {lc(lang, "Legacy ward coordinator list (flat view)", "பழைய வட்டார ஒருங்கிணைப்பாளர் பட்டியல் (தட்டையான பார்வை)")}
                 </summary>
                 <div className="mt-3">
                   <WardAdmin />

@@ -11,6 +11,9 @@ import {
   Upload, FileText, AlertCircle, CheckCircle2, Loader2, RefreshCw,
   Trash2, Eye, ShieldAlert,
 } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
+import type { Language } from "@/lib/i18n";
 
 interface VoterImportRow {
   id: number;
@@ -51,20 +54,21 @@ function fmtBytes(n: number): string {
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
-function StatusPill({ status }: { status: string }) {
+function StatusPill({ status, lang }: { status: string; lang: Language }) {
   const map: Record<string, { bg: string; label: string }> = {
-    queued:     { bg: "bg-gray-100 text-gray-700",       label: "Queued (waiting to parse)" },
-    parsing:    { bg: "bg-blue-100 text-blue-700",       label: "Parsing…" },
-    parsed:     { bg: "bg-amber-100 text-amber-800",     label: "Parsed (review)" },
-    committing: { bg: "bg-blue-100 text-blue-700",       label: "Committing…" },
-    committed:  { bg: "bg-emerald-100 text-emerald-700", label: "Committed" },
-    failed:     { bg: "bg-red-100 text-red-700",         label: "Failed" },
+    queued:     { bg: "bg-gray-100 text-gray-700",       label: lc(lang, "Queued (waiting to parse)", "வரிசையில் (பகுப்பாய்வுக்கு காத்திருக்கிறது)") },
+    parsing:    { bg: "bg-blue-100 text-blue-700",       label: lc(lang, "Parsing…", "பகுப்பாய்வு செய்கிறது…") },
+    parsed:     { bg: "bg-amber-100 text-amber-800",     label: lc(lang, "Parsed (review)", "பகுக்கப்பட்டது (மறுபார்வை)") },
+    committing: { bg: "bg-blue-100 text-blue-700",       label: lc(lang, "Committing…", "உறுதிசெய்கிறது…") },
+    committed:  { bg: "bg-emerald-100 text-emerald-700", label: lc(lang, "Committed", "உறுதிசெய்யப்பட்டது") },
+    failed:     { bg: "bg-red-100 text-red-700",         label: lc(lang, "Failed", "தோல்வி") },
   };
   const cfg = map[status] ?? { bg: "bg-gray-100 text-gray-700", label: status };
   return <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-medium ${cfg.bg}`}>{cfg.label}</span>;
 }
 
 export default function VoterRollAdmin() {
+  const { lang } = useLanguage();
   const [stats, setStats] = useState<{ totalVoters: number; totalImports: number; committedImports: number } | null>(null);
   const [imports, setImports] = useState<VoterImportRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +143,7 @@ export default function VoterRollAdmin() {
 
   async function commitDetail() {
     if (!detail) return;
-    if (!confirm(`Commit ${detail.preview?.totalVoters ?? 0} voters from ${detail.filename}? Existing rows with the same EPIC will be updated.`)) return;
+    if (!confirm(lc(lang, `Commit ${detail.preview?.totalVoters ?? 0} voters from ${detail.filename}? Existing rows with the same EPIC will be updated.`, `${detail.filename} இலிருந்து ${detail.preview?.totalVoters ?? 0} வாக்காளர்களை உறுதிசெய்யவா? அதே EPIC கொண்ட தற்போதைய வரிசைகள் புதுப்பிக்கப்படும்.`))) return;
     setCommitting(true);
     try {
       await adminApi.commitVoterImport(detail.id);
@@ -155,7 +159,7 @@ export default function VoterRollAdmin() {
 
   async function discardDetail() {
     if (!detail) return;
-    if (!confirm(`Discard parsed batch ${detail.filename}? It will not be committed.`)) return;
+    if (!confirm(lc(lang, `Discard parsed batch ${detail.filename}? It will not be committed.`, `பகுக்கப்பட்ட தொகுதி ${detail.filename} ஐ நிராகரிக்கவா? இது உறுதிசெய்யப்படாது.`))) return;
     try {
       await adminApi.discardVoterImport(detail.id);
       setDetailId(null);
@@ -171,31 +175,29 @@ export default function VoterRollAdmin() {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-red-600" /> Voter Roll
+            <ShieldAlert className="w-5 h-5 text-red-600" /> {lc(lang, "Voter Roll", "வாக்காளர் பட்டியல்")}
           </h2>
           <p className="text-xs text-muted-foreground max-w-xl">
-            Personal data — DPDP Act protected. Every read and write is recorded
-            in the audit log with your name. Never share this data outside
-            authorized staff.
+            {lc(lang, "Personal data — DPDP Act protected. Every read and write is recorded in the audit log with your name. Never share this data outside authorized staff.", "தனிநபர் தரவு — DPDP சட்டத்தால் பாதுகாக்கப்பட்டது. ஒவ்வொரு படிப்பும் எழுதுதலும் உங்கள் பெயருடன் தணிக்கை பதிவில் பதிவு செய்யப்படுகிறது. இந்தத் தரவை அங்கீகரிக்கப்பட்ட பணியாளர்களுக்கு வெளியே ஒருபோதும் பகிர வேண்டாம்.")}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={reload} className="gap-1">
-          <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          <RefreshCw className="w-3.5 h-3.5" /> {lc(lang, "Refresh", "புதுப்பி")}
         </Button>
       </div>
 
       {/* Stats strip */}
       <div className="grid grid-cols-3 gap-3">
         <Card><CardContent className="p-3">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Voters loaded</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{lc(lang, "Voters loaded", "ஏற்றப்பட்ட வாக்காளர்கள்")}</p>
           <p className="text-2xl font-semibold">{stats?.totalVoters?.toLocaleString() ?? "—"}</p>
         </CardContent></Card>
         <Card><CardContent className="p-3">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Imports committed</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{lc(lang, "Imports committed", "உறுதிசெய்யப்பட்ட இறக்குமதிகள்")}</p>
           <p className="text-2xl font-semibold">{stats?.committedImports ?? "—"}</p>
         </CardContent></Card>
         <Card><CardContent className="p-3">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Total batches</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{lc(lang, "Total batches", "மொத்த தொகுதிகள்")}</p>
           <p className="text-2xl font-semibold">{stats?.totalImports ?? "—"}</p>
         </CardContent></Card>
       </div>
@@ -205,17 +207,15 @@ export default function VoterRollAdmin() {
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-2">
             <Upload className="w-4 h-4 text-primary" />
-            <h3 className="font-semibold text-sm">Import from PDFs</h3>
+            <h3 className="font-semibold text-sm">{lc(lang, "Import from PDFs", "PDF களில் இருந்து இறக்குமதி")}</h3>
           </div>
           <p className="text-xs text-muted-foreground">
-            Upload one or many electoral-roll PDFs (Tamil Nadu CEO portal,
-            <code className="mx-1">Part No.</code> per file). Each file is parsed
-            individually so a bad PDF will not abort the rest. Scanned PDFs need
-            OCR and are flagged separately.
+            {lc(lang, "Upload one or many electoral-roll PDFs (Tamil Nadu CEO portal,", "ஒன்று அல்லது பல வாக்காளர் பட்டியல் PDF களைப் பதிவேற்றவும் (தமிழ்நாடு CEO போர்ட்டல்,")}
+            <code className="mx-1">{lc(lang, "Part No.", "பகுதி எண்.")}</code> {lc(lang, "per file). Each file is parsed individually so a bad PDF will not abort the rest. Scanned PDFs need OCR and are flagged separately.", "ஒரு கோப்பிற்கு). ஒவ்வொரு கோப்பும் தனித்தனியாகப் பகுக்கப்படுகிறது, எனவே ஒரு தவறான PDF மற்றவற்றை நிறுத்தாது. ஸ்கேன் செய்யப்பட்ட PDF களுக்கு OCR தேவை, அவை தனியாகக் குறிக்கப்படுகின்றன.")}
           </p>
           <div className="grid sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
-              <Label className="text-xs">PDF files</Label>
+              <Label className="text-xs">{lc(lang, "PDF files", "PDF கோப்புகள்")}</Label>
               <Input
                 ref={fileRef}
                 type="file"
@@ -228,11 +228,11 @@ export default function VoterRollAdmin() {
               />
             </div>
             <div>
-              <Label className="text-xs">Expected booth no. (optional)</Label>
+              <Label className="text-xs">{lc(lang, "Expected booth no. (optional)", "எதிர்பார்க்கப்படும் வாக்குச்சாவடி எண். (விருப்பத்திற்குரியது)")}</Label>
               <Input
                 value={expectedBoothNo}
                 onChange={(e) => setExpectedBoothNo(e.target.value)}
-                placeholder="e.g. 23"
+                placeholder={lc(lang, "e.g. 23", "எ.கா. 23")}
                 disabled={uploading}
                 className="mt-1 text-sm"
               />
@@ -240,7 +240,7 @@ export default function VoterRollAdmin() {
           </div>
           {uploading && (
             <p className="text-xs text-blue-700 flex items-center gap-1">
-              <Loader2 className="w-3 h-3 animate-spin" /> Parsing — this may take 30–60s per file…
+              <Loader2 className="w-3 h-3 animate-spin" /> {lc(lang, "Parsing — this may take 30–60s per file…", "பகுப்பாய்வு செய்கிறது — ஒரு கோப்பிற்கு 30–60 வினாடிகள் ஆகலாம்…")}
             </p>
           )}
           {uploadError && (
@@ -253,26 +253,26 @@ export default function VoterRollAdmin() {
 
       {/* History */}
       <div>
-        <h3 className="font-semibold text-sm mb-2">Import history</h3>
+        <h3 className="font-semibold text-sm mb-2">{lc(lang, "Import history", "இறக்குமதி வரலாறு")}</h3>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         {loading && imports.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">Loading…</p>
+          <p className="text-sm text-muted-foreground py-6 text-center">{lc(lang, "Loading…", "ஏற்றுகிறது…")}</p>
         ) : imports.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center italic">No imports yet.</p>
+          <p className="text-sm text-muted-foreground py-6 text-center italic">{lc(lang, "No imports yet.", "இன்னும் இறக்குமதிகள் இல்லை.")}</p>
         ) : (
           <div className="border rounded-md overflow-x-auto">
             <table className="min-w-full text-xs">
               <thead className="bg-gray-50 text-muted-foreground">
                 <tr>
-                  <th className="text-left px-2 py-1.5 font-medium">File</th>
-                  <th className="text-left px-2 py-1.5 font-medium">Status</th>
-                  <th className="text-right px-2 py-1.5 font-medium">Pages</th>
-                  <th className="text-right px-2 py-1.5 font-medium">Parsed</th>
-                  <th className="text-right px-2 py-1.5 font-medium">Skipped</th>
-                  <th className="text-right px-2 py-1.5 font-medium">OCR</th>
-                  <th className="text-right px-2 py-1.5 font-medium">Inserted/Updated</th>
-                  <th className="text-left px-2 py-1.5 font-medium">When</th>
-                  <th className="text-left px-2 py-1.5 font-medium">By</th>
+                  <th className="text-left px-2 py-1.5 font-medium">{lc(lang, "File", "கோப்பு")}</th>
+                  <th className="text-left px-2 py-1.5 font-medium">{lc(lang, "Status", "நிலை")}</th>
+                  <th className="text-right px-2 py-1.5 font-medium">{lc(lang, "Pages", "பக்கங்கள்")}</th>
+                  <th className="text-right px-2 py-1.5 font-medium">{lc(lang, "Parsed", "பகுக்கப்பட்டது")}</th>
+                  <th className="text-right px-2 py-1.5 font-medium">{lc(lang, "Skipped", "தவிர்க்கப்பட்டது")}</th>
+                  <th className="text-right px-2 py-1.5 font-medium">{lc(lang, "OCR", "OCR")}</th>
+                  <th className="text-right px-2 py-1.5 font-medium">{lc(lang, "Inserted/Updated", "சேர்க்கப்பட்டது/புதுப்பிக்கப்பட்டது")}</th>
+                  <th className="text-left px-2 py-1.5 font-medium">{lc(lang, "When", "எப்போது")}</th>
+                  <th className="text-left px-2 py-1.5 font-medium">{lc(lang, "By", "யாரால்")}</th>
                   <th className="px-2 py-1.5"></th>
                 </tr>
               </thead>
@@ -287,7 +287,7 @@ export default function VoterRollAdmin() {
                       <p className="text-[10px] text-muted-foreground">{fmtBytes(row.fileSizeBytes)}</p>
                       {row.errorMessage && <p className="text-[10px] text-red-600 truncate max-w-[260px]" title={row.errorMessage}>{row.errorMessage}</p>}
                     </td>
-                    <td className="px-2 py-1.5"><StatusPill status={row.status} /></td>
+                    <td className="px-2 py-1.5"><StatusPill status={row.status} lang={lang} /></td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{row.pageCount}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{row.parsedCount}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">
@@ -306,7 +306,7 @@ export default function VoterRollAdmin() {
                     <td className="px-2 py-1.5 text-right">
                       {(row.status === "parsed" || row.status === "committed") && (
                         <Button size="sm" variant="ghost" className="h-6 text-xs gap-1" onClick={() => openDetail(row.id)}>
-                          <Eye className="w-3 h-3" /> View
+                          <Eye className="w-3 h-3" /> {lc(lang, "View", "பார்")}
                         </Button>
                       )}
                     </td>
@@ -321,25 +321,24 @@ export default function VoterRollAdmin() {
       <Dialog open={detailId !== null} onOpenChange={(o) => { if (!o) { setDetailId(null); setDetail(null); } }}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{detail?.filename ?? "Loading…"}</DialogTitle>
+            <DialogTitle>{detail?.filename ?? lc(lang, "Loading…", "ஏற்றுகிறது…")}</DialogTitle>
             <DialogDescription>
-              Review parsed records before committing. Existing voters with the
-              same EPIC are updated, never duplicated.
+              {lc(lang, "Review parsed records before committing. Existing voters with the same EPIC are updated, never duplicated.", "உறுதிசெய்வதற்கு முன் பகுக்கப்பட்ட பதிவுகளை மறுபார்வையிடவும். அதே EPIC கொண்ட தற்போதைய வாக்காளர்கள் புதுப்பிக்கப்படுவார்கள், ஒருபோதும் நகலெடுக்கப்பட மாட்டார்கள்.")}
             </DialogDescription>
           </DialogHeader>
-          {detailLoading && <p className="text-sm text-muted-foreground py-6 text-center"><Loader2 className="w-4 h-4 animate-spin inline" /> Loading…</p>}
+          {detailLoading && <p className="text-sm text-muted-foreground py-6 text-center"><Loader2 className="w-4 h-4 animate-spin inline" /> {lc(lang, "Loading…", "ஏற்றுகிறது…")}</p>}
           {detail && (
             <div className="space-y-3">
               <div className="grid sm:grid-cols-4 gap-2 text-xs">
-                <div><span className="text-muted-foreground">Status:</span> <StatusPill status={detail.status} /></div>
-                <div><span className="text-muted-foreground">Part:</span> <strong>{detail.preview?.partNumber ?? "—"}</strong></div>
-                <div><span className="text-muted-foreground">Parsed:</span> <strong>{detail.parsedCount}</strong></div>
-                <div><span className="text-muted-foreground">Skipped:</span> <strong className={detail.skippedCount > 0 ? "text-amber-700" : ""}>{detail.skippedCount}</strong></div>
+                <div><span className="text-muted-foreground">{lc(lang, "Status", "நிலை")}:</span> <StatusPill status={detail.status} lang={lang} /></div>
+                <div><span className="text-muted-foreground">{lc(lang, "Part", "பகுதி")}:</span> <strong>{detail.preview?.partNumber ?? "—"}</strong></div>
+                <div><span className="text-muted-foreground">{lc(lang, "Parsed", "பகுக்கப்பட்டது")}:</span> <strong>{detail.parsedCount}</strong></div>
+                <div><span className="text-muted-foreground">{lc(lang, "Skipped", "தவிர்க்கப்பட்டது")}:</span> <strong className={detail.skippedCount > 0 ? "text-amber-700" : ""}>{detail.skippedCount}</strong></div>
               </div>
 
               {detail.preview?.pollingStationHint && (
                 <p className="text-xs bg-blue-50 border border-blue-200 rounded p-2">
-                  <strong>Polling station hint:</strong> {detail.preview.pollingStationHint}
+                  <strong>{lc(lang, "Polling station hint:", "வாக்குச்சாவடி குறிப்பு:")}</strong> {detail.preview.pollingStationHint}
                 </p>
               )}
 
@@ -347,28 +346,24 @@ export default function VoterRollAdmin() {
                 <p className="text-xs bg-amber-50 border border-amber-200 rounded p-2 flex gap-2">
                   <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
                   <span>
-                    {detail.ocrPagesCount} page(s) had no extractable text and
-                    were processed with the built-in OCR fallback (English +
-                    Tamil). Any page where OCR could not recover voter records
-                    is listed in the Skipped section below — re-upload a
-                    higher-quality scan if needed.
+                    {lc(lang, `${detail.ocrPagesCount} page(s) had no extractable text and were processed with the built-in OCR fallback (English + Tamil). Any page where OCR could not recover voter records is listed in the Skipped section below — re-upload a higher-quality scan if needed.`, `${detail.ocrPagesCount} பக்கம்(ங்கள்) பிரித்தெடுக்கக்கூடிய உரை இல்லாமல் இருந்தன, அவை உள்ளமைந்த OCR மாற்றுத் தேர்வுடன் (ஆங்கிலம் + தமிழ்) செயலாக்கப்பட்டன. OCR வாக்காளர் பதிவுகளை மீட்டெடுக்க முடியாத எந்தப் பக்கமும் கீழே உள்ள தவிர்க்கப்பட்ட பகுதியில் பட்டியலிடப்பட்டுள்ளது — தேவைப்பட்டால் உயர்தர ஸ்கேனை மீண்டும் பதிவேற்றவும்.`)}
                   </span>
                 </p>
               )}
 
               <div>
-                <p className="text-xs font-medium mb-1">Preview ({detail.preview?.voters.length ?? 0} of {detail.preview?.totalVoters ?? 0} shown)</p>
+                <p className="text-xs font-medium mb-1">{lc(lang, `Preview (${detail.preview?.voters.length ?? 0} of ${detail.preview?.totalVoters ?? 0} shown)`, `முன்னோட்டம் (${detail.preview?.totalVoters ?? 0} இல் ${detail.preview?.voters.length ?? 0} காட்டப்படுகிறது)`)}</p>
                 <div className="border rounded max-h-[40vh] overflow-y-auto">
                   <table className="min-w-full text-xs">
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
                         <th className="text-left px-2 py-1">#</th>
-                        <th className="text-left px-2 py-1">EPIC</th>
-                        <th className="text-left px-2 py-1">Name</th>
-                        <th className="text-left px-2 py-1">Relation</th>
-                        <th className="text-right px-2 py-1">Age</th>
-                        <th className="text-left px-2 py-1">Sex</th>
-                        <th className="text-left px-2 py-1">House</th>
+                        <th className="text-left px-2 py-1">{lc(lang, "EPIC", "EPIC")}</th>
+                        <th className="text-left px-2 py-1">{lc(lang, "Name", "பெயர்")}</th>
+                        <th className="text-left px-2 py-1">{lc(lang, "Relation", "உறவு")}</th>
+                        <th className="text-right px-2 py-1">{lc(lang, "Age", "வயது")}</th>
+                        <th className="text-left px-2 py-1">{lc(lang, "Sex", "பாலினம்")}</th>
+                        <th className="text-left px-2 py-1">{lc(lang, "House", "வீடு")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -377,7 +372,7 @@ export default function VoterRollAdmin() {
                           <td className="px-2 py-1 text-muted-foreground">{v.serialInPart ?? i + 1}</td>
                           <td className="px-2 py-1 font-mono">{v.epicNumber}</td>
                           <td className="px-2 py-1">{v.fullName}</td>
-                          <td className="px-2 py-1 text-muted-foreground">{v.relationType ? `${v.relationType}: ${v.relationName ?? ""}` : "—"}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{v.relationType ? `${v.relationType}: ${v.relationName ?? ""}` : "—"}</td>{/* relationType/relationName are raw data values */}
                           <td className="px-2 py-1 text-right">{v.age ?? "—"}</td>
                           <td className="px-2 py-1">{v.gender ?? "—"}</td>
                           <td className="px-2 py-1 text-muted-foreground truncate max-w-[120px]">{v.houseNumber ?? "—"}</td>
@@ -391,12 +386,12 @@ export default function VoterRollAdmin() {
               {detail.skipped.length > 0 && (
                 <details className="text-xs border rounded p-2 bg-amber-50/40">
                   <summary className="cursor-pointer font-medium text-amber-800">
-                    {detail.skippedTotal} skipped block(s) — click to inspect
+                    {lc(lang, `${detail.skippedTotal} skipped block(s) — click to inspect`, `${detail.skippedTotal} தவிர்க்கப்பட்ட தொகுதி(கள்) — பார்வையிட கிளிக் செய்யவும்`)}
                   </summary>
                   <ul className="mt-2 space-y-1 max-h-40 overflow-y-auto">
                     {detail.skipped.map((s, i) => (
                       <li key={i} className="border-l-2 border-amber-300 pl-2">
-                        <span className="text-muted-foreground">page {s.page} · {s.reason}</span>
+                        <span className="text-muted-foreground">{lc(lang, "page", "பக்கம்")} {s.page} · {s.reason}</span>
                         <p className="font-mono text-[10px] truncate">{s.raw}</p>
                       </li>
                     ))}
@@ -408,17 +403,17 @@ export default function VoterRollAdmin() {
                 {detail.status === "parsed" && (
                   <>
                     <Button variant="outline" size="sm" onClick={discardDetail} className="gap-1 text-red-600 hover:text-red-700">
-                      <Trash2 className="w-3.5 h-3.5" /> Discard
+                      <Trash2 className="w-3.5 h-3.5" /> {lc(lang, "Discard", "நிராகரி")}
                     </Button>
                     <Button size="sm" onClick={commitDetail} disabled={committing || (detail.preview?.totalVoters ?? 0) === 0} className="gap-1">
                       {committing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                      Commit {detail.preview?.totalVoters ?? 0} voters
+                      {lc(lang, `Commit ${detail.preview?.totalVoters ?? 0} voters`, `${detail.preview?.totalVoters ?? 0} வாக்காளர்களை உறுதிசெய்`)}
                     </Button>
                   </>
                 )}
                 {detail.status === "committed" && (
                   <p className="text-xs text-emerald-700 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Committed at {detail.committedAt ? new Date(detail.committedAt).toLocaleString() : "—"}
+                    <CheckCircle2 className="w-3.5 h-3.5" /> {lc(lang, `Committed at ${detail.committedAt ? new Date(detail.committedAt).toLocaleString() : "—"}`, `உறுதிசெய்யப்பட்டது: ${detail.committedAt ? new Date(detail.committedAt).toLocaleString() : "—"}`)}
                   </p>
                 )}
               </div>

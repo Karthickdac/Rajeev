@@ -47,6 +47,33 @@ interface AnalyticsProps {
 const STATUS_OPTIONS = ["Submitted", "Under Review", "Assigned", "In Progress", "Resolved", "Closed"] as const;
 const CATEGORY_OPTIONS = ["Roads", "Water Supply", "EB / Electricity Issues", "Sewage", "Healthcare", "Education", "Women Safety", "Corruption", "Ration", "Transport", "Pension", "Housing", "Agriculture", "Employment", "Others"] as const;
 
+const STATUS_TA: Record<string, string> = {
+  "Submitted": "சமர்ப்பிக்கப்பட்டது",
+  "Under Review": "பரிசீலனையில்",
+  "Assigned": "ஒதுக்கப்பட்டது",
+  "In Progress": "செயல்பாட்டில்",
+  "Resolved": "தீர்க்கப்பட்டது",
+  "Closed": "மூடப்பட்டது",
+};
+
+const CATEGORY_TA: Record<string, string> = {
+  "Roads": "சாலைகள்",
+  "Water Supply": "குடிநீர் வழங்கல்",
+  "EB / Electricity Issues": "மின்சாரம் தொடர்பான சிக்கல்கள்",
+  "Sewage": "கழிவுநீர்",
+  "Healthcare": "சுகாதாரம்",
+  "Education": "கல்வி",
+  "Women Safety": "பெண்கள் பாதுகாப்பு",
+  "Corruption": "ஊழல்",
+  "Ration": "ரேஷன்",
+  "Transport": "போக்குவரத்து",
+  "Pension": "ஓய்வூதியம்",
+  "Housing": "வீட்டுவசதி",
+  "Agriculture": "வேளாண்மை",
+  "Employment": "வேலைவாய்ப்பு",
+  "Others": "மற்றவை",
+};
+
 function SentimentTrendCard({ lang }: { lang: Language }) {
   const [data, setData] = useState<Array<{ day: string; positive: number; negative: number; neutral: number }>>([]);
   const [loading, setLoading] = useState(true);
@@ -243,7 +270,7 @@ export default function Analytics({ lang, officerWardIds, officerAreaIds, office
                 className="w-full text-sm border rounded px-2 py-1.5"
               >
                 <option value="">{t("any")}</option>
-                {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{lang === "ta" ? (CATEGORY_TA[c] ?? c) : c}</option>)}
               </select>
             </div>
             <div>
@@ -255,7 +282,7 @@ export default function Analytics({ lang, officerWardIds, officerAreaIds, office
                 className="w-full text-sm border rounded px-2 py-1.5"
               >
                 <option value="">{t("any")}</option>
-                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{lang === "ta" ? (STATUS_TA[s] ?? s) : s}</option>)}
               </select>
             </div>
             <div>

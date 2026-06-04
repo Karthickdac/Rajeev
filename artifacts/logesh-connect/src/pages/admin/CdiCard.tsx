@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Gauge, TrendingUp, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { adminApi } from "./api";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
+import type { Language } from "@/lib/i18n";
 
 interface CdiData {
   cdi: number;
@@ -9,14 +12,15 @@ interface CdiData {
   raw: Record<string, number>;
 }
 
-function gradeFor(score: number) {
-  if (score >= 80) return { label: "Excellent", color: "text-green-700",  ring: "#16a34a", Icon: CheckCircle2 };
-  if (score >= 65) return { label: "Strong",    color: "text-emerald-700", ring: "#10b981", Icon: TrendingUp };
-  if (score >= 50) return { label: "Fair",      color: "text-amber-700",   ring: "#d97706", Icon: TrendingUp };
-  return            { label: "Needs work",      color: "text-red-700",     ring: "#dc2626", Icon: AlertTriangle };
+function gradeFor(score: number, lang: Language) {
+  if (score >= 80) return { label: lc(lang, "Excellent", "சிறப்பு"), color: "text-green-700",  ring: "#16a34a", Icon: CheckCircle2 };
+  if (score >= 65) return { label: lc(lang, "Strong", "வலுவானது"),    color: "text-emerald-700", ring: "#10b981", Icon: TrendingUp };
+  if (score >= 50) return { label: lc(lang, "Fair", "சராசரி"),      color: "text-amber-700",   ring: "#d97706", Icon: TrendingUp };
+  return            { label: lc(lang, "Needs work", "மேம்பாடு தேவை"),      color: "text-red-700",     ring: "#dc2626", Icon: AlertTriangle };
 }
 
 export default function CdiCard() {
+  const { lang } = useLanguage();
   const [data, setData] = useState<CdiData | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -28,10 +32,10 @@ export default function CdiCard() {
 
   if (err) return null; // role-gated; hide on permission errors
   if (!data) return (
-    <Card><CardContent className="p-4 text-sm text-muted-foreground">Computing CDI…</CardContent></Card>
+    <Card><CardContent className="p-4 text-sm text-muted-foreground">{lc(lang, "Computing CDI…", "CDI கணக்கிடப்படுகிறது…")}</CardContent></Card>
   );
 
-  const grade = gradeFor(data.cdi);
+  const grade = gradeFor(data.cdi, lang);
   const dash = (data.cdi / 100) * 283; // 2πr for r=45
 
   return (
@@ -39,7 +43,7 @@ export default function CdiCard() {
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-3">
           <Gauge className="w-4 h-4 text-primary" />
-          <h3 className="text-sm font-semibold">Constituency Development Index</h3>
+          <h3 className="text-sm font-semibold">{lc(lang, "Constituency Development Index", "தொகுதி வளர்ச்சி குறியீடு")}</h3>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-28 h-28 shrink-0">
@@ -68,7 +72,7 @@ export default function CdiCard() {
           </div>
         </div>
         <p className="text-[11px] text-muted-foreground mt-3">
-          Composite of grievance health, promise delivery, monthly engagement, and volunteer base. Updates on every refresh.
+          {lc(lang, "Composite of grievance health, promise delivery, monthly engagement, and volunteer base. Updates on every refresh.", "புகார் ஆரோக்கியம், வாக்குறுதி நிறைவேற்றம், மாதாந்திர ஈடுபாடு மற்றும் தன்னார்வலர் அடித்தளம் ஆகியவற்றின் கூட்டுக் குறியீடு. ஒவ்வொரு புதுப்பிப்பின்போதும் மாறும்.")}
         </p>
       </CardContent>
     </Card>

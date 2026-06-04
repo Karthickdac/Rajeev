@@ -9,6 +9,8 @@ import {
 import { getToken } from "@/lib/auth";
 import { useGetMe } from "@workspace/api-client-react";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 
@@ -61,6 +63,7 @@ interface FormState {
 const EMPTY_FORM: FormState = { id: null, name: "", nameTa: "", color: "#6366f1", sortOrder: "100" };
 
 export default function VoterTagsAdmin() {
+  const { lang } = useLanguage();
   const { data: me } = useGetMe();
   const isSuperAdmin = me?.role === "super_admin";
   const qc = useQueryClient();
@@ -100,16 +103,14 @@ export default function VoterTagsAdmin() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-2xl font-bold">Voter Tags</h2>
+          <h2 className="text-2xl font-bold">{lc(lang, "Voter Tags", "வாக்காளர் குறிச்சொற்கள்")}</h2>
           <p className="text-sm text-muted-foreground">
-            Bilingual labels applied to voters during outreach. Officers and coordinators
-            can assign these tags to voters in their assigned area; only super admins can
-            edit the catalog.
+            {lc(lang, "Bilingual labels applied to voters during outreach. Officers and coordinators can assign these tags to voters in their assigned area; only super admins can edit the catalog.", "தொடர்பு பணியின்போது வாக்காளர்களுக்குப் பயன்படுத்தப்படும் இருமொழி குறிச்சொற்கள். அலுவலர்களும் ஒருங்கிணைப்பாளர்களும் தங்களுக்கு ஒதுக்கப்பட்ட பகுதியில் உள்ள வாக்காளர்களுக்கு இந்தக் குறிச்சொற்களை வழங்கலாம்; கேட்டலாக்கைத் திருத்த சூப்பர் நிர்வாகிகளால் மட்டுமே முடியும்.")}
           </p>
         </div>
         {isSuperAdmin && (
           <Button onClick={() => setForm({ ...EMPTY_FORM })} data-testid="button-new-voter-tag">
-            <Plus className="w-4 h-4 mr-1" /> New tag
+            <Plus className="w-4 h-4 mr-1" /> {lc(lang, "New tag", "புதிய குறிச்சொல்")}
           </Button>
         )}
       </div>
@@ -117,17 +118,17 @@ export default function VoterTagsAdmin() {
       <Card>
         <CardContent className="p-0">
           <div className="px-4 py-2 border-b text-xs text-muted-foreground">
-            {isFetching && items.length === 0 ? "Loading…" : (
-              error ? <span className="text-destructive">Error: {(error as Error).message}</span>
-              : `${items.length} tag${items.length === 1 ? "" : "s"}`
+            {isFetching && items.length === 0 ? lc(lang, "Loading…", "ஏற்றுகிறது…") : (
+              error ? <span className="text-destructive">{lc(lang, "Error", "பிழை")}: {(error as Error).message}</span>
+              : `${items.length} ${lang === "ta" ? "குறிச்சொற்கள்" : `tag${items.length === 1 ? "" : "s"}`}`
             )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-b bg-muted/40">
                 <tr>
-                  {["Tag", "Tamil", "Order", ""].map(h => (
-                    <th key={h} className="text-left px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{h}</th>
+                  {[["Tag", lc(lang, "Tag", "குறிச்சொல்")], ["Tamil", lc(lang, "Tamil", "தமிழ்")], ["Order", lc(lang, "Order", "வரிசை")], ["blank", ""]].map(([k, h]) => (
+                    <th key={k} className="text-left px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -162,7 +163,7 @@ export default function VoterTagsAdmin() {
                             className="h-7 text-xs text-destructive hover:text-destructive"
                             disabled={del.isPending}
                             onClick={() => {
-                              if (window.confirm(`Delete tag "${t.name}"? All voter assignments will also be removed.`)) {
+                              if (window.confirm(lc(lang, `Delete tag "${t.name}"? All voter assignments will also be removed.`, `"${t.name}" குறிச்சொல்லை நீக்கவா? அனைத்து வாக்காளர் ஒதுக்கீடுகளும் நீக்கப்படும்.`))) {
                                 del.mutate(t.id);
                               }
                             }}
@@ -177,7 +178,7 @@ export default function VoterTagsAdmin() {
                 ))}
                 {items.length === 0 && !isFetching && (
                   <tr><td colSpan={4} className="text-center text-muted-foreground py-12">
-                    No tags yet. {isSuperAdmin && "Click \"New tag\" to add one."}
+                    {lc(lang, "No tags yet.", "இன்னும் குறிச்சொற்கள் இல்லை.")} {isSuperAdmin && lc(lang, "Click \"New tag\" to add one.", "ஒன்றைச் சேர்க்க \"புதிய குறிச்சொல்\" என்பதைக் கிளிக் செய்யவும்.")}
                   </td></tr>
                 )}
               </tbody>
@@ -189,12 +190,12 @@ export default function VoterTagsAdmin() {
       <Dialog open={form != null} onOpenChange={(o) => { if (!o) setForm(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{form?.id == null ? "New voter tag" : "Edit voter tag"}</DialogTitle>
+            <DialogTitle>{form?.id == null ? lc(lang, "New voter tag", "புதிய வாக்காளர் குறிச்சொல்") : lc(lang, "Edit voter tag", "வாக்காளர் குறிச்சொல்லைத் திருத்து")}</DialogTitle>
           </DialogHeader>
           {form && (
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium block mb-1">Name (English)</label>
+                <label className="text-xs font-medium block mb-1">{lc(lang, "Name (English)", "பெயர் (ஆங்கிலம்)")}</label>
                 <Input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -202,7 +203,7 @@ export default function VoterTagsAdmin() {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium block mb-1">Name (Tamil)</label>
+                <label className="text-xs font-medium block mb-1">{lc(lang, "Name (Tamil)", "பெயர் (தமிழ்)")}</label>
                 <Input
                   value={form.nameTa}
                   onChange={(e) => setForm({ ...form, nameTa: e.target.value })}
@@ -210,7 +211,7 @@ export default function VoterTagsAdmin() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium block mb-1">Colour</label>
+                  <label className="text-xs font-medium block mb-1">{lc(lang, "Colour", "நிறம்")}</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -226,7 +227,7 @@ export default function VoterTagsAdmin() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium block mb-1">Sort order</label>
+                  <label className="text-xs font-medium block mb-1">{lc(lang, "Sort order", "வரிசை")}</label>
                   <Input
                     type="number" min={0} max={9999}
                     value={form.sortOrder}
@@ -240,14 +241,14 @@ export default function VoterTagsAdmin() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setForm(null)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setForm(null)}>{lc(lang, "Cancel", "ரத்து")}</Button>
             <Button
               onClick={() => form && save.mutate(form)}
               disabled={save.isPending || !form?.name.trim()}
               data-testid="button-save-voter-tag"
             >
               {save.isPending && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
-              Save
+              {lc(lang, "Save", "சேமி")}
             </Button>
           </DialogFooter>
         </DialogContent>

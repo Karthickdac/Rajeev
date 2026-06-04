@@ -98,7 +98,7 @@ export default function MinisterReadOnly({ lang = "ta", section }: { lang?: Lang
                 <div key={`${section}-${row.id}`} className="py-2.5 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      {row.badge && <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{row.badge}</span>}
+                      {row.badge && <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{row.badge === "Press" ? lc(lang, "Press", "ஊடகம்") : row.badge === "News" ? lc(lang, "News", "செய்திகள்") : row.badge}</span>}
                       {row.url ? (
                         <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium truncate hover:text-primary flex items-center gap-1">
                           {row.title}<ExternalLink className="w-3 h-3 shrink-0 opacity-60" />

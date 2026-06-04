@@ -12,6 +12,7 @@ import { adminApi } from "./api";
 import CdiCard from "./CdiCard";
 import { MyTasksWidget } from "./TasksAdmin";
 import { type Language } from "@/lib/i18n";
+import { lc } from "@/lib/LeaderConfigContext";
 
 const COLORS = ["#c9181e", "#d4af37", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2"];
 
@@ -49,24 +50,24 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center py-20 text-muted-foreground">Loading dashboard…</div>;
+  if (loading) return <div className="flex items-center justify-center py-20 text-muted-foreground">{lc(lang, "Loading dashboard…", "டாஷ்போர்டு ஏற்றப்படுகிறது…")}</div>;
   if (error) return <div className="text-red-500 py-10 text-center">{error}</div>;
   if (!data) return null;
 
   const { kpi, grievancesByCategory, grievancesByStatus, monthlyTrend, recentAuditLog } = data;
 
   const kpiCards = [
-    { label: "Total Grievances", value: kpi.totalGrievances, icon: MessageSquare, color: "text-primary", bg: "bg-primary/10", tab: "grievances" },
-    { label: "Open Grievances", value: kpi.openGrievances, icon: Clock, color: "text-amber-500", bg: "bg-amber-50", tab: "grievances" },
-    { label: "Resolved", value: kpi.resolvedGrievances, icon: CheckCircle, color: "text-green-600", bg: "bg-green-50", tab: "grievances" },
-    { label: "Resolution Rate", value: `${kpi.resolutionRate}%`, icon: TrendingUp, color: "text-blue-600", bg: "bg-blue-50", tab: "analytics" },
-    { label: "Avg Resolution", value: `${kpi.avgResolutionHours}h`, icon: Clock, color: "text-teal-600", bg: "bg-teal-50", tab: "analytics" },
-    { label: "Volunteers", value: kpi.totalVolunteers, icon: Users, color: "text-purple-600", bg: "bg-purple-50", tab: "volunteers" },
-    { label: "Pending Volunteers", value: kpi.pendingVolunteers, icon: Users, color: "text-orange-600", bg: "bg-orange-50", tab: "volunteers" },
-    { label: "News Articles", value: kpi.totalNews, icon: Newspaper, color: "text-cyan-600", bg: "bg-cyan-50", tab: "news" },
-    { label: "Events This Month", value: kpi.eventsThisMonth, icon: Calendar, color: "text-rose-600", bg: "bg-rose-50", tab: "events" },
-    { label: "Gallery Items", value: kpi.totalGallery, icon: Image, color: "text-teal-600", bg: "bg-teal-50", tab: "gallery" },
-    { label: "Activities", value: kpi.totalActivities, icon: Activity, color: "text-indigo-600", bg: "bg-indigo-50", tab: "activities" },
+    { key: "Total Grievances", label: lc(lang, "Total Grievances", "மொத்த குறைகள்"), value: kpi.totalGrievances, icon: MessageSquare, color: "text-primary", bg: "bg-primary/10", tab: "grievances" },
+    { key: "Open Grievances", label: lc(lang, "Open Grievances", "தீர்க்கப்படாத குறைகள்"), value: kpi.openGrievances, icon: Clock, color: "text-amber-500", bg: "bg-amber-50", tab: "grievances" },
+    { key: "Resolved", label: lc(lang, "Resolved", "தீர்க்கப்பட்டது"), value: kpi.resolvedGrievances, icon: CheckCircle, color: "text-green-600", bg: "bg-green-50", tab: "grievances" },
+    { key: "Resolution Rate", label: lc(lang, "Resolution Rate", "தீர்வு விகிதம்"), value: `${kpi.resolutionRate}%`, icon: TrendingUp, color: "text-blue-600", bg: "bg-blue-50", tab: "analytics" },
+    { key: "Avg Resolution", label: lc(lang, "Avg Resolution", "சராசரி தீர்வு நேரம்"), value: `${kpi.avgResolutionHours}h`, icon: Clock, color: "text-teal-600", bg: "bg-teal-50", tab: "analytics" },
+    { key: "Volunteers", label: lc(lang, "Volunteers", "தன்னார்வலர்கள்"), value: kpi.totalVolunteers, icon: Users, color: "text-purple-600", bg: "bg-purple-50", tab: "volunteers" },
+    { key: "Pending Volunteers", label: lc(lang, "Pending Volunteers", "நிலுவையில் உள்ள தன்னார்வலர்கள்"), value: kpi.pendingVolunteers, icon: Users, color: "text-orange-600", bg: "bg-orange-50", tab: "volunteers" },
+    { key: "News Articles", label: lc(lang, "News Articles", "செய்தி கட்டுரைகள்"), value: kpi.totalNews, icon: Newspaper, color: "text-cyan-600", bg: "bg-cyan-50", tab: "news" },
+    { key: "Events This Month", label: lc(lang, "Events This Month", "இந்த மாத நிகழ்வுகள்"), value: kpi.eventsThisMonth, icon: Calendar, color: "text-rose-600", bg: "bg-rose-50", tab: "events" },
+    { key: "Gallery Items", label: lc(lang, "Gallery Items", "படத்தொகுப்பு உருப்படிகள்"), value: kpi.totalGallery, icon: Image, color: "text-teal-600", bg: "bg-teal-50", tab: "gallery" },
+    { key: "Activities", label: lc(lang, "Activities", "செயல்பாடுகள்"), value: kpi.totalActivities, icon: Activity, color: "text-indigo-600", bg: "bg-indigo-50", tab: "activities" },
   ];
 
   const goToTab = (tab: string) => {
@@ -86,21 +87,21 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-gray-900">Dashboard Overview</h2>
-        <p className="text-sm text-muted-foreground mt-1">Real-time constituency data & grievance analytics</p>
+        <h2 className="text-xl font-bold text-gray-900">{lc(lang, "Dashboard Overview", "டாஷ்போர்டு கண்ணோட்டம்")}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{lc(lang, "Real-time constituency data & grievance analytics", "நிகழ்நேர தொகுதி தரவு மற்றும் குறை பகுப்பாய்வு")}</p>
       </div>
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {kpiCards.map((k) => (
           <Card
-            key={k.label}
+            key={k.key}
             role="button"
             tabIndex={0}
             onClick={() => goToTab(k.tab)}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goToTab(k.tab); } }}
             className="cursor-pointer hover:shadow-md hover:-translate-y-0.5 hover:border-primary/40 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-            data-testid={`kpi-card-${k.label.toLowerCase().replace(/\s+/g, "-")}`}
+            data-testid={`kpi-card-${k.key.toLowerCase().replace(/\s+/g, "-")}`}
           >
             <CardContent className="p-4">
               <div className={`w-8 h-8 rounded-lg ${k.bg} flex items-center justify-center mb-2`}>
@@ -123,7 +124,7 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Monthly Grievance Trend (Last 6 Months)</CardTitle>
+            <CardTitle className="text-sm font-semibold">{lc(lang, "Monthly Grievance Trend (Last 6 Months)", "மாதாந்திர குறை போக்கு (கடந்த 6 மாதங்கள்)")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -133,8 +134,8 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend iconSize={10} />
-                <Line type="monotone" dataKey="submitted" stroke="#c9181e" strokeWidth={2} dot={{ r: 4 }} name="Submitted" />
-                <Line type="monotone" dataKey="resolved" stroke="#16a34a" strokeWidth={2} dot={{ r: 4 }} name="Resolved" />
+                <Line type="monotone" dataKey="submitted" stroke="#c9181e" strokeWidth={2} dot={{ r: 4 }} name={lc(lang, "Submitted", "சமர்ப்பிக்கப்பட்டது")} />
+                <Line type="monotone" dataKey="resolved" stroke="#16a34a" strokeWidth={2} dot={{ r: 4 }} name={lc(lang, "Resolved", "தீர்க்கப்பட்டது")} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -142,7 +143,7 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Grievances by Category</CardTitle>
+            <CardTitle className="text-sm font-semibold">{lc(lang, "Grievances by Category", "வகை வாரியான குறைகள்")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -151,7 +152,7 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
                 <XAxis type="number" tick={{ fontSize: 11 }} />
                 <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} width={90} />
                 <Tooltip />
-                <Bar dataKey="count" fill="#c9181e" radius={[0, 4, 4, 0]} name="Count" />
+                <Bar dataKey="count" fill="#c9181e" radius={[0, 4, 4, 0]} name={lc(lang, "Count", "எண்ணிக்கை")} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -163,7 +164,7 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
         {/* Resolution rate gauge + status donut */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Resolution Overview</CardTitle>
+            <CardTitle className="text-sm font-semibold">{lc(lang, "Resolution Overview", "தீர்வு கண்ணோட்டம்")}</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-4 items-center justify-center flex-wrap">
             {/* Gauge: resolved vs open */}
@@ -182,7 +183,7 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
                 </RadialBarChart>
               </ResponsiveContainer>
               <p className="text-xl font-bold text-green-600 -mt-6">{kpi.resolutionRate}%</p>
-              <p className="text-xs text-muted-foreground">Resolution Rate</p>
+              <p className="text-xs text-muted-foreground">{lc(lang, "Resolution Rate", "தீர்வு விகிதம்")}</p>
             </div>
             {/* Status breakdown donut */}
             <ResponsiveContainer width={180} height={160}>
@@ -199,7 +200,7 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v) => [v, "Count"]} />
+                <Tooltip formatter={(v) => [v, lc(lang, "Count", "எண்ணிக்கை")]} />
                 <Legend iconSize={8} formatter={(v) => <span className="text-xs">{v}</span>} />
               </PieChart>
             </ResponsiveContainer>
@@ -209,11 +210,11 @@ export default function Dashboard({ lang = "ta" }: { lang?: Language }) {
         {/* Recent Audit Log */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Recent Admin Activity</CardTitle>
+            <CardTitle className="text-sm font-semibold">{lc(lang, "Recent Admin Activity", "சமீபத்திய நிர்வாக செயல்பாடு")}</CardTitle>
           </CardHeader>
           <CardContent>
             {recentAuditLog.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">No admin activity yet</p>
+              <p className="text-xs text-muted-foreground text-center py-4">{lc(lang, "No admin activity yet", "இன்னும் நிர்வாக செயல்பாடு இல்லை")}</p>
             ) : (
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {recentAuditLog.slice(0, 8).map((log) => (

@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Boxes, Layers as LayersIcon, RotateCw, Loader2 } from "lucide-react";
 import { adminApi } from "./api";
-import { useLeaderConfig } from "@/lib/LeaderConfigContext";
+import { useLeaderConfig, lc } from "@/lib/LeaderConfigContext";
+import { useLanguage } from "@/lib/LanguageContext";
 
 // Free OSM raster style — no API key required.
 const MAP_STYLE: StyleSpecification = {
@@ -37,6 +38,7 @@ const today = (off = 0) => { const d = new Date(); d.setDate(d.getDate() + off);
 
 export default function Map3DAdmin() {
   const leader = useLeaderConfig();
+  const { lang } = useLanguage();
   const [from, setFrom] = useState(today(-90));
   const [to, setTo] = useState(today(0));
   const [mode, setMode] = useState<Mode>("hex");
@@ -58,7 +60,7 @@ export default function Map3DAdmin() {
       const d = (await adminApi.getHeatmapTimeline(from, to)) as HeatResp;
       setData(d);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to load");
+      setErr(e instanceof Error ? e.message : lc(lang, "Failed to load", "ஏற்ற முடியவில்லை"));
     } finally { setBusy(false); }
   }
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
@@ -153,10 +155,10 @@ export default function Map3DAdmin() {
     if (mode === "hex") {
       const bin = o as HexBin;
       const total = bin.elevationValue ?? bin.colorValue ?? bin.points?.length ?? 0;
-      return `${Math.round(total)} grievances in this area`;
+      return lc(lang, `${Math.round(total)} grievances in this area`, `இந்தப் பகுதியில் ${Math.round(total)} புகார்கள்`);
     }
     const d = o as ColDatum;
-    if (typeof d.weight === "number") return `${d.weight} grievances\nTop: ${d.topCategory ?? "—"}`;
+    if (typeof d.weight === "number") return lc(lang, `${d.weight} grievances\nTop: ${d.topCategory ?? "—"}`, `${d.weight} புகார்கள்\nமுதன்மை: ${d.topCategory ?? "—"}`);
     return null;
   };
 
@@ -167,23 +169,23 @@ export default function Map3DAdmin() {
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-bold flex items-center gap-2"><Boxes className="w-6 h-6" /> 3D Grievance Map</h1>
-        <div className="text-sm text-muted-foreground">{totalGrievances} grievances across {points.length} locations</div>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Boxes className="w-6 h-6" /> {lc(lang, "3D Grievance Map", "முப்பரிமாண புகார் வரைபடம்")}</h1>
+        <div className="text-sm text-muted-foreground">{lc(lang, `${totalGrievances} grievances across ${points.length} locations`, `${points.length} இடங்களில் ${totalGrievances} புகார்கள்`)}</div>
       </div>
 
       <Card>
         <CardContent className="pt-6 flex flex-wrap items-end gap-3">
-          <div><Label>From</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" /></div>
-          <div><Label>To</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" /></div>
-          <Button onClick={load} disabled={busy}>{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Reload"}</Button>
+          <div><Label>{lc(lang, "From", "முதல்")}</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" /></div>
+          <div><Label>{lc(lang, "To", "வரை")}</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" /></div>
+          <Button onClick={load} disabled={busy}>{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : lc(lang, "Reload", "மீளேற்று")}</Button>
           <div className="flex items-center gap-1 ml-2 border rounded p-1">
             <LayersIcon className="w-4 h-4 mx-1 text-muted-foreground" />
-            {modeButton("hex", "3D Hexagons")}
-            {modeButton("column", "Columns")}
-            {modeButton("grid", "Heat Grid")}
+            {modeButton("hex", lc(lang, "3D Hexagons", "முப்பரிமாண அறுகோணங்கள்"))}
+            {modeButton("column", lc(lang, "Columns", "நெடுவரிசைகள்"))}
+            {modeButton("grid", lc(lang, "Heat Grid", "வெப்பக் கட்டம்"))}
           </div>
           <Button variant="outline" size="sm" onClick={() => setView(defaultView)}>
-            <RotateCw className="w-4 h-4 mr-1" /> Reset view
+            <RotateCw className="w-4 h-4 mr-1" /> {lc(lang, "Reset view", "காட்சியை மீட்டமை")}
           </Button>
         </CardContent>
       </Card>
@@ -206,12 +208,12 @@ export default function Map3DAdmin() {
             </DeckGL>
             {!points.length && !busy && (
               <div className="absolute inset-0 flex items-center justify-center text-white/70 pointer-events-none">
-                No geo-tagged grievances in this range
+                {lc(lang, "No geo-tagged grievances in this range", "இந்த வரம்பில் இடம்-குறிக்கப்பட்ட புகார்கள் இல்லை")}
               </div>
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-3">
-            Drag to pan · Right-drag to rotate · Scroll to zoom. Bar height = grievance volume; deeper red = more reports.
+            {lc(lang, "Drag to pan · Right-drag to rotate · Scroll to zoom. Bar height = grievance volume; deeper red = more reports.", "இழுத்து நகர்த்தவும் · வலது-இழுப்பால் சுழற்றவும் · உருட்டி பெரிதாக்கவும். பட்டையின் உயரம் = புகார் அளவு; அடர் சிவப்பு = அதிக புகார்கள்.")}
           </p>
         </CardContent>
       </Card>

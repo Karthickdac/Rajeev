@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
 import { adminApi } from "./api";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 interface FaqItem {
   id: number;
@@ -20,6 +22,7 @@ interface FaqItem {
 const emptyForm = { question: "", questionTa: "", answer: "", answerTa: "", order: 0 };
 
 export default function FaqsAdmin() {
+  const { lang } = useLanguage();
   const [items, setItems] = useState<FaqItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -32,7 +35,7 @@ export default function FaqsAdmin() {
     setLoading(true);
     adminApi.getFaqs()
       .then((d: FaqItem[]) => setItems(d))
-      .catch(() => setError("Failed to load FAQs"))
+      .catch(() => setError(lc(lang, "Failed to load FAQs", "கேள்வி பதில்களை ஏற்ற முடியவில்லை")))
       .finally(() => setLoading(false));
   };
 
@@ -73,7 +76,7 @@ export default function FaqsAdmin() {
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this FAQ?")) return;
+    if (!confirm(lc(lang, "Delete this FAQ?", "இந்த கேள்வி பதிலை நீக்கவா?"))) return;
     await adminApi.deleteFaq(id).catch(() => null);
     load();
   }
@@ -82,21 +85,21 @@ export default function FaqsAdmin() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">FAQs</h2>
-          <p className="text-sm text-muted-foreground">{items.length} questions</p>
+          <h2 className="text-xl font-bold">{lc(lang, "FAQs", "கேள்வி பதில்கள்")}</h2>
+          <p className="text-sm text-muted-foreground">{items.length} {lc(lang, "questions", "கேள்விகள்")}</p>
         </div>
         <Button onClick={openCreate} className="gap-2 bg-primary hover:bg-primary/90">
-          <Plus className="w-4 h-4" /> Add FAQ
+          <Plus className="w-4 h-4" /> {lc(lang, "Add FAQ", "கேள்வி பதில் சேர்")}
         </Button>
       </div>
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">Loading…</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "Loading…", "ஏற்றுகிறது…")}</p>
       ) : items.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <p className="text-muted-foreground text-sm">No FAQs yet. Add your first one.</p>
+          <p className="text-muted-foreground text-sm">{lc(lang, "No FAQs yet. Add your first one.", "இன்னும் கேள்வி பதில்கள் இல்லை. முதலாவதை சேர்க்கவும்.")}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -126,34 +129,34 @@ export default function FaqsAdmin() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit FAQ" : "New FAQ"}</DialogTitle>
+            <DialogTitle>{editing ? lc(lang, "Edit FAQ", "கேள்வி பதில் திருத்து") : lc(lang, "New FAQ", "புதிய கேள்வி பதில்")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
-              <Label className="text-xs">Question (English) *</Label>
+              <Label className="text-xs">{lc(lang, "Question (English) *", "கேள்வி (ஆங்கிலம்) *")}</Label>
               <Input value={form.question} onChange={e => setForm(f => ({ ...f, question: e.target.value }))} className="mt-1 text-sm" />
             </div>
             <div>
-              <Label className="text-xs">Question (Tamil)</Label>
+              <Label className="text-xs">{lc(lang, "Question (Tamil)", "கேள்வி (தமிழ்)")}</Label>
               <Input value={form.questionTa} onChange={e => setForm(f => ({ ...f, questionTa: e.target.value }))} className="mt-1 text-sm" />
             </div>
             <div>
-              <Label className="text-xs">Answer (English) *</Label>
+              <Label className="text-xs">{lc(lang, "Answer (English) *", "பதில் (ஆங்கிலம்) *")}</Label>
               <Textarea value={form.answer} onChange={e => setForm(f => ({ ...f, answer: e.target.value }))} rows={4} className="mt-1 text-sm" />
             </div>
             <div>
-              <Label className="text-xs">Answer (Tamil)</Label>
+              <Label className="text-xs">{lc(lang, "Answer (Tamil)", "பதில் (தமிழ்)")}</Label>
               <Textarea value={form.answerTa} onChange={e => setForm(f => ({ ...f, answerTa: e.target.value }))} rows={3} className="mt-1 text-sm" />
             </div>
             <div>
-              <Label className="text-xs">Display Order</Label>
+              <Label className="text-xs">{lc(lang, "Display Order", "வரிசை")}</Label>
               <Input type="number" value={form.order} onChange={e => setForm(f => ({ ...f, order: parseInt(e.target.value) || 0 }))} className="mt-1 text-sm w-24" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{lc(lang, "Cancel", "ரத்து")}</Button>
             <Button onClick={handleSave} disabled={saving || !form.question || !form.answer} className="bg-primary hover:bg-primary/90">
-              {saving ? "Saving…" : editing ? "Update" : "Create"}
+              {saving ? lc(lang, "Saving…", "சேமிக்கிறது…") : editing ? lc(lang, "Update", "புதுப்பி") : lc(lang, "Create", "உருவாக்கு")}
             </Button>
           </DialogFooter>
         </DialogContent>

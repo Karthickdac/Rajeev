@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { adminApi } from "./api";
 import { Clock, User, Activity } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 interface AuditEntry {
   id: number;
@@ -28,6 +30,7 @@ function actionBadge(action: string) {
 }
 
 export default function AuditLogAdmin() {
+  const { lang } = useLanguage();
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   const [limit, setLimit] = useState(50);
   const [loading, setLoading] = useState(true);
@@ -37,7 +40,7 @@ export default function AuditLogAdmin() {
     setLoading(true);
     adminApi.getAuditLog(l)
       .then((d: AuditEntry[]) => setEntries(d))
-      .catch(() => setError("Failed to load audit log"))
+      .catch(() => setError(lc(lang, "Failed to load audit log", "தணிக்கை பதிவை ஏற்ற முடியவில்லை")))
       .finally(() => setLoading(false));
   };
 
@@ -62,8 +65,8 @@ export default function AuditLogAdmin() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-xl font-bold">Audit Log</h2>
-          <p className="text-sm text-muted-foreground">Full history of all admin actions</p>
+          <h2 className="text-xl font-bold">{lc(lang, "Audit Log", "தணிக்கை பதிவு")}</h2>
+          <p className="text-sm text-muted-foreground">{lc(lang, "Full history of all admin actions", "அனைத்து நிர்வாக செயல்களின் முழு வரலாறு")}</p>
         </div>
         <div className="flex items-center gap-2">
           <select
@@ -71,10 +74,10 @@ export default function AuditLogAdmin() {
             onChange={e => setLimit(Number(e.target.value))}
             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
           >
-            {[50, 100, 200, 500].map(v => <option key={v} value={v}>Last {v} entries</option>)}
+            {[50, 100, 200, 500].map(v => <option key={v} value={v}>{lc(lang, `Last ${v} entries`, `கடைசி ${v} பதிவுகள்`)}</option>)}
           </select>
           <Button size="sm" variant="outline" onClick={exportCSV} disabled={entries.length === 0}>
-            Export CSV
+            {lc(lang, "Export CSV", "CSV ஏற்றுமதி")}
           </Button>
         </div>
       </div>
@@ -82,9 +85,9 @@ export default function AuditLogAdmin() {
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">Loading audit log…</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "Loading audit log…", "தணிக்கை பதிவு ஏற்றுகிறது…")}</p>
       ) : entries.length === 0 ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">No audit entries found</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "No audit entries found", "தணிக்கை பதிவுகள் எதுவும் இல்லை")}</p>
       ) : (
         <div className="space-y-2">
           {entries.map(e => (
@@ -120,7 +123,7 @@ export default function AuditLogAdmin() {
       {entries.length >= limit && (
         <div className="text-center pt-2">
           <Button variant="outline" size="sm" onClick={() => setLimit(l => l + 100)}>
-            Load More
+            {lc(lang, "Load More", "மேலும் ஏற்று")}
           </Button>
         </div>
       )}

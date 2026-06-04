@@ -10,6 +10,8 @@ import { Plus, Pencil, Trash2, MapPin, Sparkles, Loader2 } from "lucide-react";
 import { adminApi } from "./api";
 import RichTextEditor from "@/components/RichTextEditor";
 import ImageUploader from "@/components/ImageUploader";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 interface ActivityItem {
   id: number;
@@ -30,6 +32,7 @@ const emptyForm = {
 };
 
 export default function ActivitiesAdmin() {
+  const { lang } = useLanguage();
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -46,7 +49,7 @@ export default function ActivitiesAdmin() {
     setLoading(true);
     adminApi.getActivities(p, 15)
       .then((d: { items: ActivityItem[]; total: number }) => { setItems(d.items); setTotal(d.total); })
-      .catch(() => setError("Failed to load activities"))
+      .catch(() => setError(lc(lang, "Failed to load activities", "நடவடிக்கைகளை ஏற்ற முடியவில்லை")))
       .finally(() => setLoading(false));
   };
 
@@ -80,7 +83,7 @@ export default function ActivitiesAdmin() {
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this activity?")) return;
+    if (!confirm(lc(lang, "Delete this activity?", "இந்த நடவடிக்கையை நீக்கவா?"))) return;
     await adminApi.deleteActivity(id).catch(() => null);
     load();
   }
@@ -94,7 +97,7 @@ export default function ActivitiesAdmin() {
     } catch (e: unknown) {
       setExpandedAi(null);
       const msg = (e as Error)?.message || "";
-      setError(/503|OPENAI_API_KEY|not configured/i.test(msg) ? "AI is not configured (missing OpenAI API key)." : "Failed to expand with AI.");
+      setError(/503|OPENAI_API_KEY|not configured/i.test(msg) ? lc(lang, "AI is not configured (missing OpenAI API key).", "AI கட்டமைக்கப்படவில்லை (OpenAI API விசை இல்லை).") : lc(lang, "Failed to expand with AI.", "AI மூலம் விரிவாக்க முடியவில்லை."));
     }
     finally { setExpanding(false); }
   }
@@ -105,18 +108,18 @@ export default function ActivitiesAdmin() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Field Activities</h2>
-          <p className="text-sm text-muted-foreground">{total} activities</p>
+          <h2 className="text-xl font-bold">{lc(lang, "Field Activities", "கள நடவடிக்கைகள்")}</h2>
+          <p className="text-sm text-muted-foreground">{total} {lc(lang, "activities", "நடவடிக்கைகள்")}</p>
         </div>
         <Button onClick={openCreate} className="gap-2 bg-primary hover:bg-primary/90">
-          <Plus className="w-4 h-4" /> Add Activity
+          <Plus className="w-4 h-4" /> {lc(lang, "Add Activity", "நடவடிக்கை சேர்")}
         </Button>
       </div>
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">Loading…</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "Loading…", "ஏற்றுகிறது…")}</p>
       ) : (
         <div className="space-y-2">
           {items.map((item) => (
@@ -155,83 +158,83 @@ export default function ActivitiesAdmin() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 pt-2">
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
-          <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</Button>
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>{lc(lang, "Previous", "முந்தைய")}</Button>
+          <span className="text-sm text-muted-foreground">{lc(lang, "Page", "பக்கம்")} {page} {lc(lang, "of", "/")} {totalPages}</span>
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>{lc(lang, "Next", "அடுத்து")}</Button>
         </div>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Activity" : "New Activity"}</DialogTitle>
+            <DialogTitle>{editing ? lc(lang, "Edit Activity", "நடவடிக்கை திருத்து") : lc(lang, "New Activity", "புதிய நடவடிக்கை")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Title (English) *</Label>
+                <Label className="text-xs">{lc(lang, "Title (English) *", "தலைப்பு (ஆங்கிலம்) *")}</Label>
                 <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="mt-1 text-sm" />
               </div>
               <div>
-                <Label className="text-xs">Title (Tamil)</Label>
+                <Label className="text-xs">{lc(lang, "Title (Tamil)", "தலைப்பு (தமிழ்)")}</Label>
                 <Input value={form.titleTa} onChange={e => setForm(f => ({ ...f, titleTa: e.target.value }))} className="mt-1 text-sm" />
               </div>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
-                <Label className="text-xs">Description</Label>
+                <Label className="text-xs">{lc(lang, "Description", "விவரம்")}</Label>
                 <Button type="button" size="sm" variant="outline" onClick={handleExpandAi} disabled={expanding || !form.title} className="gap-1 text-xs h-6 px-2">
                   {expanding ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-primary" />}
-                  Expand with AI
+                  {lc(lang, "Expand with AI", "AI மூலம் விரிவாக்கு")}
                 </Button>
               </div>
               <RichTextEditor
                 value={form.description}
                 onChange={html => setForm(f => ({ ...f, description: html }))}
-                placeholder="Activity description…"
+                placeholder={lc(lang, "Activity description…", "நடவடிக்கை விவரம்…")}
                 minHeight={120}
               />
               {expandedAi && (
                 <div className="mt-2 border rounded-md p-2 bg-muted/30 space-y-2 text-xs">
-                  <p className="text-muted-foreground font-medium">AI suggested:</p>
+                  <p className="text-muted-foreground font-medium">{lc(lang, "AI suggested:", "AI பரிந்துரை:")}</p>
                   <div>
-                    <p className="font-medium mb-0.5">English</p>
+                    <p className="font-medium mb-0.5">{lc(lang, "English", "ஆங்கிலம்")}</p>
                     <p className="text-muted-foreground line-clamp-3">{expandedAi.description_en}</p>
-                    <Button type="button" size="sm" variant="ghost" className="h-5 text-[10px] px-1 mt-1" onClick={() => { setForm(f => ({ ...f, description: expandedAi.description_en })); setExpandedAi(null); }}>Use English</Button>
+                    <Button type="button" size="sm" variant="ghost" className="h-5 text-[10px] px-1 mt-1" onClick={() => { setForm(f => ({ ...f, description: expandedAi.description_en })); setExpandedAi(null); }}>{lc(lang, "Use English", "ஆங்கிலம் பயன்படுத்து")}</Button>
                   </div>
                   <div>
-                    <p className="font-medium mb-0.5">Tamil</p>
+                    <p className="font-medium mb-0.5">{lc(lang, "Tamil", "தமிழ்")}</p>
                     <p className="text-muted-foreground line-clamp-3">{expandedAi.description_ta}</p>
-                    <Button type="button" size="sm" variant="ghost" className="h-5 text-[10px] px-1 mt-1" onClick={() => { setForm(f => ({ ...f, description: expandedAi.description_ta })); setExpandedAi(null); }}>Use Tamil</Button>
+                    <Button type="button" size="sm" variant="ghost" className="h-5 text-[10px] px-1 mt-1" onClick={() => { setForm(f => ({ ...f, description: expandedAi.description_ta })); setExpandedAi(null); }}>{lc(lang, "Use Tamil", "தமிழ் பயன்படுத்து")}</Button>
                   </div>
                 </div>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Activity Date *</Label>
+                <Label className="text-xs">{lc(lang, "Activity Date *", "நடவடிக்கை தேதி *")}</Label>
                 <Input type="date" value={form.activityDate} onChange={e => setForm(f => ({ ...f, activityDate: e.target.value }))} className="mt-1 text-sm" />
               </div>
               <div>
-                <Label className="text-xs">Location</Label>
+                <Label className="text-xs">{lc(lang, "Location", "இடம்")}</Label>
                 <Input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} className="mt-1 text-sm" />
               </div>
             </div>
             <div>
-              <Label className="text-xs">Category</Label>
+              <Label className="text-xs">{lc(lang, "Category", "வகை")}</Label>
               <Input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="mt-1 text-sm" />
             </div>
             <ImageUploader
-              label="Image"
+              label={lc(lang, "Image", "படம்")}
               value={form.imageUrl}
               onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))}
               onThumbnailChange={(url) => setForm(f => ({ ...f, thumbnailUrl: url }))}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{lc(lang, "Cancel", "ரத்து")}</Button>
             <Button onClick={handleSave} disabled={saving || !form.title || !form.activityDate} className="bg-primary hover:bg-primary/90">
-              {saving ? "Saving…" : editing ? "Update" : "Create"}
+              {saving ? lc(lang, "Saving…", "சேமிக்கிறது…") : editing ? lc(lang, "Update", "புதுப்பி") : lc(lang, "Create", "உருவாக்கு")}
             </Button>
           </DialogFooter>
         </DialogContent>

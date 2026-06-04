@@ -9,6 +9,8 @@ import {
   Send, Newspaper, Share2, AlertCircle, CheckCircle2, Megaphone, Loader2, Facebook, Instagram, Twitter, Youtube, Globe,
 } from "lucide-react";
 import { adminApi } from "./api";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 interface SocialAccount {
   id: number;
@@ -34,6 +36,7 @@ interface Step {
 // Currently: Website (news article) + Social Media Hub (cross-post).
 // WhatsApp / SMS / Push will plug in here when those integrations are added.
 export default function BroadcastAdmin() {
+  const { lang } = useLanguage();
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -76,13 +79,13 @@ export default function BroadcastAdmin() {
 
   async function broadcast() {
     setErr(null);
-    if (!headline.trim() || !body.trim()) { setErr("Headline and body are required"); return; }
-    if (!postToWebsite && !postToSocial) { setErr("Pick at least one channel"); return; }
-    if (postToSocial && socialIds.size === 0) { setErr("Select at least one social account or disable social channel"); return; }
+    if (!headline.trim() || !body.trim()) { setErr(lc(lang, "Headline and body are required", "தலைப்பு மற்றும் விளக்கம் தேவை")); return; }
+    if (!postToWebsite && !postToSocial) { setErr(lc(lang, "Pick at least one channel", "குறைந்தது ஒரு தடத்தைத் தேர்ந்தெடுக்கவும்")); return; }
+    if (postToSocial && socialIds.size === 0) { setErr(lc(lang, "Select at least one social account or disable social channel", "குறைந்தது ஒரு சமூக ஊடக கணக்கைத் தேர்ந்தெடுக்கவும் அல்லது சமூக ஊடக தடத்தை முடக்கவும்")); return; }
 
     const planned: Step[] = [];
-    if (postToWebsite) planned.push({ key: "website", label: "Publish website news article", status: "pending" });
-    if (postToSocial)  planned.push({ key: "social",  label: `Cross-post to ${socialIds.size} social account(s)`, status: "pending" });
+    if (postToWebsite) planned.push({ key: "website", label: lc(lang, "Publish website news article", "இணையதள செய்தி கட்டுரையை வெளியிடு"), status: "pending" });
+    if (postToSocial)  planned.push({ key: "social",  label: lc(lang, `Cross-post to ${socialIds.size} social account(s)`, `${socialIds.size} சமூக ஊடக கணக்கு(களு)க்கு பகிர்`), status: "pending" });
     setSteps(planned);
     setRunning(true);
 
@@ -100,9 +103,9 @@ export default function BroadcastAdmin() {
             featured,
             publishedAt: new Date().toISOString(),
           });
-          setStep("website", { status: "done", detail: "Live on /news" });
+          setStep("website", { status: "done", detail: lc(lang, "Live on /news", "/news இல் நேரலையில்") });
         } catch (e) {
-          setStep("website", { status: "failed", detail: e instanceof Error ? e.message : "Failed" });
+          setStep("website", { status: "failed", detail: e instanceof Error ? e.message : lc(lang, "Failed", "தோல்வியடைந்தது") });
         }
       }
 
@@ -123,10 +126,10 @@ export default function BroadcastAdmin() {
           const total = result.results?.length ?? socialIds.size;
           setStep("social", {
             status: ok === total ? "done" : ok > 0 ? "done" : "failed",
-            detail: `${ok}/${total} platforms posted`,
+            detail: lc(lang, `${ok}/${total} platforms posted`, `${ok}/${total} தளங்களில் வெளியிடப்பட்டது`),
           });
         } catch (e) {
-          setStep("social", { status: "failed", detail: e instanceof Error ? e.message : "Failed" });
+          setStep("social", { status: "failed", detail: e instanceof Error ? e.message : lc(lang, "Failed", "தோல்வியடைந்தது") });
         }
       }
     } finally {
@@ -144,9 +147,9 @@ export default function BroadcastAdmin() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold flex items-center gap-2"><Megaphone className="w-5 h-5 text-primary" /> Multi-channel Broadcaster</h2>
+        <h2 className="text-lg font-semibold flex items-center gap-2"><Megaphone className="w-5 h-5 text-primary" /> {lc(lang, "Multi-channel Broadcaster", "பல்தட ஒளிபரப்பான்")}</h2>
         <p className="text-sm text-muted-foreground">
-          Compose once, push to website + social media at the same time. WhatsApp / SMS / push notifications will plug in here.
+          {lc(lang, "Compose once, push to website + social media at the same time. WhatsApp / SMS / push notifications will plug in here.", "ஒருமுறை உருவாக்கி, இணையதளம் + சமூக ஊடகங்களுக்கு ஒரே நேரத்தில் அனுப்பவும். WhatsApp / SMS / உந்து அறிவிப்புகள் இங்கு இணைக்கப்படும்.")}
         </p>
       </div>
 
@@ -158,60 +161,60 @@ export default function BroadcastAdmin() {
         <Card className="lg:col-span-2">
           <CardContent className="p-4 space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs">Headline (English)</Label>
-              <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="e.g. Inaugurated new community health centre" />
+              <Label className="text-xs">{lc(lang, "Headline (English)", "தலைப்பு (ஆங்கிலம்)")}</Label>
+              <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder={lc(lang, "e.g. Inaugurated new community health centre", "எ.கா. புதிய சமூக நல மருத்துவ மையம் திறக்கப்பட்டது")} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">தலைப்பு (Tamil)</Label>
+              <Label className="text-xs">{lc(lang, "Headline (Tamil)", "தலைப்பு (தமிழ்)")}</Label>
               <Input value={headlineTa} onChange={(e) => setHeadlineTa(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Body (English)</Label>
+              <Label className="text-xs">{lc(lang, "Body (English)", "விளக்கம் (ஆங்கிலம்)")}</Label>
               <Textarea rows={5} value={body} onChange={(e) => setBody(e.target.value)} />
-              <p className="text-xs text-muted-foreground">{body.length} chars · Twitter caps at ~280</p>
+              <p className="text-xs text-muted-foreground">{body.length} {lc(lang, "chars · Twitter caps at ~280", "எழுத்துகள் · Twitter வரம்பு ~280")}</p>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">விளக்கம் (Tamil)</Label>
+              <Label className="text-xs">{lc(lang, "Body (Tamil)", "விளக்கம் (தமிழ்)")}</Label>
               <Textarea rows={4} value={bodyTa} onChange={(e) => setBodyTa(e.target.value)} />
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs">Image URL (must be public)</Label>
+                <Label className="text-xs">{lc(lang, "Image URL (must be public)", "பட URL (பொதுவில் இருக்க வேண்டும்)")}</Label>
                 <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">News category</Label>
+                <Label className="text-xs">{lc(lang, "News category", "செய்தி வகை")}</Label>
                 <Input value={category} onChange={(e) => setCategory(e.target.value)} />
               </div>
             </div>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
-              Feature this on the homepage
+              {lc(lang, "Feature this on the homepage", "இதை முகப்புப் பக்கத்தில் சிறப்பிக்கவும்")}
             </label>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 space-y-3">
-            <h3 className="font-semibold text-sm">Channels</h3>
+            <h3 className="font-semibold text-sm">{lc(lang, "Channels", "தடங்கள்")}</h3>
 
             <label className="flex items-center justify-between p-2 border rounded-md cursor-pointer hover:bg-gray-50">
               <span className="flex items-center gap-2 text-sm">
-                <Newspaper className="w-4 h-4 text-primary" /> Website news article
+                <Newspaper className="w-4 h-4 text-primary" /> {lc(lang, "Website news article", "இணையதள செய்தி கட்டுரை")}
               </span>
               <input type="checkbox" checked={postToWebsite} onChange={(e) => setPostToWebsite(e.target.checked)} />
             </label>
 
             <label className="flex items-center justify-between p-2 border rounded-md cursor-pointer hover:bg-gray-50">
               <span className="flex items-center gap-2 text-sm">
-                <Share2 className="w-4 h-4 text-primary" /> Social media accounts
+                <Share2 className="w-4 h-4 text-primary" /> {lc(lang, "Social media accounts", "சமூக ஊடக கணக்குகள்")}
               </span>
               <input type="checkbox" checked={postToSocial} onChange={(e) => setPostToSocial(e.target.checked)} />
             </label>
 
             {postToSocial && (
               <div className="space-y-1 max-h-64 overflow-auto border rounded p-2">
-                {activeAccounts.length === 0 && <p className="text-xs text-muted-foreground">No active social accounts. Add them in Social Media → Accounts.</p>}
+                {activeAccounts.length === 0 && <p className="text-xs text-muted-foreground">{lc(lang, "No active social accounts. Add them in Social Media → Accounts.", "செயலில் உள்ள சமூக ஊடக கணக்குகள் இல்லை. சமூக ஊடகம் → கணக்குகள் பகுதியில் சேர்க்கவும்.")}</p>}
                 {activeAccounts.map((a) => {
                   const Icon = PLATFORM_ICON[a.platform] ?? Globe;
                   return (
@@ -228,9 +231,9 @@ export default function BroadcastAdmin() {
 
             <div className="border-t pt-3 flex flex-col gap-2">
               <Button onClick={broadcast} disabled={running}>
-                {running ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Broadcasting…</> : <><Send className="w-4 h-4 mr-1" /> Broadcast now</>}
+                {running ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> {lc(lang, "Broadcasting…", "ஒளிபரப்புகிறது…")}</> : <><Send className="w-4 h-4 mr-1" /> {lc(lang, "Broadcast now", "இப்போது ஒளிபரப்பு")}</>}
               </Button>
-              <Button variant="outline" onClick={clear} disabled={running}>Clear</Button>
+              <Button variant="outline" onClick={clear} disabled={running}>{lc(lang, "Clear", "அழி")}</Button>
             </div>
           </CardContent>
         </Card>
@@ -239,14 +242,14 @@ export default function BroadcastAdmin() {
       {steps.length > 0 && (
         <Card>
           <CardContent className="p-4 space-y-2">
-            <h3 className="font-semibold text-sm mb-2">Broadcast progress</h3>
+            <h3 className="font-semibold text-sm mb-2">{lc(lang, "Broadcast progress", "ஒளிபரப்பு முன்னேற்றம்")}</h3>
             {steps.map((s) => (
               <div key={s.key} className="flex items-center gap-2 text-sm">
                 {s.status === "pending" && <div className="w-4 h-4 rounded-full border" />}
                 {s.status === "running" && <Loader2 className="w-4 h-4 animate-spin text-blue-600" />}
                 {s.status === "done"    && <CheckCircle2 className="w-4 h-4 text-green-600" />}
                 {s.status === "failed"  && <AlertCircle className="w-4 h-4 text-red-600" />}
-                {s.status === "skipped" && <Badge variant="secondary" className="text-xs">skipped</Badge>}
+                {s.status === "skipped" && <Badge variant="secondary" className="text-xs">{lc(lang, "skipped", "தவிர்க்கப்பட்டது")}</Badge>}
                 <span className="flex-1">{s.label}</span>
                 {s.detail && <span className={s.status === "failed" ? "text-xs text-red-600" : "text-xs text-muted-foreground"}>{s.detail}</span>}
               </div>

@@ -2,10 +2,13 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, X, Send, Loader2, Sparkles } from "lucide-react";
 import { adminApi } from "./api";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 interface Message { role: "user" | "ai"; text: string }
 
 export default function AskAiWidget() {
+  const { lang } = useLanguage();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -23,7 +26,7 @@ export default function AskAiWidget() {
       setMessages(m => [...m, { role: "ai", text: r.answer }]);
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 80);
     } catch {
-      setMessages(m => [...m, { role: "ai", text: "Sorry, I couldn't process that. Please try again." }]);
+      setMessages(m => [...m, { role: "ai", text: lc(lang, "Sorry, I couldn't process that. Please try again.", "மன்னிக்கவும், அதை செயலாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.") }]);
     } finally {
       setBusy(false);
     }
@@ -36,7 +39,7 @@ export default function AskAiWidget() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-primary text-white">
             <div className="flex items-center gap-1.5 text-sm font-semibold">
-              <Sparkles className="w-4 h-4" /> AI Assistant
+              <Sparkles className="w-4 h-4" /> {lc(lang, "AI Assistant", "AI உதவியாளர்")}
             </div>
             <button onClick={() => setOpen(false)} className="opacity-70 hover:opacity-100 transition-opacity">
               <X className="w-4 h-4" />
@@ -47,7 +50,7 @@ export default function AskAiWidget() {
           <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-72 min-h-[120px] bg-muted/10">
             {messages.length === 0 && (
               <p className="text-xs text-muted-foreground text-center py-4">
-                Ask anything about the constituency, grievances, or daily schedules.
+                {lc(lang, "Ask anything about the constituency, grievances, or daily schedules.", "தொகுதி, புகார்கள் அல்லது தினசரி அட்டவணைகள் குறித்து எதையும் கேளுங்கள்.")}
               </p>
             )}
             {messages.map((msg, i) => (
@@ -64,7 +67,7 @@ export default function AskAiWidget() {
             {busy && (
               <div className="flex justify-start">
                 <div className="bg-white border rounded-xl rounded-bl-none px-3 py-2 text-xs text-muted-foreground flex items-center gap-1">
-                  <Loader2 className="w-3 h-3 animate-spin" /> Thinking…
+                  <Loader2 className="w-3 h-3 animate-spin" /> {lc(lang, "Thinking…", "சிந்திக்கிறது…")}
                 </div>
               </div>
             )}
@@ -78,7 +81,7 @@ export default function AskAiWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder="Ask anything…"
+              placeholder={lc(lang, "Ask anything…", "எதையும் கேளுங்கள்…")}
             />
             <Button size="icon" className="h-8 w-8 shrink-0" onClick={send} disabled={busy || !input.trim()}>
               <Send className="w-3.5 h-3.5" />
@@ -91,7 +94,7 @@ export default function AskAiWidget() {
       <Button
         onClick={() => setOpen(v => !v)}
         className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white p-0"
-        title="AI Assistant"
+        title={lc(lang, "AI Assistant", "AI உதவியாளர்")}
       >
         {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
       </Button>

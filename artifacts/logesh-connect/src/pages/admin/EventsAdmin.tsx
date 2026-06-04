@@ -10,6 +10,8 @@ import { Plus, Pencil, Trash2, MapPin, CalendarDays } from "lucide-react";
 import { adminApi } from "./api";
 import RichTextEditor from "@/components/RichTextEditor";
 import ImageUploader from "@/components/ImageUploader";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 interface EventItem {
   id: number;
@@ -31,6 +33,7 @@ const emptyForm = {
 };
 
 export default function EventsAdmin() {
+  const { lang } = useLanguage();
   const [items, setItems] = useState<EventItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -45,7 +48,7 @@ export default function EventsAdmin() {
     setLoading(true);
     adminApi.getEvents(p, 15)
       .then((d: { items: EventItem[]; total: number }) => { setItems(d.items); setTotal(d.total); })
-      .catch(() => setError("Failed to load events"))
+      .catch(() => setError(lc(lang, "Failed to load events", "நிகழ்வுகளை ஏற்ற முடியவில்லை")))
       .finally(() => setLoading(false));
   };
 
@@ -86,7 +89,7 @@ export default function EventsAdmin() {
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this event?")) return;
+    if (!confirm(lc(lang, "Delete this event?", "இந்த நிகழ்வை நீக்கவா?"))) return;
     await adminApi.deleteEvent(id).catch(() => null);
     load();
   }
@@ -97,18 +100,18 @@ export default function EventsAdmin() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Events</h2>
-          <p className="text-sm text-muted-foreground">{total} events</p>
+          <h2 className="text-xl font-bold">{lc(lang, "Events", "நிகழ்வுகள்")}</h2>
+          <p className="text-sm text-muted-foreground">{total} {lc(lang, "events", "நிகழ்வுகள்")}</p>
         </div>
         <Button onClick={openCreate} className="gap-2 bg-primary hover:bg-primary/90">
-          <Plus className="w-4 h-4" /> Add Event
+          <Plus className="w-4 h-4" /> {lc(lang, "Add Event", "நிகழ்வு சேர்")}
         </Button>
       </div>
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">Loading…</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "Loading…", "ஏற்றுகிறது…")}</p>
       ) : (
         <div className="space-y-2">
           {items.map((item) => {
@@ -136,7 +139,7 @@ export default function EventsAdmin() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-sm">{item.title}</p>
                       <Badge variant="outline" className="text-xs">{item.category}</Badge>
-                      {isPast && <Badge className="bg-gray-100 text-gray-500 text-xs">Past</Badge>}
+                      {isPast && <Badge className="bg-gray-100 text-gray-500 text-xs">{lc(lang, "Past", "முடிந்தது")}</Badge>}
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                       <MapPin className="w-3 h-3" /> {item.venue}
@@ -159,66 +162,66 @@ export default function EventsAdmin() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 pt-2">
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
-          <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</Button>
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>{lc(lang, "Previous", "முந்தைய")}</Button>
+          <span className="text-sm text-muted-foreground">{lc(lang, "Page", "பக்கம்")} {page} {lc(lang, "of", "/")} {totalPages}</span>
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>{lc(lang, "Next", "அடுத்து")}</Button>
         </div>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Event" : "New Event"}</DialogTitle>
+            <DialogTitle>{editing ? lc(lang, "Edit Event", "நிகழ்வு திருத்து") : lc(lang, "New Event", "புதிய நிகழ்வு")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Title (English) *</Label>
+                <Label className="text-xs">{lc(lang, "Title (English) *", "தலைப்பு (ஆங்கிலம்) *")}</Label>
                 <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="mt-1 text-sm" />
               </div>
               <div>
-                <Label className="text-xs">Title (Tamil)</Label>
+                <Label className="text-xs">{lc(lang, "Title (Tamil)", "தலைப்பு (தமிழ்)")}</Label>
                 <Input value={form.titleTa} onChange={e => setForm(f => ({ ...f, titleTa: e.target.value }))} className="mt-1 text-sm" />
               </div>
             </div>
             <div>
-              <Label className="text-xs">Description</Label>
+              <Label className="text-xs">{lc(lang, "Description", "விவரம்")}</Label>
               <RichTextEditor
                 value={form.description}
                 onChange={html => setForm(f => ({ ...f, description: html }))}
-                placeholder="Event description…"
+                placeholder={lc(lang, "Event description…", "நிகழ்வு விவரம்…")}
                 minHeight={120}
               />
             </div>
             <div>
-              <Label className="text-xs">Venue *</Label>
+              <Label className="text-xs">{lc(lang, "Venue *", "இடம் *")}</Label>
               <Input value={form.venue} onChange={e => setForm(f => ({ ...f, venue: e.target.value }))} className="mt-1 text-sm" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Event Date *</Label>
+                <Label className="text-xs">{lc(lang, "Event Date *", "நிகழ்வு தேதி *")}</Label>
                 <Input type="date" value={form.eventDate} onChange={e => setForm(f => ({ ...f, eventDate: e.target.value }))} className="mt-1 text-sm" />
               </div>
               <div>
-                <Label className="text-xs">End Date</Label>
+                <Label className="text-xs">{lc(lang, "End Date", "முடிவு தேதி")}</Label>
                 <Input type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} className="mt-1 text-sm" />
               </div>
             </div>
             <div>
-              <Label className="text-xs">Category</Label>
+              <Label className="text-xs">{lc(lang, "Category", "வகை")}</Label>
               <Input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="mt-1 text-sm" />
             </div>
             <ImageUploader
-              label="Image"
+              label={lc(lang, "Image", "படம்")}
               value={form.imageUrl}
               onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))}
               onThumbnailChange={(url) => setForm(f => ({ ...f, thumbnailUrl: url }))}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{lc(lang, "Cancel", "ரத்து")}</Button>
             <Button onClick={handleSave} disabled={saving || !form.title || !form.venue || !form.eventDate} className="bg-primary hover:bg-primary/90">
-              {saving ? "Saving…" : editing ? "Update" : "Create"}
+              {saving ? lc(lang, "Saving…", "சேமிக்கிறது…") : editing ? lc(lang, "Update", "புதுப்பி") : lc(lang, "Create", "உருவாக்கு")}
             </Button>
           </DialogFooter>
         </DialogContent>

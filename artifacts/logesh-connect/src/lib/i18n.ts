@@ -197,6 +197,9 @@ export const hierarchyAdminTranslations = {
     wardTypeTownPanchayat: "Town Panchayat",
     wardTypeVillagePanchayat: "Village Panchayat",
     wardTypeRevenueVillage: "Revenue Village",
+    votersLoadedTip: "Voters loaded from electoral roll",
+    votersCount: (n: number) => `${n.toLocaleString()} voters`,
+    noRollLoaded: "no roll loaded",
   },
   ta: {
     title: "தொகுதி கட்டமைப்பு",
@@ -306,6 +309,9 @@ export const hierarchyAdminTranslations = {
     wardTypeTownPanchayat: "நகர் ஊராட்சி",
     wardTypeVillagePanchayat: "கிராம ஊராட்சி",
     wardTypeRevenueVillage: "வருவாய் கிராமம்",
+    votersLoadedTip: "வாக்காளர் பட்டியலிலிருந்து ஏற்றப்பட்ட வாக்காளர்கள்",
+    votersCount: (n: number) => `${n.toLocaleString()} வாக்காளர்கள்`,
+    noRollLoaded: "பட்டியல் ஏற்றப்படவில்லை",
   },
 } satisfies Record<Language, Record<string, unknown>>;
 

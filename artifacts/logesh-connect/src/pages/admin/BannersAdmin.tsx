@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { adminApi } from "./api";
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 interface BannerItem {
   id: number;
@@ -33,6 +35,7 @@ function Field({ label, value, onChange, type = "text", placeholder = "" }: { la
 }
 
 export default function BannersAdmin() {
+  const { lang } = useLanguage();
   const [items, setItems] = useState<BannerItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +47,7 @@ export default function BannersAdmin() {
     setLoading(true);
     adminApi.getBanners()
       .then((d: BannerItem[]) => setItems(d))
-      .catch(() => setError("Failed to load banners"))
+      .catch(() => setError(lc(lang, "Failed to load banners", "பேனர்களை ஏற்ற முடியவில்லை")))
       .finally(() => setLoading(false));
   };
 
@@ -70,7 +73,7 @@ export default function BannersAdmin() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Delete this banner?")) return;
+    if (!confirm(lc(lang, "Delete this banner?", "இந்த பேனரை நீக்கவா?"))) return;
     try {
       await adminApi.deleteBanner(id);
       setItems(prev => prev.filter(i => i.id !== id));
@@ -88,20 +91,20 @@ export default function BannersAdmin() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold">Banners & Announcements</h2>
-          <p className="text-sm text-muted-foreground">{items.length} banner{items.length !== 1 ? "s" : ""} • {items.filter(i => i.isActive).length} active</p>
+          <h2 className="text-xl font-bold">{lc(lang, "Banners & Announcements", "பேனர்கள் & அறிவிப்புகள்")}</h2>
+          <p className="text-sm text-muted-foreground">{items.length} {lc(lang, `banner${items.length !== 1 ? "s" : ""}`, "பேனர்கள்")} • {items.filter(i => i.isActive).length} {lc(lang, "active", "செயலில்")}</p>
         </div>
         <Button size="sm" className="gap-1" onClick={openCreate}>
-          <Plus className="w-4 h-4" /> Add Banner
+          <Plus className="w-4 h-4" /> {lc(lang, "Add Banner", "பேனர் சேர்")}
         </Button>
       </div>
 
       {error && <p className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">Loading…</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "Loading…", "ஏற்றுகிறது…")}</p>
       ) : items.length === 0 ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">No banners created yet</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "No banners created yet", "இதுவரை பேனர்கள் எதுவும் இல்லை")}</p>
       ) : (
         <div className="space-y-2">
           {items.sort((a, b) => a.displayOrder - b.displayOrder).map(item => (
@@ -113,12 +116,12 @@ export default function BannersAdmin() {
                       <p className="font-semibold text-sm">{item.title}</p>
                       {item.titleTa && <p className="text-xs text-muted-foreground">{item.titleTa}</p>}
                       <Badge className={item.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-600 border-gray-200"}>
-                        {item.isActive ? "Active" : "Inactive"}
+                        {item.isActive ? lc(lang, "Active", "செயலில்") : lc(lang, "Inactive", "செயலற்றது")}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">Order: {item.displayOrder}</Badge>
+                      <Badge variant="outline" className="text-xs">{lc(lang, "Order", "வரிசை")}: {item.displayOrder}</Badge>
                     </div>
                     {item.subtitle && <p className="text-xs text-muted-foreground mt-1">{item.subtitle}</p>}
-                    {item.ctaText && <p className="text-xs text-primary mt-1">CTA: {item.ctaText} → {item.ctaUrl}</p>}
+                    {item.ctaText && <p className="text-xs text-primary mt-1">{lc(lang, "CTA", "செயல் பொத்தான்")}: {item.ctaText} → {item.ctaUrl}</p>}
                   </div>
                   <div className="flex gap-1 shrink-0">
                     <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => toggleActive(item)}>
@@ -141,27 +144,27 @@ export default function BannersAdmin() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing.id ? "Edit Banner" : "Add Banner"}</DialogTitle>
+            <DialogTitle>{editing.id ? lc(lang, "Edit Banner", "பேனர் திருத்து") : lc(lang, "Add Banner", "பேனர் சேர்")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 pt-2">
-            <Field label="Title (English) *" value={editing.title ?? ""} onChange={v => setEditing(e => ({ ...e, title: v }))} />
-            <Field label="Title (Tamil)" value={editing.titleTa ?? ""} onChange={v => setEditing(e => ({ ...e, titleTa: v }))} />
-            <Field label="Subtitle (English)" value={editing.subtitle ?? ""} onChange={v => setEditing(e => ({ ...e, subtitle: v }))} />
-            <Field label="Subtitle (Tamil)" value={editing.subtitleTa ?? ""} onChange={v => setEditing(e => ({ ...e, subtitleTa: v }))} />
-            <Field label="CTA Button Text" value={editing.ctaText ?? ""} onChange={v => setEditing(e => ({ ...e, ctaText: v }))} placeholder="Learn More" />
-            <Field label="CTA Button URL" value={editing.ctaUrl ?? ""} onChange={v => setEditing(e => ({ ...e, ctaUrl: v }))} placeholder="/news" />
-            <Field label="Background Image URL" value={editing.imageUrl ?? ""} onChange={v => setEditing(e => ({ ...e, imageUrl: v }))} placeholder="https://..." />
-            <Field label="Display Order" value={String(editing.displayOrder ?? 0)} onChange={v => setEditing(e => ({ ...e, displayOrder: parseInt(v) || 0 }))} type="number" />
+            <Field label={lc(lang, "Title (English) *", "தலைப்பு (ஆங்கிலம்) *")} value={editing.title ?? ""} onChange={v => setEditing(e => ({ ...e, title: v }))} />
+            <Field label={lc(lang, "Title (Tamil)", "தலைப்பு (தமிழ்)")} value={editing.titleTa ?? ""} onChange={v => setEditing(e => ({ ...e, titleTa: v }))} />
+            <Field label={lc(lang, "Subtitle (English)", "துணைத்தலைப்பு (ஆங்கிலம்)")} value={editing.subtitle ?? ""} onChange={v => setEditing(e => ({ ...e, subtitle: v }))} />
+            <Field label={lc(lang, "Subtitle (Tamil)", "துணைத்தலைப்பு (தமிழ்)")} value={editing.subtitleTa ?? ""} onChange={v => setEditing(e => ({ ...e, subtitleTa: v }))} />
+            <Field label={lc(lang, "CTA Button Text", "செயல் பொத்தான் உரை")} value={editing.ctaText ?? ""} onChange={v => setEditing(e => ({ ...e, ctaText: v }))} placeholder={lc(lang, "Learn More", "மேலும் அறிக")} />
+            <Field label={lc(lang, "CTA Button URL", "செயல் பொத்தான் URL")} value={editing.ctaUrl ?? ""} onChange={v => setEditing(e => ({ ...e, ctaUrl: v }))} placeholder="/news" />
+            <Field label={lc(lang, "Background Image URL", "பின்னணி பட URL")} value={editing.imageUrl ?? ""} onChange={v => setEditing(e => ({ ...e, imageUrl: v }))} placeholder="https://..." />
+            <Field label={lc(lang, "Display Order", "வரிசை")} value={String(editing.displayOrder ?? 0)} onChange={v => setEditing(e => ({ ...e, displayOrder: parseInt(v) || 0 }))} type="number" />
             <div className="flex items-center gap-2">
               <input type="checkbox" id="banner-active" checked={editing.isActive ?? true}
                 onChange={e => setEditing(d => ({ ...d, isActive: e.target.checked }))} className="rounded" />
-              <label htmlFor="banner-active" className="text-sm">Active (visible on site)</label>
+              <label htmlFor="banner-active" className="text-sm">{lc(lang, "Active (visible on site)", "செயலில் (தளத்தில் தெரியும்)")}</label>
             </div>
             <div className="flex gap-2 pt-2">
               <Button className="flex-1" disabled={saving || !editing.title?.trim()} onClick={save}>
-                {saving ? "Saving…" : editing.id ? "Update" : "Create"}
+                {saving ? lc(lang, "Saving…", "சேமிக்கிறது…") : editing.id ? lc(lang, "Update", "புதுப்பி") : lc(lang, "Create", "உருவாக்கு")}
               </Button>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>{lc(lang, "Cancel", "ரத்து")}</Button>
             </div>
           </div>
         </DialogContent>

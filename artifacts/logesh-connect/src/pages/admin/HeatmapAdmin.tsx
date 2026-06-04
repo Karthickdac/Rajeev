@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Map as MapIcon, Play, Pause, RefreshCw, Loader2 } from "lucide-react";
 import { adminApi } from "./api";
-import { useLeaderConfig } from "@/lib/LeaderConfigContext";
+import { useLeaderConfig, lc } from "@/lib/LeaderConfigContext";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface Point { lat: number; lng: number; weight: number; categories: Record<string, number> }
 interface HeatResp {
@@ -21,6 +22,7 @@ const today = (off = 0) => { const d = new Date(); d.setDate(d.getDate() + off);
 
 export default function HeatmapAdmin() {
   const leader = useLeaderConfig();
+  const { lang } = useLanguage();
   const [from, setFrom] = useState(today(-90));
   const [to, setTo] = useState(today(0));
   const [data, setData] = useState<HeatResp | null>(null);
@@ -40,7 +42,7 @@ export default function HeatmapAdmin() {
       const d = await adminApi.getHeatmapTimeline(from, to);
       setData(d);
       setWeekIdx(Math.max(0, (d.weeks?.length ?? 1) - 1));
-    } catch (e) { setErr(e instanceof Error ? e.message : "Failed"); }
+    } catch (e) { setErr(e instanceof Error ? e.message : lc(lang, "Failed", "தோல்வி")); }
     finally { setBusy(false); }
   }
 
@@ -92,12 +94,12 @@ export default function HeatmapAdmin() {
       const topCat = Object.entries(p.categories).sort((a, b) => b[1] - a[1])[0];
       L.circleMarker([p.lat, p.lng], {
         radius, color, weight: 1, fillColor: color, fillOpacity: 0.55,
-      }).bindTooltip(`${p.weight} grievance${p.weight > 1 ? "s" : ""}${topCat ? ` · top: ${topCat[0]}` : ""}`).addTo(layer);
+      }).bindTooltip(`${p.weight} ${lc(lang, p.weight > 1 ? "grievances" : "grievance", "புகார்கள்")}${topCat ? ` · ${lc(lang, "top", "முதன்மை")}: ${topCat[0]}` : ""}`).addTo(layer);
     }
     // Fit on first paint of a fresh dataset.
     const bounds = L.latLngBounds(currentPoints.map((p) => [p.lat, p.lng] as [number, number]));
     if (bounds.isValid()) map.fitBounds(bounds.pad(0.2), { animate: false });
-  }, [currentPoints]);
+  }, [currentPoints, lang]);
 
   // Autoplay
   useEffect(() => {
@@ -118,12 +120,12 @@ export default function HeatmapAdmin() {
     <div className="space-y-4">
       <div className="flex justify-between items-end flex-wrap gap-3">
         <div>
-          <h2 className="text-lg font-semibold flex items-center gap-2"><MapIcon className="w-5 h-5 text-primary" /> Grievance Heatmap & Time Slider</h2>
-          <p className="text-sm text-muted-foreground">Watch where complaints cluster across the constituency, week by week.</p>
+          <h2 className="text-lg font-semibold flex items-center gap-2"><MapIcon className="w-5 h-5 text-primary" /> {lc(lang, "Grievance Heatmap & Time Slider", "புகார் வெப்ப வரைபடம் & நேர சீவர்")}</h2>
+          <p className="text-sm text-muted-foreground">{lc(lang, "Watch where complaints cluster across the constituency, week by week.", "தொகுதி முழுவதும் புகார்கள் எங்கு குவிகின்றன என்பதை வாரம் வாரமாக கண்காணிக்கவும்.")}</p>
         </div>
         <div className="flex gap-2 items-end flex-wrap">
-          <div><Label className="text-xs">From</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" /></div>
-          <div><Label className="text-xs">To</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" /></div>
+          <div><Label className="text-xs">{lc(lang, "From", "முதல்")}</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" /></div>
+          <div><Label className="text-xs">{lc(lang, "To", "வரை")}</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" /></div>
           <Button onClick={load} disabled={busy}>{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}</Button>
         </div>
       </div>
@@ -138,13 +140,13 @@ export default function HeatmapAdmin() {
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="text-sm">
-                  Week: <span className="font-semibold">{currentWeek}</span>
-                  <span className="text-muted-foreground"> · {currentPoints.length} location(s), {currentPoints.reduce((a, p) => a + p.weight, 0)} grievance(s) {cumulative ? "to date" : "this week"}</span>
+                  {lc(lang, "Week:", "வாரம்:")} <span className="font-semibold">{currentWeek}</span>
+                  <span className="text-muted-foreground"> · {currentPoints.length} {lc(lang, "location(s)", "இடம்(கள்)")}, {currentPoints.reduce((a, p) => a + p.weight, 0)} {lc(lang, "grievance(s)", "புகார்(கள்)")} {cumulative ? lc(lang, "to date", "இன்றுவரை") : lc(lang, "this week", "இந்த வாரம்")}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs flex items-center gap-1"><input type="checkbox" checked={cumulative} onChange={(e) => setCumulative(e.target.checked)} /> cumulative</label>
+                  <label className="text-xs flex items-center gap-1"><input type="checkbox" checked={cumulative} onChange={(e) => setCumulative(e.target.checked)} /> {lc(lang, "cumulative", "திரட்டு")}</label>
                   <Button size="sm" variant="outline" onClick={() => setPlaying((p) => !p)}>
-                    {playing ? <><Pause className="w-3 h-3 mr-1" /> Pause</> : <><Play className="w-3 h-3 mr-1" /> Play</>}
+                    {playing ? <><Pause className="w-3 h-3 mr-1" /> {lc(lang, "Pause", "இடைநிறுத்து")}</> : <><Play className="w-3 h-3 mr-1" /> {lc(lang, "Play", "இயக்கு")}</>}
                   </Button>
                 </div>
               </div>
@@ -160,7 +162,7 @@ export default function HeatmapAdmin() {
           )}
 
           {data && data.weeks.length === 0 && (
-            <div className="text-center text-sm text-muted-foreground py-6">No geo-tagged grievances in this date range.</div>
+            <div className="text-center text-sm text-muted-foreground py-6">{lc(lang, "No geo-tagged grievances in this date range.", "இந்த தேதி வரம்பில் இடம்-குறிக்கப்பட்ட புகார்கள் இல்லை.")}</div>
           )}
         </CardContent>
       </Card>

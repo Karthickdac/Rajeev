@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Plus, Trash2, Image, Film, ExternalLink, ChevronUp, ChevronDown, Filter } from "lucide-react";
 import { adminApi } from "./api";
 import ImageUploader from "@/components/ImageUploader";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 interface GalleryItem {
   id: number;
@@ -22,6 +24,7 @@ interface GalleryItem {
 const emptyForm = { title: "", mediaUrl: "", thumbnailUrl: "", mediaType: "photo" as "photo" | "video", album: "", displayOrder: 0 };
 
 export default function GalleryAdmin() {
+  const { lang } = useLanguage();
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -40,7 +43,7 @@ export default function GalleryAdmin() {
         setItems(d.items.sort((a, b) => a.displayOrder - b.displayOrder || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
         setTotal(d.total);
       })
-      .catch(() => setError("Failed to load gallery"))
+      .catch(() => setError(lc(lang, "Failed to load gallery", "படத்தொகுப்பை ஏற்ற முடியவில்லை")))
       .finally(() => setLoading(false));
   };
 
@@ -61,7 +64,7 @@ export default function GalleryAdmin() {
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Remove this item from the gallery?")) return;
+    if (!confirm(lc(lang, "Remove this item from the gallery?", "இந்த உருப்படியை படத்தொகுப்பிலிருந்து நீக்கவா?"))) return;
     await adminApi.deleteGallery(id).catch(() => null);
     load();
   }
@@ -103,8 +106,8 @@ export default function GalleryAdmin() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-xl font-bold">Media Gallery</h2>
-          <p className="text-sm text-muted-foreground">{total} items{albumFilter ? ` in "${albumFilter}"` : ""}</p>
+          <h2 className="text-xl font-bold">{lc(lang, "Media Gallery", "ஊடக படத்தொகுப்பு")}</h2>
+          <p className="text-sm text-muted-foreground">{total} {lc(lang, "items", "உருப்படிகள்")}{albumFilter ? ` ${lc(lang, "in", "—")} "${albumFilter}"` : ""}</p>
         </div>
         <div className="flex items-center gap-2">
           {albums.length > 0 && (
@@ -115,13 +118,13 @@ export default function GalleryAdmin() {
                 onChange={e => { setAlbumFilter(e.target.value); setPage(1); }}
                 className="border border-gray-300 rounded-md px-2 py-1 text-sm"
               >
-                <option value="">All Albums</option>
+                <option value="">{lc(lang, "All Albums", "அனைத்து தொகுப்புகள்")}</option>
                 {albums.map(a => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
           )}
           <Button onClick={() => setOpen(true)} className="gap-2 bg-primary hover:bg-primary/90">
-            <Plus className="w-4 h-4" /> Add Media
+            <Plus className="w-4 h-4" /> {lc(lang, "Add Media", "ஊடகம் சேர்")}
           </Button>
         </div>
       </div>
@@ -129,7 +132,7 @@ export default function GalleryAdmin() {
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">Loading…</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "Loading…", "ஏற்றுகிறது…")}</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {items.map((item, idx) => (
@@ -185,61 +188,61 @@ export default function GalleryAdmin() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 pt-2">
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
-          <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</Button>
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>{lc(lang, "Previous", "முந்தைய")}</Button>
+          <span className="text-sm text-muted-foreground">{lc(lang, "Page", "பக்கம்")} {page} {lc(lang, "of", "/")} {totalPages}</span>
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>{lc(lang, "Next", "அடுத்து")}</Button>
         </div>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Media</DialogTitle>
+            <DialogTitle>{lc(lang, "Add Media", "ஊடகம் சேர்")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
-              <Label className="text-xs">Title *</Label>
+              <Label className="text-xs">{lc(lang, "Title *", "தலைப்பு *")}</Label>
               <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="mt-1 text-sm" />
             </div>
             <ImageUploader
-              label="Media URL *"
+              label={lc(lang, "Media URL *", "ஊடக URL *")}
               value={form.mediaUrl}
               onChange={(url) => setForm(f => ({ ...f, mediaUrl: url }))}
               onThumbnailChange={(url) => setForm(f => ({ ...f, thumbnailUrl: url }))}
-              placeholder="https://… or upload below"
+              placeholder={lc(lang, "https://… or upload below", "https://… அல்லது கீழே பதிவேற்றவும்")}
             />
             <ImageUploader
-              label="Thumbnail (optional)"
+              label={lc(lang, "Thumbnail (optional)", "சிறுபடம் (விருப்பம்)")}
               value={form.thumbnailUrl}
               onChange={(url) => setForm(f => ({ ...f, thumbnailUrl: url }))}
-              placeholder="https://… (optional)"
+              placeholder={lc(lang, "https://… (optional)", "https://… (விருப்பம்)")}
             />
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Type</Label>
+                <Label className="text-xs">{lc(lang, "Type", "வகை")}</Label>
                 <select
                   value={form.mediaType}
                   onChange={e => setForm(f => ({ ...f, mediaType: e.target.value as "photo" | "video" }))}
                   className="mt-1 w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
                 >
-                  <option value="photo">Photo</option>
-                  <option value="video">Video</option>
+                  <option value="photo">{lc(lang, "Photo", "புகைப்படம்")}</option>
+                  <option value="video">{lc(lang, "Video", "வீடியோ")}</option>
                 </select>
               </div>
               <div>
-                <Label className="text-xs">Album / Event Tag</Label>
-                <Input value={form.album} onChange={e => setForm(f => ({ ...f, album: e.target.value }))} placeholder="Optional" className="mt-1 text-sm" />
+                <Label className="text-xs">{lc(lang, "Album / Event Tag", "தொகுப்பு / நிகழ்வு குறிச்சொல்")}</Label>
+                <Input value={form.album} onChange={e => setForm(f => ({ ...f, album: e.target.value }))} placeholder={lc(lang, "Optional", "விருப்பம்")} className="mt-1 text-sm" />
               </div>
             </div>
             <div>
-              <Label className="text-xs">Display Order</Label>
+              <Label className="text-xs">{lc(lang, "Display Order", "வரிசை")}</Label>
               <Input type="number" value={form.displayOrder} onChange={e => setForm(f => ({ ...f, displayOrder: parseInt(e.target.value) || 0 }))} className="mt-1 text-sm" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{lc(lang, "Cancel", "ரத்து")}</Button>
             <Button onClick={handleSave} disabled={saving || !form.title || !form.mediaUrl} className="bg-primary hover:bg-primary/90">
-              {saving ? "Adding…" : "Add to Gallery"}
+              {saving ? lc(lang, "Adding…", "சேர்க்கிறது…") : lc(lang, "Add to Gallery", "படத்தொகுப்பில் சேர்")}
             </Button>
           </DialogFooter>
         </DialogContent>

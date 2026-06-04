@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import { adminApi } from "./api";
 import { getToken } from "@/lib/auth";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
+import type { Language } from "@/lib/i18n";
 
 type Platform = "facebook" | "instagram" | "twitter" | "youtube" | "linkedin" | "telegram" | "whatsapp" | "threads" | "other";
 
@@ -85,6 +88,7 @@ const PLATFORM_META: Record<string, { label: string; color: string; Icon: React.
 type Tab = "accounts" | "compose" | "history" | "stats";
 
 export default function SocialMediaAdmin() {
+  const { lang } = useLanguage();
   const [tab, setTab] = useState<Tab>("accounts");
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -108,7 +112,7 @@ export default function SocialMediaAdmin() {
       setStats(s.stats ?? []);
       setCaps(c);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to load");
+      setErr(e instanceof Error ? e.message : lc(lang, "Failed to load", "ஏற்ற முடியவில்லை"));
     } finally {
       setLoading(false);
     }
@@ -117,23 +121,23 @@ export default function SocialMediaAdmin() {
   useEffect(() => { void reload(); }, []);
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "accounts", label: "Accounts" },
-    { id: "compose",  label: "Compose & Schedule" },
-    { id: "history",  label: "Post History" },
-    { id: "stats",    label: "Stats" },
+    { id: "accounts", label: lc(lang, "Accounts", "கணக்குகள்") },
+    { id: "compose",  label: lc(lang, "Compose & Schedule", "எழுது & திட்டமிடு") },
+    { id: "history",  label: lc(lang, "Post History", "இடுகை வரலாறு") },
+    { id: "stats",    label: lc(lang, "Stats", "புள்ளிவிவரங்கள்") },
   ];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Social Media Hub</h2>
+          <h2 className="text-lg font-semibold">{lc(lang, "Social Media Hub", "சமூக ஊடக மையம்")}</h2>
           <p className="text-sm text-muted-foreground">
-            Manage links, post to multiple platforms at once, schedule posts, and track follower stats.
+            {lc(lang, "Manage links, post to multiple platforms at once, schedule posts, and track follower stats.", "இணைப்புகளை நிர்வகித்து, பல தளங்களில் ஒரே நேரத்தில் இடுகையிட்டு, இடுகைகளைத் திட்டமிட்டு, பின்தொடர்பவர் புள்ளிவிவரங்களைக் கண்காணிக்கவும்.")}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={reload} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
+          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} /> {lc(lang, "Refresh", "புதுப்பி")}
         </Button>
       </div>
 
@@ -175,6 +179,7 @@ function emptyAccount(): Partial<Account> {
 const OAUTH_PLATFORMS_UI = ["facebook", "instagram", "twitter", "youtube"] as const;
 
 function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: Capabilities | null; onChange: () => void }) {
+  const { lang } = useLanguage();
   const [editing, setEditing] = useState<Partial<Account> | null>(null);
   const [showToken, setShowToken] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -213,25 +218,25 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
       setEditing(null);
       onChange();
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Save failed");
+      setMsg(e instanceof Error ? e.message : lc(lang, "Save failed", "சேமிக்க முடியவில்லை"));
     } finally {
       setSaving(false);
     }
   }
 
   async function remove(id: number) {
-    if (!window.confirm("Remove this social account? Any scheduled posts targeting it will be skipped.")) return;
+    if (!window.confirm(lc(lang, "Remove this social account? Any scheduled posts targeting it will be skipped.", "இந்த சமூக ஊடக கணக்கை அகற்றவா? அதை இலக்காகக் கொண்ட திட்டமிடப்பட்ட இடுகைகள் தவிர்க்கப்படும்."))) return;
     await adminApi.deleteSocialAccount(id);
     onChange();
   }
 
   async function disconnect(id: number) {
-    if (!window.confirm("Disconnect this account? The OAuth token will be cleared but the account record is kept.")) return;
+    if (!window.confirm(lc(lang, "Disconnect this account? The OAuth token will be cleared but the account record is kept.", "இந்த கணக்கைத் துண்டிக்கவா? OAuth டோக்கன் அழிக்கப்படும் ஆனால் கணக்குப் பதிவு வைத்திருக்கப்படும்."))) return;
     try {
       await adminApi.disconnectSocialAccount(id);
       onChange();
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Disconnect failed");
+      setMsg(e instanceof Error ? e.message : lc(lang, "Disconnect failed", "துண்டிக்க முடியவில்லை"));
     }
   }
 
@@ -242,14 +247,14 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
       const { authUrl } = await adminApi.getSocialOAuthUrl(platform);
       const popup = window.open(authUrl, `oauth-${platform}`, "width=620,height=720,scrollbars=yes,resizable=yes");
       if (!popup) {
-        setMsg("Popup blocked — please allow popups for this page, then try again.");
+        setMsg(lc(lang, "Popup blocked — please allow popups for this page, then try again.", "பாப்அப் தடுக்கப்பட்டது — இந்தப் பக்கத்திற்கு பாப்அப்களை அனுமதித்து, மீண்டும் முயற்சிக்கவும்."));
         return;
       }
       const handler = (e: MessageEvent) => {
         if (e.data?.type === "oauth_complete") {
           window.removeEventListener("message", handler);
           clearInterval(poll);
-          if (!e.data.success) setMsg(e.data.message ?? "OAuth failed");
+          if (!e.data.success) setMsg(e.data.message ?? lc(lang, "OAuth failed", "OAuth தோல்வியடைந்தது"));
           onChange();
         }
       };
@@ -262,7 +267,7 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
         }
       }, 500);
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Failed to start OAuth");
+      setMsg(e instanceof Error ? e.message : lc(lang, "Failed to start OAuth", "OAuth தொடங்க முடியவில்லை"));
     } finally {
       setConnecting(null);
     }
@@ -276,9 +281,9 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Wifi className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium">One-click OAuth Connect</span>
+            <span className="text-sm font-medium">{lc(lang, "One-click OAuth Connect", "ஒரே கிளிக் OAuth இணைப்பு")}</span>
           </div>
-          <span className="text-xs text-muted-foreground">Tokens auto-refresh every 6 hours</span>
+          <span className="text-xs text-muted-foreground">{lc(lang, "Tokens auto-refresh every 6 hours", "டோக்கன்கள் ஒவ்வொரு 6 மணி நேரத்திற்கும் தானாகப் புதுப்பிக்கப்படும்")}</span>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {OAUTH_PLATFORMS_UI.map((p) => {
@@ -306,7 +311,7 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
                   <div key={a.id} className="flex items-center gap-1 text-xs">
                     <span className="flex-1 truncate text-green-700">@{a.handle}</span>
                     <button onClick={() => disconnect(a.id)}
-                      title="Disconnect" className="text-muted-foreground hover:text-red-600">
+                      title={lc(lang, "Disconnect", "துண்டி")} className="text-muted-foreground hover:text-red-600">
                       <WifiOff className="w-3 h-3" />
                     </button>
                   </div>
@@ -317,8 +322,8 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
                   title={!configured ? notConfiguredMsg : ""}
                   onClick={() => connectOAuth(p)}
                 >
-                  {connecting === p ? "Opening…" : connected.length > 0 ? "Add account" : "Connect"}
-                  {!configured && <span className="ml-1 opacity-60">(not configured)</span>}
+                  {connecting === p ? lc(lang, "Opening…", "திறக்கிறது…") : connected.length > 0 ? lc(lang, "Add account", "கணக்கைச் சேர்") : lc(lang, "Connect", "இணை")}
+                  {!configured && <span className="ml-1 opacity-60">{lc(lang, "(not configured)", "(அமைக்கப்படவில்லை)")}</span>}
                 </Button>
               </div>
             );
@@ -328,12 +333,12 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={startNew} size="sm"><Plus className="w-4 h-4 mr-1" /> Add Account Manually</Button>
+        <Button onClick={startNew} size="sm"><Plus className="w-4 h-4 mr-1" /> {lc(lang, "Add Account Manually", "கணக்கைக் கைமுறையாகச் சேர்")}</Button>
       </div>
 
       {accounts.length === 0 ? (
         <div className="text-sm text-muted-foreground border rounded-md p-6 text-center">
-          No social accounts yet. Use OAuth Connect above or click "Add Account Manually".
+          {lc(lang, 'No social accounts yet. Use OAuth Connect above or click "Add Account Manually".', 'இன்னும் சமூக ஊடக கணக்குகள் இல்லை. மேலே உள்ள OAuth இணைப்பைப் பயன்படுத்தவும் அல்லது "கணக்கைக் கைமுறையாகச் சேர்" என்பதைக் கிளிக் செய்யவும்.')}
         </div>
       ) : (
         <div className="grid gap-2">
@@ -348,13 +353,13 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm">{a.displayName || a.handle}</span>
                     <span className="text-xs text-muted-foreground">@{a.handle}</span>
-                    {!a.isActive && <Badge variant="secondary" className="text-xs">Hidden</Badge>}
+                    {!a.isActive && <Badge variant="secondary" className="text-xs">{lc(lang, "Hidden", "மறைக்கப்பட்டது")}</Badge>}
                     {a.hasAccessToken
-                      ? <Badge variant="outline" className="text-xs text-green-700 border-green-300">Connected</Badge>
-                      : <Badge variant="secondary" className="text-xs">No token</Badge>}
+                      ? <Badge variant="outline" className="text-xs text-green-700 border-green-300">{lc(lang, "Connected", "இணைக்கப்பட்டது")}</Badge>
+                      : <Badge variant="secondary" className="text-xs">{lc(lang, "No token", "டோக்கன் இல்லை")}</Badge>}
                     {a.tokenExpiresAt && (
                       <span className="text-xs text-muted-foreground">
-                        expires {new Date(a.tokenExpiresAt).toLocaleDateString()}
+                        {lc(lang, "expires", "காலாவதி")} {new Date(a.tokenExpiresAt).toLocaleDateString()}
                       </span>
                     )}
                   </div>
@@ -364,7 +369,7 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
                   </a>
                 </div>
                 {isOAuthPlatform && a.hasAccessToken && (
-                  <Button variant="ghost" size="sm" onClick={() => disconnect(a.id)} title="Disconnect OAuth token"
+                  <Button variant="ghost" size="sm" onClick={() => disconnect(a.id)} title={lc(lang, "Disconnect OAuth token", "OAuth டோக்கனைத் துண்டி")}
                     className="text-muted-foreground hover:text-red-600">
                     <WifiOff className="w-4 h-4" />
                   </Button>
@@ -382,7 +387,7 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
       {editing && (
         <div className="border rounded-md p-4 bg-gray-50 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-sm">{editing.id ? "Edit account" : "New account"}</h3>
+            <h3 className="font-medium text-sm">{editing.id ? lc(lang, "Edit account", "கணக்கைத் திருத்து") : lc(lang, "New account", "புதிய கணக்கு")}</h3>
             <Button variant="ghost" size="sm" onClick={cancel}><X className="w-4 h-4" /></Button>
           </div>
 
@@ -390,7 +395,7 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">Platform</Label>
+              <Label className="text-xs">{lc(lang, "Platform", "தளம்")}</Label>
               <Select value={editing.platform} onValueChange={(v) => setEditing({ ...editing, platform: v as Platform })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -404,19 +409,19 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">Handle / username</Label>
+              <Label className="text-xs">{lc(lang, "Handle / username", "ஹேண்டில் / பயனர்பெயர்")}</Label>
               <Input value={editing.handle ?? ""} onChange={(e) => setEditing({ ...editing, handle: e.target.value })}
                 placeholder="logesh.tamilselvan" />
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">Display name (optional)</Label>
+              <Label className="text-xs">{lc(lang, "Display name (optional)", "காட்சிப் பெயர் (விருப்பம்)")}</Label>
               <Input value={editing.displayName ?? ""} onChange={(e) => setEditing({ ...editing, displayName: e.target.value })}
                 placeholder="V.K. Rajeev" />
             </div>
 
             <div className="space-y-1 sm:col-span-2">
-              <Label className="text-xs">Profile URL</Label>
+              <Label className="text-xs">{lc(lang, "Profile URL", "சுயவிவர URL")}</Label>
               <Input value={editing.profileUrl ?? ""} onChange={(e) => setEditing({ ...editing, profileUrl: e.target.value })}
                 placeholder="https://facebook.com/..." />
             </div>
@@ -425,17 +430,17 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
               <>
                 <div className="space-y-1">
                   <Label className="text-xs">
-                    {editing.platform === "facebook" || editing.platform === "instagram" ? "Page / IG Business ID" :
-                     editing.platform === "youtube" ? "Channel ID" :
-                     "External account ID"}
+                    {editing.platform === "facebook" || editing.platform === "instagram" ? lc(lang, "Page / IG Business ID", "பக்கம் / IG வணிக ID") :
+                     editing.platform === "youtube" ? lc(lang, "Channel ID", "சேனல் ID") :
+                     lc(lang, "External account ID", "வெளி கணக்கு ID")}
                   </Label>
                   <Input value={editing.externalAccountId ?? ""} onChange={(e) => setEditing({ ...editing, externalAccountId: e.target.value })}
-                    placeholder="optional but required for posting/stats" />
+                    placeholder={lc(lang, "optional but required for posting/stats", "விருப்பம் ஆனால் இடுகை/புள்ளிவிவரங்களுக்குத் தேவை")} />
                 </div>
 
                 <div className="space-y-1">
                   <Label className="text-xs flex items-center justify-between">
-                    <span>Access token / API key</span>
+                    <span>{lc(lang, "Access token / API key", "அணுகல் டோக்கன் / API விசை")}</span>
                     <button type="button" onClick={() => setShowToken((s) => !s)}
                       className="text-muted-foreground hover:text-foreground">
                       {showToken ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
@@ -443,7 +448,7 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
                   </Label>
                   <Input
                     type={showToken ? "text" : "password"}
-                    placeholder={editing.hasAccessToken ? `(set — ${editing.accessTokenMasked ?? "•••"}) — leave blank to keep` : "paste token"}
+                    placeholder={editing.hasAccessToken ? lc(lang, `(set — ${editing.accessTokenMasked ?? "•••"}) — leave blank to keep`, `(அமைக்கப்பட்டது — ${editing.accessTokenMasked ?? "•••"}) — அப்படியே வைக்க காலியாக விடவும்`) : lc(lang, "paste token", "டோக்கனை ஒட்டவும்")}
                     onChange={(e) => setEditing({ ...(editing as Record<string, unknown>), accessToken: e.target.value } as Partial<Account>)}
                   />
                 </div>
@@ -451,19 +456,19 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
             )}
 
             <div className="space-y-1">
-              <Label className="text-xs">Display order</Label>
+              <Label className="text-xs">{lc(lang, "Display order", "காட்சி வரிசை")}</Label>
               <Input type="number" value={editing.displayOrder ?? 0}
                 onChange={(e) => setEditing({ ...editing, displayOrder: Number(e.target.value) })} />
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">Status</Label>
+              <Label className="text-xs">{lc(lang, "Status", "நிலை")}</Label>
               <Select value={editing.isActive === false ? "no" : "yes"}
                 onValueChange={(v) => setEditing({ ...editing, isActive: v === "yes" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="yes">Active (shown on site)</SelectItem>
-                  <SelectItem value="no">Hidden</SelectItem>
+                  <SelectItem value="yes">{lc(lang, "Active (shown on site)", "செயலில் (தளத்தில் காட்டப்படும்)")}</SelectItem>
+                  <SelectItem value="no">{lc(lang, "Hidden", "மறைக்கப்பட்டது")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -471,17 +476,17 @@ function AccountsTab({ accounts, caps, onChange }: { accounts: Account[]; caps: 
 
           {supportsApi(editing.platform ?? "") && (
             <p className="text-xs text-muted-foreground">
-              {editing.platform === "facebook" && "Use a Page Access Token with pages_manage_posts + pages_read_engagement scopes."}
-              {editing.platform === "instagram" && "Use the linked Facebook Page's access token; ID must be the IG Business account ID."}
-              {editing.platform === "twitter" && "Use an OAuth2 user-context token with tweet.write + users.read scopes."}
-              {editing.platform === "youtube" && "Paste a Data API v3 API key. Channel posts require manual upload in Studio."}
+              {editing.platform === "facebook" && lc(lang, "Use a Page Access Token with pages_manage_posts + pages_read_engagement scopes.", "pages_manage_posts + pages_read_engagement ஸ்கோப்களைக் கொண்ட பக்க அணுகல் டோக்கனைப் பயன்படுத்தவும்.")}
+              {editing.platform === "instagram" && lc(lang, "Use the linked Facebook Page's access token; ID must be the IG Business account ID.", "இணைக்கப்பட்ட Facebook பக்கத்தின் அணுகல் டோக்கனைப் பயன்படுத்தவும்; ID என்பது IG வணிக கணக்கு ID ஆக இருக்க வேண்டும்.")}
+              {editing.platform === "twitter" && lc(lang, "Use an OAuth2 user-context token with tweet.write + users.read scopes.", "tweet.write + users.read ஸ்கோப்களைக் கொண்ட OAuth2 பயனர்-சூழல் டோக்கனைப் பயன்படுத்தவும்.")}
+              {editing.platform === "youtube" && lc(lang, "Paste a Data API v3 API key. Channel posts require manual upload in Studio.", "Data API v3 API விசையை ஒட்டவும். சேனல் இடுகைகளுக்கு Studio இல் கைமுறையாக பதிவேற்றம் தேவை.")}
             </p>
           )}
 
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" size="sm" onClick={cancel}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={cancel}>{lc(lang, "Cancel", "ரத்து")}</Button>
             <Button size="sm" onClick={save} disabled={saving || !editing.handle || !editing.profileUrl}>
-              {saving ? "Saving…" : "Save"}
+              {saving ? lc(lang, "Saving…", "சேமிக்கிறது…") : lc(lang, "Save", "சேமி")}
             </Button>
           </div>
         </div>
@@ -502,6 +507,7 @@ const PLATFORM_CHAR_LIMITS: Record<string, { limit: number; label: string; hard:
 };
 
 function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () => void }) {
+  const { lang } = useLanguage();
   const [content, setContent] = useState("");
   const [contentTa, setContentTa] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
@@ -540,10 +546,10 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
         body: form,
       });
       const json = await res.json() as { url?: string; error?: string };
-      if (!res.ok) throw new Error(json.error ?? "Upload failed");
+      if (!res.ok) throw new Error(json.error ?? lc(lang, "Upload failed", "பதிவேற்றம் தோல்வியடைந்தது"));
       setMediaUrl(json.url ?? "");
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Image upload failed");
+      setMsg(e instanceof Error ? e.message : lc(lang, "Image upload failed", "படப் பதிவேற்றம் தோல்வியடைந்தது"));
     } finally {
       setMediaUploading(false);
     }
@@ -551,8 +557,8 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
 
   async function submit(publishNow: boolean) {
     setMsg(null);
-    if (!content.trim()) { setMsg("Content is required"); return; }
-    if (selected.size === 0) { setMsg("Select at least one account"); return; }
+    if (!content.trim()) { setMsg(lc(lang, "Content is required", "உள்ளடக்கம் தேவை")); return; }
+    if (selected.size === 0) { setMsg(lc(lang, "Select at least one account", "குறைந்தது ஒரு கணக்கையாவது தேர்ந்தெடுக்கவும்")); return; }
     setBusy(true);
     try {
       const mediaUrls = mediaUrl.trim() ? [mediaUrl.trim()] : [];
@@ -568,10 +574,10 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
         await adminApi.publishSocialPost(post.id);
       }
       setContent(""); setContentTa(""); setMediaUrl(""); setSelected(new Set()); setScheduledAt("");
-      setMsg(publishNow ? "Published. Check History for per-platform results." : "Saved.");
+      setMsg(publishNow ? lc(lang, "Published. Check History for per-platform results.", "வெளியிடப்பட்டது. தளம் வாரியான முடிவுகளுக்கு வரலாற்றைப் பார்க்கவும்.") : lc(lang, "Saved.", "சேமிக்கப்பட்டது."));
       onPosted();
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Failed");
+      setMsg(e instanceof Error ? e.message : lc(lang, "Failed", "தோல்வியடைந்தது"));
     } finally {
       setBusy(false);
     }
@@ -589,7 +595,7 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
       }
       setShowAiGen(false); setAiTopic("");
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "AI generation failed");
+      setMsg(e instanceof Error ? e.message : lc(lang, "AI generation failed", "AI உருவாக்கம் தோல்வியடைந்தது"));
     } finally { setAiGenerating(false); }
   }
 
@@ -599,7 +605,7 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
         {/* AI Post Generator */}
         <div>
           <Button type="button" size="sm" variant="outline" onClick={() => setShowAiGen(v => !v)} className="gap-1.5 text-xs h-7">
-            <Sparkles className="w-3 h-3 text-primary" /> Generate with AI
+            <Sparkles className="w-3 h-3 text-primary" /> {lc(lang, "Generate with AI", "AI மூலம் உருவாக்கு")}
           </Button>
           {showAiGen && (
             <div className="mt-2 flex gap-2">
@@ -608,33 +614,33 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
                 value={aiTopic}
                 onChange={(e) => setAiTopic(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") generateWithAi(); }}
-                placeholder="Describe the topic or event to post about…"
+                placeholder={lc(lang, "Describe the topic or event to post about…", "இடுகையிட விரும்பும் தலைப்பு அல்லது நிகழ்வை விவரிக்கவும்…")}
               />
               <Button size="sm" onClick={generateWithAi} disabled={aiGenerating || !aiTopic.trim()} className="h-7 text-xs">
-                {aiGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : "Generate"}
+                {aiGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : lc(lang, "Generate", "உருவாக்கு")}
               </Button>
             </div>
           )}
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Content (English / default)</Label>
+          <Label className="text-xs">{lc(lang, "Content (English / default)", "உள்ளடக்கம் (ஆங்கிலம் / இயல்புநிலை)")}</Label>
           <Textarea rows={4} value={content} onChange={(e) => setContent(e.target.value)}
-            placeholder="What do you want to share?" />
+            placeholder={lc(lang, "What do you want to share?", "நீங்கள் எதைப் பகிர விரும்புகிறீர்கள்?")} />
           {/* Per-platform character limit indicators */}
           <div className="flex flex-wrap gap-x-3 gap-y-0.5">
             {selectedPlatforms.size === 0 ? (
-              <p className="text-xs text-muted-foreground">{content.length} chars</p>
+              <p className="text-xs text-muted-foreground">{content.length} {lc(lang, "chars", "எழுத்துகள்")}</p>
             ) : (
               Array.from(selectedPlatforms).map((plat) => {
                 const cfg = PLATFORM_CHAR_LIMITS[plat];
-                if (!cfg) return <span key={plat} className="text-xs text-muted-foreground">{content.length} chars</span>;
+                if (!cfg) return <span key={plat} className="text-xs text-muted-foreground">{content.length} {lc(lang, "chars", "எழுத்துகள்")}</span>;
                 const remaining = cfg.limit - content.length;
                 const over = remaining < 0;
                 const warn = !over && cfg.hard && remaining < 40;
                 return (
                   <span key={plat} className={`text-xs font-medium ${over ? "text-red-600" : warn ? "text-amber-600" : "text-muted-foreground"}`}>
                     {cfg.label}: {over
-                      ? `${Math.abs(remaining)} over limit${cfg.hard ? " ⚠ will be truncated" : ""}`
+                      ? `${Math.abs(remaining)} ${lc(lang, "over limit", "வரம்பை மீறி")}${cfg.hard ? lc(lang, " ⚠ will be truncated", " ⚠ சுருக்கப்படும்") : ""}`
                       : `${content.length}/${cfg.limit}`}
                   </span>
                 );
@@ -645,13 +651,13 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
           {selectedPlatforms.has("twitter") && content.length > 280 && (
             <div className="flex items-center gap-1.5 text-xs bg-red-50 border border-red-200 text-red-700 rounded px-2 py-1">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-              Twitter/X has a 280-character hard limit. Post will be truncated or fail to publish.
+              {lc(lang, "Twitter/X has a 280-character hard limit. Post will be truncated or fail to publish.", "Twitter/X-க்கு 280-எழுத்து கடுமையான வரம்பு உள்ளது. இடுகை சுருக்கப்படும் அல்லது வெளியிட முடியாது.")}
             </div>
           )}
           {selectedPlatforms.has("twitter") && content.length > 240 && content.length <= 280 && (
             <div className="flex items-center gap-1.5 text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded px-2 py-1">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-              Approaching Twitter/X 280-character limit ({280 - content.length} chars remaining).
+              {lc(lang, `Approaching Twitter/X 280-character limit (${280 - content.length} chars remaining).`, `Twitter/X 280-எழுத்து வரம்பை நெருங்குகிறது (${280 - content.length} எழுத்துகள் மீதம்).`)}
             </div>
           )}
         </div>
@@ -659,7 +665,7 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
         {/* Per-platform post preview */}
         {selectedPlatforms.size > 0 && content.trim() && (
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Preview per platform</Label>
+            <Label className="text-xs text-muted-foreground">{lc(lang, "Preview per platform", "தளம் வாரியான முன்னோட்டம்")}</Label>
             <div className="space-y-1.5">
               {Array.from(selectedPlatforms).map((plat) => {
                 const cfg = PLATFORM_CHAR_LIMITS[plat];
@@ -680,17 +686,17 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
           </div>
         )}
         <div className="space-y-1">
-          <Label className="text-xs">தமிழ் (Tamil version, optional)</Label>
+          <Label className="text-xs">{lc(lang, "Tamil version (optional)", "தமிழ் பதிப்பு (விருப்பம்)")}</Label>
           <Textarea rows={3} value={contentTa} onChange={(e) => setContentTa(e.target.value)}
-            placeholder="தமிழில் உரை..." />
+            placeholder={lc(lang, "Text in Tamil...", "தமிழில் உரை...")} />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs flex items-center gap-1"><ImageIcon className="w-3 h-3" /> Attach Image (optional)</Label>
+          <Label className="text-xs flex items-center gap-1"><ImageIcon className="w-3 h-3" /> {lc(lang, "Attach Image (optional)", "படத்தை இணைக்கவும் (விருப்பம்)")}</Label>
           <div className="flex gap-2">
             <Input
               value={mediaUrl}
               onChange={(e) => setMediaUrl(e.target.value)}
-              placeholder="Paste image URL or upload below…"
+              placeholder={lc(lang, "Paste image URL or upload below…", "படத்தின் URL-ஐ ஒட்டவும் அல்லது கீழே பதிவேற்றவும்…")}
               className="flex-1 text-xs"
             />
             <label className="cursor-pointer">
@@ -700,7 +706,7 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
               <span className={`inline-flex items-center gap-1 px-3 py-2 rounded-md border text-xs font-medium transition-colors
                 ${mediaUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50 cursor-pointer"}`}>
                 {mediaUploading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />}
-                {mediaUploading ? "Uploading…" : "Upload"}
+                {mediaUploading ? lc(lang, "Uploading…", "பதிவேற்றுகிறது…") : lc(lang, "Upload", "பதிவேற்று")}
               </span>
             </label>
           </div>
@@ -713,7 +719,7 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
           )}
         </div>
         <div className="space-y-1">
-          <Label className="text-xs flex items-center gap-1"><Calendar className="w-3 h-3" /> Schedule for later (optional)</Label>
+          <Label className="text-xs flex items-center gap-1"><Calendar className="w-3 h-3" /> {lc(lang, "Schedule for later (optional)", "பிறகு திட்டமிடவும் (விருப்பம்)")}</Label>
           <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
         </div>
 
@@ -721,19 +727,19 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
 
         <div className="flex gap-2">
           <Button onClick={() => submit(true)} disabled={busy || !!scheduledAt}>
-            <Send className="w-4 h-4 mr-1" /> Publish now
+            <Send className="w-4 h-4 mr-1" /> {lc(lang, "Publish now", "இப்போது வெளியிடு")}
           </Button>
           <Button variant="outline" onClick={() => submit(false)} disabled={busy}>
-            {scheduledAt ? "Schedule" : "Save as draft"}
+            {scheduledAt ? lc(lang, "Schedule", "திட்டமிடு") : lc(lang, "Save as draft", "வரைவாக சேமி")}
           </Button>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs">Post to</Label>
+        <Label className="text-xs">{lc(lang, "Post to", "இடுகையிட")}</Label>
         {activeAccounts.length === 0 ? (
           <div className="text-xs text-muted-foreground border rounded p-3">
-            No active accounts. Add one in the Accounts tab first.
+            {lc(lang, "No active accounts. Add one in the Accounts tab first.", "செயலில் உள்ள கணக்குகள் இல்லை. முதலில் கணக்குகள் தாவலில் ஒன்றைச் சேர்க்கவும்.")}
           </div>
         ) : (
           <div className="space-y-1 max-h-96 overflow-auto border rounded p-2">
@@ -745,7 +751,7 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
                   <input type="checkbox" checked={selected.has(a.id)} onChange={() => toggle(a.id)} />
                   <Icon className={`w-4 h-4 ${meta.color}`} />
                   <span className="flex-1 truncate">{a.displayName || a.handle}</span>
-                  {!a.hasAccessToken && <span title="No token — publishing will fail"><AlertCircle className="w-3 h-3 text-amber-500" /></span>}
+                  {!a.hasAccessToken && <span title={lc(lang, "No token — publishing will fail", "டோக்கன் இல்லை — வெளியிடுதல் தோல்வியடையும்")}><AlertCircle className="w-3 h-3 text-amber-500" /></span>}
                 </label>
               );
             })}
@@ -759,7 +765,19 @@ function ComposeTab({ accounts, onPosted }: { accounts: Account[]; onPosted: () 
 // ─────────────────────────────────────────────────────────
 // History Tab
 // ─────────────────────────────────────────────────────────
-function statusBadge(status: string) {
+const STATUS_LABELS: Record<string, string> = {
+  draft:      "வரைவு",
+  scheduled:  "திட்டமிடப்பட்டது",
+  publishing: "வெளியிடுகிறது",
+  published:  "வெளியிடப்பட்டது",
+  partial:    "பகுதியளவு",
+  failed:     "தோல்வி",
+  posted:     "இடப்பட்டது",
+  pending:    "நிலுவையில்",
+  skipped:    "தவிர்க்கப்பட்டது",
+};
+
+function statusBadge(status: string, lang: Language) {
   const map: Record<string, { v: "default" | "secondary" | "destructive" | "outline"; Icon: React.ComponentType<{ className?: string }> }> = {
     draft:      { v: "outline",     Icon: Pencil },
     scheduled:  { v: "secondary",   Icon: Clock },
@@ -773,10 +791,11 @@ function statusBadge(status: string) {
   };
   const m = map[status] ?? map.draft;
   const Icon = m.Icon;
-  return <Badge variant={m.v} className="text-xs gap-1"><Icon className="w-3 h-3" />{status}</Badge>;
+  return <Badge variant={m.v} className="text-xs gap-1"><Icon className="w-3 h-3" />{lc(lang, status, STATUS_LABELS[status] ?? status)}</Badge>;
 }
 
 function HistoryTab({ posts, accounts, onChange }: { posts: Post[]; accounts: Account[]; onChange: () => void }) {
+  const { lang } = useLanguage();
   const [publishing, setPublishing] = useState<number | null>(null);
   const accById = new Map(accounts.map((a) => [a.id, a]));
 
@@ -791,13 +810,13 @@ function HistoryTab({ posts, accounts, onChange }: { posts: Post[]; accounts: Ac
   }
 
   async function remove(id: number) {
-    if (!window.confirm("Delete this post and all per-platform results?")) return;
+    if (!window.confirm(lc(lang, "Delete this post and all per-platform results?", "இந்த இடுகையையும் அனைத்து தளம் வாரியான முடிவுகளையும் நீக்கவா?"))) return;
     await adminApi.deleteSocialPost(id);
     onChange();
   }
 
   if (posts.length === 0) {
-    return <div className="text-sm text-muted-foreground border rounded-md p-6 text-center">No posts yet.</div>;
+    return <div className="text-sm text-muted-foreground border rounded-md p-6 text-center">{lc(lang, "No posts yet.", "இன்னும் இடுகைகள் இல்லை.")}</div>;
   }
 
   return (
@@ -807,13 +826,13 @@ function HistoryTab({ posts, accounts, onChange }: { posts: Post[]; accounts: Ac
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                {statusBadge(p.status)}
+                {statusBadge(p.status, lang)}
                 <span className="text-xs text-muted-foreground">
-                  {new Date(p.createdAt).toLocaleString()} · by {p.createdByName ?? "system"}
+                  {new Date(p.createdAt).toLocaleString()} · {lc(lang, "by", "உருவாக்கியவர்")} {p.createdByName ?? lc(lang, "system", "கணினி")}
                 </span>
                 {p.scheduledAt && p.status === "scheduled" && (
                   <span className="text-xs text-muted-foreground">
-                    · scheduled {new Date(p.scheduledAt).toLocaleString()}
+                    · {lc(lang, "scheduled", "திட்டமிடப்பட்டது")} {new Date(p.scheduledAt).toLocaleString()}
                   </span>
                 )}
               </div>
@@ -823,7 +842,7 @@ function HistoryTab({ posts, accounts, onChange }: { posts: Post[]; accounts: Ac
                 <div className="flex flex-wrap gap-1 mt-2">
                   {p.mediaUrls.map((u, i) => (
                     <a key={i} href={u} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 underline flex items-center gap-1">
-                      <LinkIcon className="w-3 h-3" /> media {i + 1}
+                      <LinkIcon className="w-3 h-3" /> {lc(lang, "media", "ஊடகம்")} {i + 1}
                     </a>
                   ))}
                 </div>
@@ -832,11 +851,11 @@ function HistoryTab({ posts, accounts, onChange }: { posts: Post[]; accounts: Ac
             <div className="flex flex-col gap-1 shrink-0">
               {(p.status === "draft" || p.status === "scheduled" || p.status === "partial" || p.status === "failed") && (
                 <Button size="sm" variant="outline" onClick={() => publish(p.id)} disabled={publishing === p.id}>
-                  <Send className="w-3 h-3 mr-1" /> {publishing === p.id ? "Posting…" : "Publish now"}
+                  <Send className="w-3 h-3 mr-1" /> {publishing === p.id ? lc(lang, "Posting…", "இடுகையிடுகிறது…") : lc(lang, "Publish now", "இப்போது வெளியிடு")}
                 </Button>
               )}
               <Button size="sm" variant="ghost" onClick={() => remove(p.id)} className="text-red-600">
-                <Trash2 className="w-3 h-3 mr-1" /> Delete
+                <Trash2 className="w-3 h-3 mr-1" /> {lc(lang, "Delete", "நீக்கு")}
               </Button>
             </div>
           </div>
@@ -851,10 +870,10 @@ function HistoryTab({ posts, accounts, onChange }: { posts: Post[]; accounts: Ac
                   <div key={t.id} className="flex items-center gap-2 text-xs">
                     <Icon className={`w-3 h-3 ${meta.color}`} />
                     <span className="font-medium">{acc?.handle ?? t.platform}</span>
-                    {statusBadge(t.status)}
+                    {statusBadge(t.status, lang)}
                     {t.platformPostUrl && (
                       <a href={t.platformPostUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                        view
+                        {lc(lang, "view", "பார்")}
                       </a>
                     )}
                     {t.error && <span className="text-red-600 truncate">{t.error}</span>}
@@ -873,6 +892,7 @@ function HistoryTab({ posts, accounts, onChange }: { posts: Post[]; accounts: Ac
 // Stats Tab
 // ─────────────────────────────────────────────────────────
 function StatsTab({ accounts, stats, caps, onChange }: { accounts: Account[]; stats: LatestStat[]; caps: Capabilities | null; onChange: () => void }) {
+  const { lang } = useLanguage();
   const [refreshing, setRefreshing] = useState<number | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const supportsApi = (p: string) => caps?.platforms.find((x) => x.platform === p)?.apiSupported ?? false;
@@ -884,7 +904,7 @@ function StatsTab({ accounts, stats, caps, onChange }: { accounts: Account[]; st
       await adminApi.refreshSocialStats(id);
       onChange();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed");
+      setErr(e instanceof Error ? e.message : lc(lang, "Failed", "தோல்வியடைந்தது"));
     } finally {
       setRefreshing(null);
     }
@@ -893,7 +913,7 @@ function StatsTab({ accounts, stats, caps, onChange }: { accounts: Account[]; st
   return (
     <div className="space-y-2">
       {err && <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">{err}</div>}
-      {accounts.length === 0 && <div className="text-sm text-muted-foreground border rounded p-6 text-center">No accounts.</div>}
+      {accounts.length === 0 && <div className="text-sm text-muted-foreground border rounded p-6 text-center">{lc(lang, "No accounts.", "கணக்குகள் இல்லை.")}</div>}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {accounts.map((a) => {
           const meta = PLATFORM_META[a.platform] ?? PLATFORM_META.other;
@@ -912,24 +932,24 @@ function StatsTab({ accounts, stats, caps, onChange }: { accounts: Account[]; st
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
                   <div className="text-xl font-bold">{s?.followers?.toLocaleString() ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">Followers</div>
+                  <div className="text-xs text-muted-foreground">{lc(lang, "Followers", "பின்தொடர்பவர்கள்")}</div>
                 </div>
                 <div>
                   <div className="text-xl font-bold">{s?.following?.toLocaleString() ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">Following</div>
+                  <div className="text-xs text-muted-foreground">{lc(lang, "Following", "பின்தொடர்கிறவர்")}</div>
                 </div>
                 <div>
                   <div className="text-xl font-bold">{s?.posts_count?.toLocaleString() ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">Posts</div>
+                  <div className="text-xs text-muted-foreground">{lc(lang, "Posts", "இடுகைகள்")}</div>
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">
-                  {s ? `Updated ${new Date(s.captured_at).toLocaleString()}` : "Never synced"}
+                  {s ? `${lc(lang, "Updated", "புதுப்பிக்கப்பட்டது")} ${new Date(s.captured_at).toLocaleString()}` : lc(lang, "Never synced", "ஒத்திசைக்கப்படவில்லை")}
                 </span>
                 <Button size="sm" variant="outline" disabled={!can || refreshing === a.id}
-                  onClick={() => refresh(a.id)} title={!can ? "Needs API token + external account ID" : ""}>
-                  <RefreshCw className={`w-3 h-3 mr-1 ${refreshing === a.id ? "animate-spin" : ""}`} /> Sync
+                  onClick={() => refresh(a.id)} title={!can ? lc(lang, "Needs API token + external account ID", "API டோக்கன் + வெளி கணக்கு ID தேவை") : ""}>
+                  <RefreshCw className={`w-3 h-3 mr-1 ${refreshing === a.id ? "animate-spin" : ""}`} /> {lc(lang, "Sync", "ஒத்திசை")}
                 </Button>
               </div>
             </div>

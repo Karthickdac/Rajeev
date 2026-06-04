@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { adminApi } from "./api";
 import { tHi, type Language, type HierarchyKey } from "@/lib/i18n";
+import { useLanguage } from "@/lib/LanguageContext";
 
 type HierarchyAddKey = Extract<HierarchyKey, `add${string}`>;
 type HierarchyEditKey = Extract<HierarchyKey, `edit${string}`>;
@@ -596,10 +597,10 @@ function BoothsPanel({
                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                         : "bg-gray-50 text-gray-500 border border-gray-200"
                     }`}
-                    title="Voters loaded from electoral roll"
+                    title={tHi(lang, "votersLoadedTip")}
                   >
                     <Vote className="w-2.5 h-2.5" />
-                    {voterCount > 0 ? `${voterCount.toLocaleString()} voters` : "no roll loaded"}
+                    {voterCount > 0 ? tHi(lang, "votersCount")(voterCount) : tHi(lang, "noRollLoaded")}
                   </span>
                 </p>
               </div>
@@ -940,10 +941,10 @@ export default function HierarchyAdmin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
-  // Per task spec: every label has a TA version via i18n keys; staff can flip
-  // the UI between English and Tamil with this toggle. Defaults to English
-  // because the rest of /admin is English-only by convention.
-  const [lang, setLang] = useState<Language>("en");
+  // Bilingual: read the shared language state so this page follows the global
+  // admin/public language toggle (Tamil by default) and stays in sync with the
+  // rest of the portal. Every label still resolves through the typed i18n keys.
+  const { lang, setLang } = useLanguage();
 
   const flatWards = useMemo<WardNode[]>(() => [
     ...zones.flatMap(z => z.wards),

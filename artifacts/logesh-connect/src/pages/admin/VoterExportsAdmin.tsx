@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getToken } from "@/lib/auth";
 import { Clock, User, Download, Hash } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
+import { lc } from "@/lib/LeaderConfigContext";
 
 const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 
@@ -34,6 +36,7 @@ function bytes(n: number | null): string {
 }
 
 export default function VoterExportsAdmin() {
+  const { lang } = useLanguage();
   const [items, setItems] = useState<ExportRow[]>([]);
   const [limit, setLimit] = useState(100);
   const [loading, setLoading] = useState(true);
@@ -80,7 +83,7 @@ export default function VoterExportsAdmin() {
       a.remove();
       URL.revokeObjectURL(blobUrl);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to start download");
+      setError(e instanceof Error ? e.message : lc(lang, "Failed to start download", "பதிவிறக்கத்தைத் தொடங்க முடியவில்லை"));
     } finally {
       setDownloadingId(null);
     }
@@ -100,7 +103,7 @@ export default function VoterExportsAdmin() {
         return r.json() as Promise<{ items: ExportRow[] }>;
       })
       .then((j) => { setItems(j.items); setError(null); })
-      .catch((e) => setError(e.message ?? "Failed to load"))
+      .catch((e) => setError(e.message ?? lc(lang, "Failed to load", "ஏற்ற முடியவில்லை")))
       .finally(() => setLoading(false));
   }, [limit]);
 
@@ -108,12 +111,9 @@ export default function VoterExportsAdmin() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-xl font-bold">Voter Exports</h2>
+          <h2 className="text-xl font-bold">{lc(lang, "Voter Exports", "வாக்காளர் ஏற்றுமதிகள்")}</h2>
           <p className="text-sm text-muted-foreground">
-            Read-only audit of every CSV / Excel pull from the Voters page. Each
-            row records the actor, the filter that was applied, the row count
-            shipped, and a SHA-256 of the file bytes so leaked sheets can be
-            traced back here.
+            {lc(lang, "Read-only audit of every CSV / Excel pull from the Voters page. Each row records the actor, the filter that was applied, the row count shipped, and a SHA-256 of the file bytes so leaked sheets can be traced back here.", "வாக்காளர்கள் பக்கத்திலிருந்து ஒவ்வொரு CSV / Excel பதிவிறக்கத்தின் படிக்க-மட்டும் தணிக்கை. ஒவ்வொரு வரியும் செயலாற்றியவர், பயன்படுத்தப்பட்ட வடிகட்டி, அனுப்பப்பட்ட வரிசை எண்ணிக்கை மற்றும் கோப்பு பைட்டுகளின் SHA-256 ஆகியவற்றைப் பதிவு செய்கிறது, இதனால் கசிந்த தாள்களை இங்கே கண்டறியலாம்.")}
           </p>
         </div>
         <select
@@ -122,7 +122,7 @@ export default function VoterExportsAdmin() {
           className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
         >
           {[50, 100, 200, 500].map((v) => (
-            <option key={v} value={v}>Last {v} exports</option>
+            <option key={v} value={v}>{lc(lang, `Last ${v} exports`, `கடைசி ${v} ஏற்றுமதிகள்`)}</option>
           ))}
         </select>
       </div>
@@ -130,9 +130,9 @@ export default function VoterExportsAdmin() {
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">Loading exports…</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "Loading exports…", "ஏற்றுமதிகள் ஏற்றுகிறது…")}</p>
       ) : items.length === 0 ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">No exports yet.</p>
+        <p className="text-muted-foreground text-sm py-8 text-center">{lc(lang, "No exports yet.", "இன்னும் ஏற்றுமதிகள் இல்லை.")}</p>
       ) : (
         <div className="space-y-2">
           {items.map((e) => (
@@ -149,29 +149,29 @@ export default function VoterExportsAdmin() {
                       </span>
                       <Badge variant="outline" className="text-xs uppercase font-mono">{e.format}</Badge>
                       <Badge className="bg-gray-100 text-gray-700 border-gray-200 text-xs">
-                        {e.rowCount.toLocaleString()} rows
+                        {e.rowCount.toLocaleString()} {lc(lang, "rows", "வரிசைகள்")}
                       </Badge>
                       {e.passwordGatePassed && (
                         <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-xs">
-                          password-gated (over {e.thresholdAtExport.toLocaleString()})
+                          {lc(lang, `password-gated (over ${e.thresholdAtExport.toLocaleString()})`, `கடவுச்சொல் பாதுகாப்பு (${e.thresholdAtExport.toLocaleString()} மேல்)`)}
                         </Badge>
                       )}
                       {e.masked && (
                         <Badge
                           className="bg-purple-100 text-purple-700 border-purple-200 text-xs"
-                          title="EPIC last-4 only; address replaced with Booth/Part summary"
+                          title={lc(lang, "EPIC last-4 only; address replaced with Booth/Part summary", "EPIC கடைசி 4 இலக்கங்கள் மட்டும்; முகவரி வாக்குச்சாவடி/பகுதி சுருக்கத்தால் மாற்றப்பட்டது")}
                         >
-                          PII masked (officer scope)
+                          {lc(lang, "PII masked (officer scope)", "தனிநபர் தகவல் மறைக்கப்பட்டது (அலுவலர் வரம்பு)")}
                         </Badge>
                       )}
                       {!e.fileHash && (
                         <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">
-                          incomplete / aborted
+                          {lc(lang, "incomplete / aborted", "முழுமையற்றது / நிறுத்தப்பட்டது")}
                         </Badge>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Filter: <span className="font-mono">{e.filterSummary || "(none)"}</span>
+                      {lc(lang, "Filter", "வடிகட்டி")}: <span className="font-mono">{e.filterSummary || lc(lang, "(none)", "(இல்லை)")}</span>
                     </p>
                     <div className="text-xs text-muted-foreground flex items-center gap-3 flex-wrap">
                       <span className="flex items-center gap-1">
@@ -186,8 +186,8 @@ export default function VoterExportsAdmin() {
                         </span>
                       )}
                       {e.expiresAt && (
-                        <span title={`Saved file expires ${new Date(e.expiresAt).toLocaleString("en-IN")}`}>
-                          file kept until {new Date(e.expiresAt).toLocaleDateString("en-IN")}
+                        <span title={lc(lang, `Saved file expires ${new Date(e.expiresAt).toLocaleString("en-IN")}`, `சேமிக்கப்பட்ட கோப்பு காலாவதியாகும்: ${new Date(e.expiresAt).toLocaleString("en-IN")}`)}>
+                          {lc(lang, `file kept until ${new Date(e.expiresAt).toLocaleDateString("en-IN")}`, `கோப்பு வைக்கப்படும்: ${new Date(e.expiresAt).toLocaleDateString("en-IN")}`)}
                         </span>
                       )}
                     </div>
@@ -202,7 +202,7 @@ export default function VoterExportsAdmin() {
                       data-testid={`download-export-${e.id}`}
                     >
                       <Download className="w-3.5 h-3.5 mr-1" />
-                      {downloadingId === e.id ? "Preparing…" : "Download"}
+                      {downloadingId === e.id ? lc(lang, "Preparing…", "தயாராகிறது…") : lc(lang, "Download", "பதிவிறக்கு")}
                     </Button>
                   )}
                 </div>
@@ -215,7 +215,7 @@ export default function VoterExportsAdmin() {
       {items.length >= limit && (
         <div className="text-center pt-2">
           <Button variant="outline" size="sm" onClick={() => setLimit((l) => l + 100)}>
-            Load More
+            {lc(lang, "Load More", "மேலும் ஏற்று")}
           </Button>
         </div>
       )}

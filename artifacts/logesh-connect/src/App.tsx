@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LeaderConfigProvider, useLeaderConfig } from "@/lib/LeaderConfigContext";
+import { LanguageProvider, useLanguage } from "@/lib/LanguageContext";
 import { PageLayout } from "@/components/PageLayout";
 import type { Language } from "@/lib/i18n";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
@@ -125,8 +126,8 @@ function Router({ lang, setLang, darkMode, setDarkMode }: {
   );
 }
 
-export default function App() {
-  const [lang, setLang] = useState<Language>("ta");
+function AppShell() {
+  const { lang, setLang } = useLanguage();
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -139,21 +140,25 @@ export default function App() {
     localStorage.setItem("nirmal_theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
-  useEffect(() => {
-    document.documentElement.lang = lang;
-  }, [lang]);
+  return (
+    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+      <Router lang={lang} setLang={setLang} darkMode={darkMode} setDarkMode={setDarkMode} />
+    </WouterRouter>
+  );
+}
 
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LeaderConfigProvider>
-        <SiteMetaManager />
-        <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router lang={lang} setLang={setLang} darkMode={darkMode} setDarkMode={setDarkMode} />
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
-      </LeaderConfigProvider>
+      <LanguageProvider>
+        <LeaderConfigProvider>
+          <SiteMetaManager />
+          <TooltipProvider>
+            <AppShell />
+            <Toaster />
+          </TooltipProvider>
+        </LeaderConfigProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

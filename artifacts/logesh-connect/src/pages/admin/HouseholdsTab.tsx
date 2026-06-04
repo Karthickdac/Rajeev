@@ -20,6 +20,7 @@ import {
   Users, Split, Merge, RefreshCw,
 } from "lucide-react";
 import type { Language } from "@/lib/i18n";
+import { lc } from "@/lib/LeaderConfigContext";
 import { useVoterTags, type VoterTag } from "./VoterTagsAdmin";
 
 const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
@@ -176,7 +177,7 @@ export default function HouseholdsTab({
                     <TagIcon className="w-3.5 h-3.5 mr-1.5" />
                     {tagAll.length === 0
                       ? (lang === "ta" ? "எந்த குறிச்சொல்லும்" : "Any composition")
-                      : `${tagAll.length} required tag${tagAll.length === 1 ? "" : "s"}`}
+                      : lc(lang, `${tagAll.length} required tag${tagAll.length === 1 ? "" : "s"}`, `${tagAll.length} தேவையான குறிச்சொற்கள்`)}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-72 p-2" align="start">
@@ -187,7 +188,7 @@ export default function HouseholdsTab({
                   </div>
                   <div className="space-y-1 max-h-64 overflow-y-auto">
                     {allTags.length === 0 && (
-                      <div className="text-xs text-muted-foreground px-2 py-3 text-center">No tags defined yet.</div>
+                      <div className="text-xs text-muted-foreground px-2 py-3 text-center">{lc(lang, "No tags defined yet.", "இன்னும் குறிச்சொற்கள் வரையறுக்கப்படவில்லை.")}</div>
                     )}
                     {allTags.map((t: VoterTag) => {
                       const checked = tagAll.includes(t.id);
@@ -214,7 +215,7 @@ export default function HouseholdsTab({
                       className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground py-1 border-t"
                       onClick={() => { setTagAll([]); setPage(1); }}
                     >
-                      Clear
+                      {lc(lang, "Clear", "அழி")}
                     </button>
                   )}
                 </PopoverContent>
@@ -239,7 +240,7 @@ export default function HouseholdsTab({
           </div>
           {regroup.isSuccess && regroup.data && (
             <div className="text-xs text-muted-foreground">
-              Done — scanned {regroup.data.scannedVoters} voters · {regroup.data.householdsCreated} new households · {regroup.data.votersAssigned} voters reassigned.
+              {lc(lang, `Done — scanned ${regroup.data.scannedVoters} voters · ${regroup.data.householdsCreated} new households · ${regroup.data.votersAssigned} voters reassigned.`, `முடிந்தது — ${regroup.data.scannedVoters} வாக்காளர்கள் ஸ்கேன் செய்யப்பட்டனர் · ${regroup.data.householdsCreated} புதிய குடும்பங்கள் · ${regroup.data.votersAssigned} வாக்காளர்கள் மறு ஒதுக்கீடு செய்யப்பட்டனர்.`)}
             </div>
           )}
           {regroup.error && (
@@ -253,19 +254,25 @@ export default function HouseholdsTab({
           <div className="px-4 py-2 border-b text-xs text-muted-foreground flex items-center justify-between">
             <span>
               {isFetching
-                ? "Loading…"
+                ? lc(lang, "Loading…", "ஏற்றுகிறது…")
                 : (error
-                  ? <span className="text-destructive">Error: {(error as Error).message}</span>
-                  : `${total.toLocaleString()} household${total === 1 ? "" : "s"}`)}
+                  ? <span className="text-destructive">{lc(lang, "Error", "பிழை")}: {(error as Error).message}</span>
+                  : lc(lang, `${total.toLocaleString()} household${total === 1 ? "" : "s"}`, `${total.toLocaleString()} குடும்பங்கள்`))}
             </span>
-            {total > 0 && <span>Page {page} of {totalPages}</span>}
+            {total > 0 && <span>{lc(lang, `Page ${page} of ${totalPages}`, `பக்கம் ${page} / ${totalPages}`)}</span>}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-b bg-muted/40">
                 <tr>
-                  {["Label / Address", "Booth", "Members", "Status", ""].map((h) => (
-                    <th key={h} className="text-left px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{h}</th>
+                  {[
+                    ["label", lc(lang, "Label / Address", "சிட்டை / முகவரி")],
+                    ["booth", lc(lang, "Booth", "வாக்குச்சாவடி")],
+                    ["members", lc(lang, "Members", "உறுப்பினர்கள்")],
+                    ["status", lc(lang, "Status", "நிலை")],
+                    ["actions", ""],
+                  ].map(([k, h]) => (
+                    <th key={k} className="text-left px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -273,8 +280,8 @@ export default function HouseholdsTab({
                 {items.map((h) => (
                   <tr key={h.id} className="hover:bg-muted/20" data-testid={`household-row-${h.id}`}>
                     <td className="px-4 py-2">
-                      <div className="font-medium">{h.label ?? <span className="text-muted-foreground italic">— No label —</span>}</div>
-                      <div className="text-xs text-muted-foreground truncate max-w-md">{h.addressKey || "(no address)"}</div>
+                      <div className="font-medium">{h.label ?? <span className="text-muted-foreground italic">{lc(lang, "— No label —", "— சிட்டை இல்லை —")}</span>}</div>
+                      <div className="text-xs text-muted-foreground truncate max-w-md">{h.addressKey || lc(lang, "(no address)", "(முகவரி இல்லை)")}</div>
                     </td>
                     <td className="px-4 py-2 text-xs">{h.boothNo ? `#${h.boothNo} ${h.boothName ?? ""}` : "—"}</td>
                     <td className="px-4 py-2">
@@ -282,14 +289,14 @@ export default function HouseholdsTab({
                     </td>
                     <td className="px-4 py-2">
                       {h.manuallyEdited
-                        ? <Badge variant="secondary" className="text-[10px]">Manually edited</Badge>
-                        : <span className="text-xs text-muted-foreground">Auto</span>}
+                        ? <Badge variant="secondary" className="text-[10px]">{lc(lang, "Manually edited", "கைமுறையாக திருத்தப்பட்டது")}</Badge>
+                        : <span className="text-xs text-muted-foreground">{lc(lang, "Auto", "தானியங்கி")}</span>}
                     </td>
                     <td className="px-4 py-2 text-right">
                       <Button size="sm" variant="ghost" className="h-7 text-xs"
                         onClick={() => setDetailId(h.id)}
                         data-testid={`button-view-household-${h.id}`}>
-                        View
+                        {lc(lang, "View", "பார்")}
                       </Button>
                     </td>
                   </tr>
@@ -310,10 +317,10 @@ export default function HouseholdsTab({
           {total > 0 && (
             <div className="px-4 py-2 border-t flex items-center justify-end gap-2">
               <Button size="sm" variant="outline" className="h-8" disabled={page <= 1 || isFetching} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-                <ChevronLeft className="w-4 h-4" /> Prev
+                <ChevronLeft className="w-4 h-4" /> {lc(lang, "Prev", "முந்தைய")}
               </Button>
               <Button size="sm" variant="outline" className="h-8" disabled={!data?.hasMore || isFetching} onClick={() => setPage((p) => p + 1)}>
-                Next <ChevronRight className="w-4 h-4" />
+                {lc(lang, "Next", "அடுத்து")} <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           )}
@@ -391,33 +398,33 @@ function HouseholdDetailSheet({
       <SheetContent className="w-[480px] sm:w-[560px] overflow-y-auto" data-testid="household-detail-sheet">
         <SheetHeader>
           <SheetTitle>
-            {data?.label ?? (isFetching ? "Loading…" : (lang === "ta" ? "குடும்பம்" : "Household"))}
+            {data?.label ?? (isFetching ? lc(lang, "Loading…", "ஏற்றுகிறது…") : (lang === "ta" ? "குடும்பம்" : "Household"))}
           </SheetTitle>
           {data && (
             <SheetDescription>
-              {data.boothNo ? `Booth #${data.boothNo} ${data.boothName ?? ""} · ` : ""}
-              {data.members.length} member{data.members.length === 1 ? "" : "s"}
-              {data.manuallyEdited && " · manually edited"}
+              {data.boothNo ? `${lc(lang, "Booth", "வாக்குச்சாவடி")} #${data.boothNo} ${data.boothName ?? ""} · ` : ""}
+              {lc(lang, `${data.members.length} member${data.members.length === 1 ? "" : "s"}`, `${data.members.length} உறுப்பினர்கள்`)}
+              {data.manuallyEdited && ` · ${lc(lang, "manually edited", "கைமுறையாக திருத்தப்பட்டது")}`}
             </SheetDescription>
           )}
         </SheetHeader>
         {error && (
           <div className="mt-4 text-sm text-destructive">
             {(error as Error).message === "not_found"
-              ? "This household is not available (may be outside your assigned area)."
+              ? lc(lang, "This household is not available (may be outside your assigned area).", "இந்தக் குடும்பம் கிடைக்கவில்லை (உங்களுக்கு ஒதுக்கப்பட்ட பகுதிக்கு வெளியே இருக்கலாம்).")
               : (error as Error).message}
           </div>
         )}
         {data && (
           <div className="mt-4 space-y-4 text-sm">
             <div>
-              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Address</div>
-              <div className="text-xs text-muted-foreground">{data.addressKey || "(no address)"}</div>
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{lc(lang, "Address", "முகவரி")}</div>
+              <div className="text-xs text-muted-foreground">{data.addressKey || lc(lang, "(no address)", "(முகவரி இல்லை)")}</div>
             </div>
 
             {data.tagSummary.length > 0 && (
               <div>
-                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Tag composition</div>
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{lc(lang, "Tag composition", "குறிச்சொல் கலவை")}</div>
                 <div className="flex flex-wrap gap-1.5">
                   {data.tagSummary.map((t) => (
                     <span key={t.tagId}
@@ -432,7 +439,7 @@ function HouseholdDetailSheet({
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Members</div>
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{lc(lang, "Members", "உறுப்பினர்கள்")}</div>
                 {splitSel.size > 0 && (
                   <Button
                     size="sm" className="h-7 text-xs"
@@ -443,7 +450,7 @@ function HouseholdDetailSheet({
                   >
                     {split.isPending && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
                     <Split className="w-3 h-3 mr-1" />
-                    Split {splitSel.size}
+                    {lc(lang, "Split", "பிரி")} {splitSel.size}
                   </Button>
                 )}
               </div>
@@ -462,9 +469,9 @@ function HouseholdDetailSheet({
                       </div>
                       <div className="text-xs text-muted-foreground font-mono">{m.epicNumber}</div>
                       <div className="text-xs text-muted-foreground">
-                        {m.age ? `${m.age}yr` : ""}
+                        {m.age ? `${m.age}${lc(lang, "yr", "வயது")}` : ""}
                         {m.gender ? ` · ${m.gender}` : ""}
-                        {m.relationName ? ` · c/o ${m.relationName}` : ""}
+                        {m.relationName ? ` · ${lc(lang, "c/o", "பொறுப்பில்")} ${m.relationName}` : ""}
                       </div>
                     </div>
                   </label>
@@ -486,7 +493,7 @@ function HouseholdDetailSheet({
             />
 
             <div className="text-xs text-muted-foreground border-t pt-3">
-              Last updated {new Date(data.updatedAt).toLocaleString()}
+              {lc(lang, "Last updated", "கடைசியாக புதுப்பிக்கப்பட்டது")} {new Date(data.updatedAt).toLocaleString()}
             </div>
           </div>
         )}
@@ -527,7 +534,7 @@ function MergePanel({
           </SelectTrigger>
           <SelectContent>
             {candidates.length === 0 && (
-              <SelectItem value="none" disabled>No other households in this booth.</SelectItem>
+              <SelectItem value="none" disabled>{lc(lang, "No other households in this booth.", "இந்த வாக்குச்சாவடியில் வேறு குடும்பங்கள் இல்லை.")}</SelectItem>
             )}
             {candidates.map((c) => (
               <SelectItem key={c.id} value={String(c.id)}>
@@ -543,7 +550,7 @@ function MergePanel({
           data-testid="button-household-merge"
         >
           {merge.isPending && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
-          <Merge className="w-3 h-3 mr-1" /> Merge
+          <Merge className="w-3 h-3 mr-1" /> {lc(lang, "Merge", "இணை")}
         </Button>
       </div>
       {merge.error && (
