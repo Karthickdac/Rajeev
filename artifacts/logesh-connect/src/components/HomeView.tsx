@@ -563,7 +563,7 @@ export function HomeView({
                 title: tx("Water Conservation", "நீர் பாதுகாப்பு"),
                 desc: tx(
                   "Rainwater harvesting structures and tank rejuvenation across Thiruvadanai to combat drought and ensure groundwater recharge.",
-                  "வறட்சியை எதிர்கொள்ள திருவடனையில் மழைநீர் சேகரிப்பு கட்டமைப்புகள் மற்றும் குளங்கள் புனரமைப்பு."
+                  "வறட்சியை எதிர்கொள்ள திருவாடானையில் மழைநீர் சேகரிப்பு கட்டமைப்புகள் மற்றும் குளங்கள் புனரமைப்பு."
                 ),
                 tag: tx("Water", "நீர்"),
               },
@@ -587,7 +587,7 @@ export function HomeView({
                 title: tx("Waste Management", "கழிவு மேலாண்மை"),
                 desc: tx(
                   "Introducing segregated waste collection and organic composting units in all panchayats across Thiruvadanai constituency.",
-                  "திருவடனை தொகுதியின் அனைத்து பஞ்சாயத்துகளிலும் தனித்தனி கழிவு சேகரிப்பு மற்றும் உரக் குழிகள்."
+                  "திருவாடானை தொகுதியின் அனைத்து பஞ்சாயத்துகளிலும் தனித்தனி கழிவு சேகரிப்பு மற்றும் உரக் குழிகள்."
                 ),
                 tag: tx("Waste", "கழிவு"),
               },
