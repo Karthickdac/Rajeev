@@ -36,7 +36,7 @@ export interface LeaderConfig {
 
 export const DEFAULT_LEADER_CONFIG: LeaderConfig = {
   nameEn: "V.K. Rajeev",
-  nameTa: "வி.கே. ராஜீவ்",
+  nameTa: "V. K. ராஜீவ்",
   titleEn: "Minister for Environment & Climate Change",
   titleTa: "சுற்றுச்சூழல் மற்றும் காலநிலை மாற்றம் அமைச்சர்",
   constituencyEn: "Thiruvadanai",

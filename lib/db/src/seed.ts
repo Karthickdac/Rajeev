@@ -65,7 +65,7 @@ type PollingPdfBooth = {
 const TENANT_CONFIGS: Record<string, object> = {
   logesh: {
     nameEn: "V.K. Rajeev",
-    nameTa: "வி.கே. ராஜீவ்",
+    nameTa: "V. K. ராஜீவ்",
     titleEn: "Minister for Environment & Climate Change",
     titleTa: "சுற்றுச்சூழல் மற்றும் காலநிலை மாற்றம் அமைச்சர்",
     constituencyEn: "Thiruvadanai",
@@ -155,9 +155,9 @@ async function seed() {
   await db.insert(newsTable).values([
     {
       title: "V.K. Rajeev Launches Solar-Powered Street Lighting in Thiruvadanai",
-      titleTa: "திருவடனையில் சூரிய சக்தி தெரு விளக்கு திட்டம் – வி.கே. ராஜீவ் தொடக்கம்",
+      titleTa: "திருவடனையில் சூரிய சக்தி தெரு விளக்கு திட்டம் – V. K. ராஜீவ் தொடக்கம்",
       content: "V.K. Rajeev, Minister for Environment & Climate Change and MLA of Thiruvadanai, launched a solar-powered street lighting project covering 12 villages in the constituency. The initiative replaces 800 conventional bulbs with LED solar lamps, reducing carbon emissions and electricity costs.",
-      contentTa: "சுற்றுச்சூழல் மற்றும் காலநிலை மாற்றம் அமைச்சர் வி.கே. ராஜீவ் திருவடனை தொகுதியில் 12 கிராமங்களை உள்ளடக்கிய சூரிய சக்தி தெரு விளக்கு திட்டத்தை தொடக்கி வைத்தார். 800 பழைய விளக்குகளை LED சூரிய விளக்குகளாக மாற்றும் இந்த திட்டம் மின் செலவை குறைக்கும்.",
+      contentTa: "சுற்றுச்சூழல் மற்றும் காலநிலை மாற்றம் அமைச்சர் V. K. ராஜீவ் திருவடனை தொகுதியில் 12 கிராமங்களை உள்ளடக்கிய சூரிய சக்தி தெரு விளக்கு திட்டத்தை தொடக்கி வைத்தார். 800 பழைய விளக்குகளை LED சூரிய விளக்குகளாக மாற்றும் இந்த திட்டம் மின் செலவை குறைக்கும்.",
       category: "development",
       featured: true,
       publishedAt: new Date("2025-04-15"),
@@ -251,7 +251,7 @@ async function seed() {
       title: "Coastal Clean-Up & Tree Plantation Drive – Green Thiruvadanai",
       titleTa: "கடற்கரை சுத்திகரிப்பு & மர நடவடிக்கை – பசுமை திருவடனை",
       description: "V.K. Rajeev led a constituency-wide coastal clean-up and tree plantation drive with volunteers. Over 2,000 saplings were planted and 5 km of coastline cleaned.",
-      descriptionTa: "வி.கே. ராஜீவ் தன்னார்வலர்களுடன் கடற்கரை சுத்திகரிப்பு மற்றும் மர நடவடிக்கையை நடத்தினார். 2,000 மரக்கன்றுகள் நடப்பட்டன; 5 கி.மீ. கடற்கரை சுத்தம் செய்யப்பட்டது.",
+      descriptionTa: "V. K. ராஜீவ் தன்னார்வலர்களுடன் கடற்கரை சுத்திகரிப்பு மற்றும் மர நடவடிக்கையை நடத்தினார். 2,000 மரக்கன்றுகள் நடப்பட்டன; 5 கி.மீ. கடற்கரை சுத்தம் செய்யப்பட்டது.",
       venue: "Thiruvadanai Coastline",
       eventDate: pastDate1,
       category: "environment",
@@ -385,7 +385,7 @@ async function seed() {
   await db.delete(galleryTable);
   await db.insert(galleryTable).values([
     {
-      title: "வி.கே. ராஜீவ் – அலுவலக நாள்",
+      title: "V. K. ராஜீவ் – அலுவலக நாள்",
       mediaUrl: "/gallery/rajeev_1.jpg",
       thumbnailUrl: "/gallery/rajeev_1.jpg",
       mediaType: "photo",
