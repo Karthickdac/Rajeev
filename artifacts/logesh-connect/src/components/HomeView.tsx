@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Calendar, ChevronRight, Megaphone, Shield, HeartPulse, Briefcase, GraduationCap, Home, Star, FileText, Phone } from "lucide-react";
+import { ArrowRight, Calendar, ChevronRight, Megaphone, Leaf, Wind, Droplets, Sun, TreePine, Recycle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -343,7 +343,7 @@ export function HomeView({
                         {photoSrc
                           ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)}
                               className="w-full h-full object-cover object-top" />
-                          : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400 bg-slate-700">S</span>
+                          : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400 bg-slate-700">R</span>
                         }
                       </div>
                       {/* Minister gold badge */}
@@ -357,7 +357,7 @@ export function HomeView({
                         {tx(config.headline, config.headlineTa)}
                       </p>
                       <p className="text-yellow-400/70 text-[10px] mt-0.5 leading-tight max-w-[120px] mx-auto">
-                        {tx("HR & Ex-SM Welfare", "மனித வளம் & முன்னாள் வீரர் நலன்")}
+                        {tx("Environment & Climate", "சுற்றுச்சூழல் & காலநிலை")}
                       </p>
                     </div>
                   </div>
@@ -499,109 +499,109 @@ export function HomeView({
         </section>
       )}
 
-      {/* Ex-Servicemen Welfare Section */}
+      {/* Environment & Climate Change Section */}
       <section className="relative overflow-hidden py-14 md:py-20">
         {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900" />
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-yellow-400/5 blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-emerald-400/5 blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-green-500/10 blur-3xl" />
         </div>
 
         <div className={`relative ${embedded ? "w-full" : "max-w-7xl mx-auto"} px-4`}>
           {/* Header */}
           <div className="text-center mb-10 md:mb-14">
-            <div className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-4 py-1.5 mb-4">
-              <Shield className="w-4 h-4 text-yellow-400" />
-              <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest">
-                {tx("Ex-Servicemen Welfare", "முன்னாள் இராணுவ வீரர் நலன்")}
+            <div className="inline-flex items-center gap-2 bg-emerald-400/10 border border-emerald-400/30 rounded-full px-4 py-1.5 mb-4">
+              <Leaf className="w-4 h-4 text-emerald-400" />
+              <span className="text-emerald-400 text-xs font-bold uppercase tracking-widest">
+                {tx("Environment & Climate Change", "சுற்றுச்சூழல் & காலநிலை மாற்றம்")}
               </span>
             </div>
             <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-3 leading-tight">
-              {tx("Serving Those Who Served the Nation", "நாட்டிற்காக உழைத்தவர்களுக்கு நாம் உழைக்கிறோம்")}
+              {tx("Protecting Nature, Securing the Future", "இயற்கையை காப்போம், எதிர்காலத்தை உறுதிப்படுத்துவோம்")}
             </h2>
             <p className="text-white/65 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
               {tx(
-                `${leader.nameEn}, as ${leader.titleEn}, is committed to the welfare, dignity, and rehabilitation of veterans and their families in ${leader.constituencyEn} and across Tamil Nadu.`,
-                `${leader.titleTa}, ${leader.nameTa} ${leader.constituencyTa} மற்றும் தமிழ்நாடு முழுவதும் உள்ள வீரர்கள் மற்றும் அவர்களது குடும்பங்களுக்கு சேவை செய்ய உறுதிபூண்டுள்ளார்.`
+                `${leader.nameEn}, as ${leader.titleEn}, is committed to protecting ${leader.constituencyEn}'s coastline, forests, and natural resources for future generations.`,
+                `${leader.titleTa}, ${leader.nameTa} ${leader.constituencyTa} தொகுதியின் கடற்கரை, காடுகள் மற்றும் இயற்கை வளங்களை அடுத்த தலைமுறைக்காக பாதுகாக்க உறுதிபூண்டுள்ளார்.`
               )}
             </p>
           </div>
 
-          {/* Scheme Cards */}
+          {/* Initiative Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
             {[
               {
-                icon: HeartPulse,
-                color: "from-rose-500/20 to-rose-600/10",
-                border: "border-rose-500/30",
-                iconColor: "text-rose-400",
-                title: tx("ECHS Health Scheme", "ஈசிஹெச்எஸ் சுகாதார திட்டம்"),
-                desc: tx(
-                  "Free medical care at ECHS polyclinics and empanelled hospitals for ex-servicemen and their dependents.",
-                  "முன்னாள் இராணுவ வீரர்கள் மற்றும் அவர்களது குடும்பத்தினருக்கு இலவச மருத்துவ சேவை."
-                ),
-                tag: tx("Health", "சுகாதாரம்"),
-              },
-              {
-                icon: Star,
-                color: "from-yellow-500/20 to-yellow-600/10",
-                border: "border-yellow-500/30",
-                iconColor: "text-yellow-400",
-                title: tx("Gallantry Award Recognition", "வீரதீர விருது அங்கீகாரம்"),
-                desc: tx(
-                  "Felicitation and financial rewards for Param Vir Chakra, Vir Chakra, and Sena Medal awardees in Tamil Nadu.",
-                  "பரம வீர சக்கரம், வீர சக்கரம் மற்றும் சேனா பதக்கம் பெற்ற வீரர்களுக்கு விருது மற்றும் நிதி உதவி."
-                ),
-                tag: tx("Recognition", "அங்கீகாரம்"),
-              },
-              {
-                icon: Briefcase,
-                color: "from-blue-500/20 to-blue-600/10",
-                border: "border-blue-500/30",
-                iconColor: "text-blue-400",
-                title: tx("Employment Reservation", "வேலைவாய்ப்பு இட ஒதுக்கீடு"),
-                desc: tx(
-                  "10% reservation in Tamil Nadu government jobs for ex-servicemen under the Ex-Servicemen Re-employment Act.",
-                  "தமிழ்நாடு அரசு வேலைகளில் முன்னாள் இராணுவ வீரர்களுக்கு 10% இட ஒதுக்கீடு."
-                ),
-                tag: tx("Employment", "வேலைவாய்ப்பு"),
-              },
-              {
-                icon: GraduationCap,
+                icon: TreePine,
                 color: "from-emerald-500/20 to-emerald-600/10",
                 border: "border-emerald-500/30",
                 iconColor: "text-emerald-400",
-                title: tx("Education Scholarships", "கல்வி உதவித்தொகை"),
+                title: tx("Mangrove Restoration", "சதுப்பு நில மறுவாழ்வு"),
                 desc: tx(
-                  "Scholarships and fee concessions for children of ex-servicemen studying in schools and colleges across Tamil Nadu.",
-                  "முன்னாள் வீரர்களின் பிள்ளைகளுக்கு பள்ளி மற்றும் கல்லூரி கல்விக்கு உதவித்தொகை."
+                  "Replanting degraded mangrove forests along the Thiruvadanai coastline to protect fishing communities from erosion and cyclones.",
+                  "கடற்கரை அரிப்பு மற்றும் புயல்களிலிருந்து மீனவர்களை பாதுகாக்க கடற்கரையோரம் சதுப்பு நில மரங்கள் நடுதல்."
                 ),
-                tag: tx("Education", "கல்வி"),
+                tag: tx("Forests", "காடுகள்"),
               },
               {
-                icon: Home,
-                color: "from-purple-500/20 to-purple-600/10",
-                border: "border-purple-500/30",
-                iconColor: "text-purple-400",
-                title: tx("Housing Assistance", "வீட்டுவசதி உதவி"),
+                icon: Sun,
+                color: "from-yellow-500/20 to-yellow-600/10",
+                border: "border-yellow-500/30",
+                iconColor: "text-yellow-400",
+                title: tx("Solar Energy Push", "சூரிய சக்தி மேம்பாடு"),
                 desc: tx(
-                  "Priority allotment in Tamil Nadu Housing Board schemes and subsidised loans for ex-servicemen families.",
-                  "தமிழ்நாடு வீட்டு வாரிய திட்டங்களில் முன்னுரிமை ஒதுக்கீடு மற்றும் மானிய கடன் வசதி."
+                  "Deploying solar-powered street lights and rooftop panels across villages to reduce dependency on fossil fuels.",
+                  "கிராமங்களில் சூரிய சக்தி தெரு விளக்குகள் மற்றும் கூரை பேனல்கள் அமைத்து புதைபடிவ எரிபொருள் சார்புநிலை குறைத்தல்."
                 ),
-                tag: tx("Housing", "வீட்டுவசதி"),
+                tag: tx("Clean Energy", "சுத்த ஆற்றல்"),
               },
               {
-                icon: FileText,
+                icon: Droplets,
+                color: "from-blue-500/20 to-blue-600/10",
+                border: "border-blue-500/30",
+                iconColor: "text-blue-400",
+                title: tx("Water Conservation", "நீர் பாதுகாப்பு"),
+                desc: tx(
+                  "Rainwater harvesting structures and tank rejuvenation across Thiruvadanai to combat drought and ensure groundwater recharge.",
+                  "வறட்சியை எதிர்கொள்ள திருவடனையில் மழைநீர் சேகரிப்பு கட்டமைப்புகள் மற்றும் குளங்கள் புனரமைப்பு."
+                ),
+                tag: tx("Water", "நீர்"),
+              },
+              {
+                icon: Wind,
                 color: "from-sky-500/20 to-sky-600/10",
                 border: "border-sky-500/30",
                 iconColor: "text-sky-400",
-                title: tx("Pension & Financial Aid", "ஓய்வூதியம் & நிதி உதவி"),
+                title: tx("Clean Air Initiative", "தூய காற்று திட்டம்"),
                 desc: tx(
-                  "Assistance with pension arrears, disability pension claims, and one-time financial grants for veterans in need.",
-                  "ஓய்வூதிய நிலுவை, ஊனமுற்றோர் ஓய்வூதியம் மற்றும் ஒருமுறை நிதி உதவிக்கு ஆதரவு."
+                  "Monitoring and reducing air pollution through tree plantation drives and regulation of industrial emissions in the constituency.",
+                  "மர நடவடிக்கைகள் மற்றும் தொழிற்சாலை கழிவு கட்டுப்பாடு மூலம் காற்று மாசுபாட்டை கண்காணித்து குறைத்தல்."
                 ),
-                tag: tx("Pension", "ஓய்வூதியம்"),
+                tag: tx("Air Quality", "காற்று தரம்"),
+              },
+              {
+                icon: Recycle,
+                color: "from-purple-500/20 to-purple-600/10",
+                border: "border-purple-500/30",
+                iconColor: "text-purple-400",
+                title: tx("Waste Management", "கழிவு மேலாண்மை"),
+                desc: tx(
+                  "Introducing segregated waste collection and organic composting units in all panchayats across Thiruvadanai constituency.",
+                  "திருவடனை தொகுதியின் அனைத்து பஞ்சாயத்துகளிலும் தனித்தனி கழிவு சேகரிப்பு மற்றும் உரக் குழிகள்."
+                ),
+                tag: tx("Waste", "கழிவு"),
+              },
+              {
+                icon: Leaf,
+                color: "from-green-500/20 to-green-600/10",
+                border: "border-green-500/30",
+                iconColor: "text-green-400",
+                title: tx("Organic Farming Support", "இயற்கை வேளாண்மை ஆதரவு"),
+                desc: tx(
+                  "Training farmers in organic methods to reduce chemical use, protect soil health, and earn eco-certification premiums.",
+                  "விவசாயிகளுக்கு இயற்கை முறைகளில் பயிற்சி அளித்து வேதிப்பொருள் பயன்பாட்டை குறைத்து மண் ஆரோக்கியம் காத்தல்."
+                ),
+                tag: tx("Agriculture", "வேளாண்மை"),
               },
             ].map(({ icon: Icon, color, border, iconColor, title, desc, tag }) => (
               <div
@@ -625,15 +625,15 @@ export function HomeView({
           {/* CTA strip */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/grievance">
-              <Button className="h-12 px-8 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold text-sm shadow-lg shadow-yellow-400/20">
+              <Button className="h-12 px-8 bg-emerald-400 hover:bg-emerald-300 text-emerald-900 font-bold text-sm shadow-lg shadow-emerald-400/20">
                 <Phone className="w-4 h-4 mr-2" />
-                {tx("Apply / File a Welfare Complaint", "விண்ணப்பிக்க / புகார் அளிக்க")}
+                {tx("Report an Environmental Issue", "சுற்றுச்சூழல் பிரச்சினை தெரிவிக்க")}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
             <Link href="/contact">
               <Button variant="outline" className="h-12 px-8 border-white/30 text-white hover:bg-white/10 text-sm">
-                {tx("Contact the Welfare Office", "நலன் அலுவலகத்தை தொடர்பு கொள்ளுங்கள்")}
+                {tx("Contact the Environment Office", "சுற்றுச்சூழல் அலுவலகத்தை தொடர்பு கொள்ளுங்கள்")}
               </Button>
             </Link>
           </div>

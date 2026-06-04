@@ -1,2 +1,3 @@
 - [Leader config is CMS-driven](leader-config-cms.md) — never hardcode leader/constituency/brand strings; derive from useLeaderConfig()/lc; re-seed to update DB row.
 - [VPS deployment is single-port](vps-deployment.md) — on CloudPanel the API server also serves the built SPA; one PM2 process, secrets from gitignored .env, deploy.sh at repo root.
+- [Constituency hierarchy re-seeding](constituency-reseed.md) — delete pincodeWards→pollingStations→wards→pincodes→zones before inserting new hierarchy; skip onConflictDoNothing or old rows from the previous constituency remain alongside new ones.
