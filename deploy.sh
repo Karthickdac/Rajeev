@@ -48,7 +48,8 @@ fi
 
 # ── 1. Pull latest changes ────────────────────────────────────
 echo "▶ Pulling latest changes..."
-git pull origin main
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+git pull origin "$BRANCH"
 
 # ── 2. Install dependencies ───────────────────────────────────
 echo "▶ Installing dependencies..."
