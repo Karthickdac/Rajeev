@@ -47,9 +47,11 @@ else
 fi
 
 # ── 1. Pull latest changes ────────────────────────────────────
+# Uses the branch's configured upstream (set up at clone time), so it works
+# regardless of the branch name. Never aborts the deploy if there's nothing to
+# fast-forward — the current checkout is then used as-is.
 echo "▶ Pulling latest changes..."
-BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-git pull origin "$BRANCH"
+git pull --ff-only || echo "▶ Skipping pull (already up to date or no fast-forward); using current checkout."
 
 # ── 2. Install dependencies ───────────────────────────────────
 echo "▶ Installing dependencies..."
