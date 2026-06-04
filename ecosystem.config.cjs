@@ -34,7 +34,7 @@ module.exports = {
         // Optional — only needed if you wire up social OAuth one-click connect.
         OAUTH_REDIRECT_BASE_URL:
           process.env.OAUTH_REDIRECT_BASE_URL ||
-          "https://ungaludansarath.tamilagavetrikalagam.com",
+          "https://ungaludansarath.com",
         FB_APP_ID: process.env.FB_APP_ID,
         FB_APP_SECRET: process.env.FB_APP_SECRET,
         TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID,

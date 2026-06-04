@@ -103,21 +103,21 @@ async function seed() {
   // Users
   await db.insert(usersTable).values([
     {
-      email: "admin@logeshconnect.in",
+      email: "admin@ungaludansarath.com",
       name: "Admin User",
       passwordHash: hashPassword("Admin@2026"),
       role: "super_admin",
       isActive: "true",
     },
     {
-      email: "minister@logeshconnect.in",
+      email: "minister@ungaludansarath.com",
       name: "D. Sarath Kumar",
       passwordHash: hashPassword("Minister@2026"),
       role: "minister",
       isActive: "true",
     },
     {
-      email: "pa@logeshconnect.in",
+      email: "pa@ungaludansarath.com",
       name: "PA Staff",
       passwordHash: hashPassword("PaStaff@2026"),
       role: "pa_staff",
@@ -469,7 +469,7 @@ async function seed() {
   const [adminUser] = await db
     .select({ id: usersTable.id })
     .from(usersTable)
-    .where(eq(usersTable.email, "admin@logeshconnect.in"));
+    .where(eq(usersTable.email, "admin@ungaludansarath.com"));
 
   if (adminUser) {
     const day = (offset: number) => {

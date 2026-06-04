@@ -90,7 +90,7 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input data-testid="login-email" type="email" placeholder="admin@logeshconnect.in" {...field} />
+                      <Input data-testid="login-email" type="email" placeholder="admin@ungaludansarath.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

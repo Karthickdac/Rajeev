@@ -1,5 +1,5 @@
 ## Reverse-proxy config for Ungaludan Sarath
-## Domain: ungaludansarath.tamilagavetrikalagam.com
+## Domain: ungaludansarath.com
 ##
 ## The Node app serves BOTH the website and the /api routes on port 5500, so the
 ## proxy just forwards everything to it.
@@ -19,7 +19,7 @@
 
 server {
     listen 80;
-    server_name ungaludansarath.tamilagavetrikalagam.com www.ungaludansarath.tamilagavetrikalagam.com;
+    server_name ungaludansarath.com www.ungaludansarath.com;
 
     # Allow large grievance attachments / image uploads.
     client_max_body_size 50M;
@@ -39,12 +39,12 @@ server {
     }
 }
 
-# HTTPS (after running: certbot --nginx -d ungaludansarath.tamilagavetrikalagam.com)
+# HTTPS (after running: certbot --nginx -d ungaludansarath.com)
 # server {
 #     listen 443 ssl http2;
-#     server_name ungaludansarath.tamilagavetrikalagam.com www.ungaludansarath.tamilagavetrikalagam.com;
-#     ssl_certificate     /etc/letsencrypt/live/ungaludansarath.tamilagavetrikalagam.com/fullchain.pem;
-#     ssl_certificate_key /etc/letsencrypt/live/ungaludansarath.tamilagavetrikalagam.com/privkey.pem;
+#     server_name ungaludansarath.com www.ungaludansarath.com;
+#     ssl_certificate     /etc/letsencrypt/live/ungaludansarath.com/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/ungaludansarath.com/privkey.pem;
 #     include /etc/letsencrypt/options-ssl-nginx.conf;
 #
 #     client_max_body_size 50M;

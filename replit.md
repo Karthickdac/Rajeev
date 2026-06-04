@@ -9,7 +9,7 @@ Bilingual (Tamil-default) political leader website + grievance management platfo
 - `pnpm --filter @workspace/db run push` — push DB schema in place (dev only, no migration files)
 - `pnpm --filter @workspace/db run generate` — generate a versioned migration from schema changes
 - `pnpm --filter @workspace/db run migrate` — apply committed migrations (used by `deploy.sh` in prod)
-- `npx tsx lib/db/src/seed.ts` — seed sample content. Logins: super_admin `admin@logeshconnect.in / Admin@2026`, minister `minister@logeshconnect.in / Minister@2026`, PA `pa@logeshconnect.in / PaStaff@2026`
+- `npx tsx lib/db/src/seed.ts` — seed sample content. Logins: super_admin `admin@ungaludansarath.com / Admin@2026`, minister `minister@ungaludansarath.com / Minister@2026`, PA `pa@ungaludansarath.com / PaStaff@2026`
 - `pnpm --filter @workspace/api-spec run codegen` — regen API hooks + Zod from OpenAPI
 - `cd lib/db && npx tsc -p tsconfig.json` — must run after adding new schema tables
 - Required env: `DATABASE_URL`, `JWT_SECRET` (auto-generated ephemerally if absent in dev)
