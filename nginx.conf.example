@@ -1,26 +1,32 @@
-## Nginx config for People Connect
-## Domain: ctr.tamilagavetrikalagam.com
-## Copy to: /etc/nginx/sites-available/people-connect
-## Then: ln -s /etc/nginx/sites-available/people-connect /etc/nginx/sites-enabled/
+## Reverse-proxy config for Ungaludan Sarath
+## Domain: ungaludansarath.tamilagavetrikalagam.com
+##
+## The Node app serves BOTH the website and the /api routes on port 5500, so the
+## proxy just forwards everything to it.
+##
+## ── If you use CloudPanel (recommended on this server) ──────────────────
+## You usually don't edit files by hand. In the CloudPanel UI:
+##   1. Create a site of type "Reverse Proxy" (or "Node.js") for the domain.
+##   2. Set the reverse-proxy target / app port to:  127.0.0.1:5500
+##   3. Issue a Let's Encrypt certificate from the SSL tab.
+## CloudPanel then generates the vhost for you — the block below is only a
+## reference / for a plain-Nginx server.
+##
+## ── Plain Nginx ─────────────────────────────────────────────────────────
+## Copy to: /etc/nginx/sites-available/ungaludan-sarath
+## Then: ln -s /etc/nginx/sites-available/ungaludan-sarath /etc/nginx/sites-enabled/
 ## Then: nginx -t && systemctl reload nginx
 
 server {
     listen 80;
-    server_name ctr.tamilagavetrikalagam.com www.ctr.tamilagavetrikalagam.com;
+    server_name ungaludansarath.tamilagavetrikalagam.com www.ungaludansarath.tamilagavetrikalagam.com;
 
-    # Redirect HTTP → HTTPS (uncomment after SSL is set up)
-    # return 301 https://$host$request_uri;
+    # Allow large grievance attachments / image uploads.
+    client_max_body_size 50M;
 
-    root /home/ctr/htdocs/ctr.tamilagavetrikalagam.com/artifacts/logesh-connect/dist;
-    index index.html;
-
-    # Gzip compression
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
-
-    # API — proxy to Node.js backend
-    location /api/ {
-        proxy_pass http://127.0.0.1:8080;
+    # Everything (website + /api + /uploads + /media) → the Node app on 5500.
+    location / {
+        proxy_pass http://127.0.0.1:5500;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -29,48 +35,27 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        proxy_read_timeout 60s;
-    }
-
-    # Static assets — long cache
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        try_files $uri =404;
-    }
-
-    # SPA fallback — all routes go to index.html
-    location / {
-        try_files $uri $uri/ /index.html;
+        proxy_read_timeout 120s;
     }
 }
 
-# HTTPS (uncomment after running: certbot --nginx -d ctr.tamilagavetrikalagam.com)
+# HTTPS (after running: certbot --nginx -d ungaludansarath.tamilagavetrikalagam.com)
 # server {
 #     listen 443 ssl http2;
-#     server_name ctr.tamilagavetrikalagam.com www.ctr.tamilagavetrikalagam.com;
-#     ssl_certificate /etc/letsencrypt/live/ctr.tamilagavetrikalagam.com/fullchain.pem;
-#     ssl_certificate_key /etc/letsencrypt/live/ctr.tamilagavetrikalagam.com/privkey.pem;
+#     server_name ungaludansarath.tamilagavetrikalagam.com www.ungaludansarath.tamilagavetrikalagam.com;
+#     ssl_certificate     /etc/letsencrypt/live/ungaludansarath.tamilagavetrikalagam.com/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/ungaludansarath.tamilagavetrikalagam.com/privkey.pem;
 #     include /etc/letsencrypt/options-ssl-nginx.conf;
 #
-#     root /home/ctr/htdocs/ctr.tamilagavetrikalagam.com/artifacts/logesh-connect/dist;
-#     index index.html;
+#     client_max_body_size 50M;
 #
-#     location /api/ {
-#         proxy_pass http://127.0.0.1:8080;
+#     location / {
+#         proxy_pass http://127.0.0.1:5500;
 #         proxy_http_version 1.1;
 #         proxy_set_header Host $host;
 #         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 #         proxy_set_header X-Forwarded-Proto https;
-#     }
-#
-#     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-#         expires 1y;
-#         add_header Cache-Control "public, immutable";
-#         try_files $uri =404;
-#     }
-#
-#     location / {
-#         try_files $uri $uri/ /index.html;
+#         proxy_read_timeout 120s;
 #     }
 # }

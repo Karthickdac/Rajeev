@@ -2,6 +2,7 @@ import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import path from "path";
+import fs from "fs";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import {
@@ -98,5 +99,31 @@ app.use("/media", mediaStatic);
 app.use("/api/media", mediaStatic);
 
 app.use("/api", router);
+
+// ── Serve the built frontend (single-port production deployment) ──────
+// The Vite build is emitted to artifacts/logesh-connect/dist/public. Serving
+// it here lets ONE Node process (behind a reverse proxy such as CloudPanel /
+// Nginx) serve both the SPA and the /api routes on a single port. Resolved
+// relative to this bundle (import.meta.dirname = artifacts/api-server/dist) so
+// it works regardless of the process working directory.
+const clientDist = path.resolve(import.meta.dirname, "..", "..", "logesh-connect", "dist", "public");
+if (fs.existsSync(path.join(clientDist, "index.html"))) {
+  app.use(express.static(clientDist));
+  // SPA fallback: any non-API GET returns index.html so client-side routing works.
+  app.use((req: Request, res: Response, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") return next();
+    if (
+      req.path.startsWith("/api") ||
+      req.path.startsWith("/uploads") ||
+      req.path.startsWith("/media")
+    ) {
+      return next();
+    }
+    res.sendFile(path.join(clientDist, "index.html"));
+  });
+  logger.info({ clientDist }, "Serving frontend static build");
+} else {
+  logger.warn({ clientDist }, "Frontend build not found — running in API-only mode");
+}
 
 export default app;
