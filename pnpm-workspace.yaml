@@ -38,9 +38,11 @@ minimumReleaseAgeExclude:
 
 onlyBuiltDependencies:
   - '@swc/core'
+  - core-js
   - esbuild
   - msw
   - sharp
+  - tesseract.js
   - unrs-resolver
 
 overrides:
