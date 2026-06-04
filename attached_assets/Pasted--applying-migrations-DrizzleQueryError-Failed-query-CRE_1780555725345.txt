@@ -1,0 +1,43 @@
+[⢿] applying migrations...DrizzleQueryError: Failed query: 
+CREATE INDEX "voters_name_trgm_idx" ON "voters" USING gin (lower("full_name") gin_trgm_ops);
+params: 
+    at NodePgPreparedQuery.queryWithCache (/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.18.0_pg@8.20.0/node_modules/src/pg-core/session.ts:73:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async <anonymous> (/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.18.0_pg@8.20.0/node_modules/src/pg-core/dialect.ts:102:7)
+    ... 2 lines matching cause stack trace ...
+    at async migrate (/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.18.0_pg@8.20.0/node_modules/src/node-postgres/migrator.ts:10:2) {
+  query: '\n' +
+    'CREATE INDEX "voters_name_trgm_idx" ON "voters" USING gin (lower("full_name") gin_trgm_ops);',
+  params: [],
+  cause: error: operator class "gin_trgm_ops" does not exist for access method "gin"
+      at /home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/pg@8.20.0/node_modules/pg/lib/client.js:631:17
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async <anonymous> (/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.18.0_pg@8.20.0/node_modules/src/node-postgres/session.ts:149:14)
+      at async NodePgPreparedQuery.queryWithCache (/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.18.0_pg@8.20.0/node_modules/src/pg-core/session.ts:71:12)
+      at async <anonymous> (/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.18.0_pg@8.20.0/node_modules/src/pg-core/dialect.ts:102:7)
+      at async NodePgSession.transaction (/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.18.0_pg@8.20.0/node_modules/src/node-postgres/session.ts:259:19)
+      at async PgDialect.migrate (/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.18.0_pg@8.20.0/node_modules/src/pg-core/dialect.ts:95:3)
+      at async migrate (/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.18.0_pg@8.20.0/node_modules/src/node-postgres/migrator.ts:10:2) {
+    length: 131,
+    severity: 'ERROR',
+    code: '42704',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'indexcmds.c',
+    line: '2240',
+    routine: 'ResolveOpClass'
+  }
+}
+/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com/lib/db:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @workspace/db@0.0.0 migrate: `drizzle-kit migrate --config ./drizzle.config.ts`
+Exit status 1
+root@srv1609330:/home/ungaludansarath/htdocs/ungaludansarath.tamilagavetrikalagam.com# 
