@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Sun, Moon, Globe, Megaphone } from "lucide-react";
+import { Menu, X, Sun, Moon, Globe, Megaphone, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Language } from "@/lib/i18n";
 import { t } from "@/lib/i18n";
@@ -142,6 +142,28 @@ export function Navbar({ lang, setLang, darkMode, setDarkMode }: NavbarProps) {
               >
                 {t(lang, "submitGrievance")}
               </Button>
+            </Link>
+
+            <Link href="/login">
+              <Button
+                data-testid="nav-login"
+                size="sm"
+                variant="outline"
+                className="hidden md:flex items-center gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                {lang === "ta" ? "உள்நுழைவு" : "Login"}
+              </Button>
+            </Link>
+
+            <Link href="/login">
+              <button
+                data-testid="nav-login-mobile"
+                className="md:hidden p-2 rounded-md hover:bg-muted transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center text-primary"
+                aria-label={lang === "ta" ? "உள்நுழைவு" : "Login"}
+              >
+                <LogIn className="w-4 h-4" />
+              </button>
             </Link>
 
             <button
