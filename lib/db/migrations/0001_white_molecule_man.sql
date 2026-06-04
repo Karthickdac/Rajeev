@@ -1,0 +1,1 @@
+ALTER TABLE "grievances" ALTER COLUMN "constituency" SET DEFAULT 'Thiruvadanai';

@@ -16,9 +16,9 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Fallback centroid: Tambaram (Chengalpattu District). Callers may override
+// Fallback centroid: Thiruvadanai (Ramanathapuram District). Callers may override
 // with a constituency-derived centroid via the `defaultCenter` prop.
-const FALLBACK_CENTRE: [number, number] = [12.924, 80.117];
+const FALLBACK_CENTRE: [number, number] = [9.370, 78.520];
 
 interface Props {
   lat: number | null;

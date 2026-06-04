@@ -62,18 +62,18 @@ async function submitGrievanceWithFiles(
 }
 
 const CATEGORIES = [
-  "Ex-Servicemen Welfare", "Human Resources", "Employment",
-  "Roads", "Water Supply", "EB / Electricity Issues", "Sewage",
+  "Environment & Pollution", "Climate & Disaster Relief", "Forests & Wildlife", "Coastal & Fisheries",
+  "Employment", "Roads", "Water Supply", "EB / Electricity Issues", "Sewage",
   "Healthcare", "Education", "Women Safety", "Corruption",
   "Ration", "Transport", "Pension", "Housing",
   "Agriculture", "Property Registration", "Others",
 ];
 const CATEGORIES_TA = [
-  "முன்னாள் இராணுவ வீரர் நலன்", "மனித வளம்", "வேலைவாய்ப்பு",
-  "சாலை", "குடிநீர்", "மின்சாரம்", "கழிவுநீர்",
+  "சுற்றுச்சூழல் & மாசுபாடு", "காலநிலை & பேரிடர் நிவாரணம்", "காடுகள் & வனவிலங்கு", "கடற்கரை & மீன்வளம்",
+  "வேலைவாய்ப்பு", "சாலை", "குடிநீர்", "மின்சாரம்", "கழிவுநீர்",
   "சுகாதாரம்", "கல்வி", "பெண் பாதுகாப்பு", "ஊழல்",
   "ரேஷன்", "போக்குவரத்து", "ஓய்வூதியம்", "வீட்டுவசதி",
-  "விவசாயம்", "வேலைவாய்ப்பு", "பிறவை",
+  "விவசாயம்", "சொத்து பதிவு", "மற்றவை",
 ];
 
 const STATUS_FLOW = ["Submitted", "Under Review", "Assigned", "In Progress", "Resolved", "Closed"];

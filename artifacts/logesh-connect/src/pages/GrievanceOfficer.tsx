@@ -111,9 +111,11 @@ interface StaffGrievanceDetail {
 
 const STATUS_OPTS = ["", "Submitted", "Under Review", "Assigned", "In Progress", "Resolved", "Closed"];
 const PRIORITY_OPTS = ["", "Low", "Medium", "High", "Urgent"];
-const CATEGORY_OPTS = ["", "Roads", "Water Supply", "EB / Electricity Issues", "Sewage",
-  "Healthcare", "Education", "Women Safety", "Corruption", "Ration", "Transport",
-  "Pension", "Housing", "Agriculture", "Employment", "Others"];
+const CATEGORY_OPTS = ["", "Environment & Pollution", "Climate & Disaster Relief",
+  "Forests & Wildlife", "Coastal & Fisheries", "Employment", "Roads", "Water Supply",
+  "EB / Electricity Issues", "Sewage", "Healthcare", "Education", "Women Safety",
+  "Corruption", "Ration", "Transport", "Pension", "Housing", "Agriculture",
+  "Property Registration", "Others"];
 
 const STATUS_COLORS: Record<string, string> = {
   "Submitted": "bg-blue-100 text-blue-700",
@@ -563,7 +565,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
             ["Filed",         new Date(detail.createdAt).toLocaleString("en-IN")],
             ["Last updated",  new Date(detail.updatedAt).toLocaleString("en-IN")],
             ["Resolved",      detail.resolvedAt ? new Date(detail.resolvedAt).toLocaleString("en-IN") : "—"],
-            ["Scope",         detail.constituency === "Tamil Nadu" ? "Tamil Nadu State (Human Resources & Ex-Servicemen Welfare)" : `${leader.constituencyEn} Constituency`],
+            ["Scope",         detail.constituency === "Tamil Nadu" ? `Tamil Nadu State (${leader.titleEn.replace(/^Minister for /i, "")})` : `${leader.constituencyEn} Constituency`],
             ["District",      district],
             ["Constituency",  detail.constituency],
             ["Ward",          detail.ward || "—"],
@@ -1280,7 +1282,7 @@ export default function GrievanceOfficer({ lang, token, userRole = "" }: Grievan
               {/* Scope banner */}
               <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${detail.constituency === "Tamil Nadu" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-green-50 text-green-800 border border-green-200"}`}>
                 {detail.constituency === "Tamil Nadu"
-                  ? <><Globe className="w-4 h-4" />{lang === "ta" ? "தமிழ்நாடு மாநில புகார் — மனித வளம் / முன்னாள் இராணுவ வீரர் நலன்" : "Tamil Nadu State Complaint — Human Resources & Ex-Servicemen Welfare"}</>
+                  ? <><Globe className="w-4 h-4" />{lang === "ta" ? `தமிழ்நாடு மாநில புகார் — ${leader.titleTa.replace(/\s*அமைச்சர்$/, "")}` : `Tamil Nadu State Complaint — ${leader.titleEn.replace(/^Minister for /i, "")}`}</>
                   : <><Building2 className="w-4 h-4" />{lang === "ta" ? `${leader.constituencyTa} தொகுதி புகார்` : `${leader.constituencyEn} Constituency Complaint`}</>
                 }
               </div>

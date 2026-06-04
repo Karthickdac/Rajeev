@@ -13,6 +13,11 @@ import { z } from "zod/v4";
 import { votersTable } from "./voters";
 
 export const GRIEVANCE_CATEGORIES = [
+  "Environment & Pollution",
+  "Climate & Disaster Relief",
+  "Forests & Wildlife",
+  "Coastal & Fisheries",
+  "Employment",
   "Roads",
   "Water Supply",
   "EB / Electricity Issues",
@@ -26,7 +31,7 @@ export const GRIEVANCE_CATEGORIES = [
   "Pension",
   "Housing",
   "Agriculture",
-  "Employment",
+  "Property Registration",
   "Others",
 ] as const;
 
@@ -51,7 +56,7 @@ export const grievancesTable = pgTable("grievances", {
   description: text("description").notNull(),
   address: text("address"),
   ward: text("ward"),
-  constituency: text("constituency").notNull().default("Tambaram"),
+  constituency: text("constituency").notNull().default("Thiruvadanai"),
   priority: text("priority").notNull().default("Medium"),
   status: text("status").notNull().default("Submitted"),
   anonymous: boolean("anonymous").notNull().default(false),

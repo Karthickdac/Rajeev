@@ -170,7 +170,7 @@ function SocialPostGenerator() {
         <p className="text-xs text-muted-foreground">Describe the topic — get ready-to-post bilingual content with hashtags.</p>
         <div className="space-y-1">
           <Label className="text-xs">Topic / context</Label>
-          <Textarea rows={3} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Inaugurated new water tank in Tambaram ward 12 today, benefiting 3,000 families" />
+          <Textarea rows={3} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Inaugurated new water tank in Thiruvadanai ward 12 today, benefiting 3,000 families" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
@@ -285,7 +285,7 @@ function ActivityExpander() {
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label className="text-xs">Activity title *</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Road inauguration at Tambaram" />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Road inauguration at Thiruvadanai" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Category (optional)</Label>

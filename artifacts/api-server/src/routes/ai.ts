@@ -19,6 +19,35 @@ const requireMedia = [requireStaff, requireRole("super_admin", "admin", "pa_staf
 const requireAppointments = [requireStaff, requireRole("super_admin", "admin", "pa_staff")];
 
 // ─────────────────────────────────────────────────────────
+// Leader identity for AI prompts — derived from the CMS leader_config row so
+// prompts never hardcode a specific minister. Editing / re-seeding the config
+// updates every AI prompt automatically. Cached briefly to avoid a DB hit on
+// every generation.
+// ─────────────────────────────────────────────────────────
+let _leaderCfgCache: { val: Record<string, string> | null; at: number } | null = null;
+async function getLeaderConfig(): Promise<Record<string, string> | null> {
+  const now = Date.now();
+  if (_leaderCfgCache && now - _leaderCfgCache.at < 60_000) return _leaderCfgCache.val;
+  let cfg: Record<string, string> | null = null;
+  try {
+    const [row] = await db.select().from(siteConfigTable).where(eq(siteConfigTable.key, "leader_config")).limit(1);
+    if (row) cfg = JSON.parse(row.value) as Record<string, string>;
+  } catch { /* fall back to generic descriptor */ }
+  _leaderCfgCache = { val: cfg, at: now };
+  return cfg;
+}
+async function getLeaderDesc(): Promise<string> {
+  const c = await getLeaderConfig();
+  if (!c) return "the Minister and MLA (TVK party), Tamil Nadu";
+  let s = c.nameEn || "the Minister";
+  if (c.titleEn) s += `, ${c.titleEn}`;
+  if (c.partyShort || c.partyEn) s += ` (${c.partyShort || c.partyEn} party)`;
+  if (c.constituencyEn) s += `, MLA of ${c.constituencyEn} Constituency`;
+  if (c.districtEn) s += `, ${c.districtEn} District`;
+  return `${s}, Tamil Nadu`;
+}
+
+// ─────────────────────────────────────────────────────────
 // Status — frontend can hide AI features if no key configured.
 // ─────────────────────────────────────────────────────────
 router.get("/ai/status", (_req, res) => {
@@ -29,9 +58,10 @@ router.get("/ai/status", (_req, res) => {
 // 1. AI grievance triage — classify category/priority + draft Tamil summary
 // ─────────────────────────────────────────────────────────
 const TRIAGE_CATEGORIES = [
-  "Roads", "Water Supply", "EB / Electricity Issues", "Sewage", "Healthcare",
+  "Environment & Pollution", "Climate & Disaster Relief", "Forests & Wildlife", "Coastal & Fisheries",
+  "Employment", "Roads", "Water Supply", "EB / Electricity Issues", "Sewage", "Healthcare",
   "Education", "Women Safety", "Corruption", "Ration", "Transport", "Pension",
-  "Housing", "Agriculture", "Employment", "Others",
+  "Housing", "Agriculture", "Property Registration", "Others",
 ];
 
 interface TriageResult {
@@ -50,7 +80,8 @@ export async function triageGrievance(id: number): Promise<TriageResult | null> 
   if (!settings.featureToggles.autoTriage) return null;
   const [g] = await db.select().from(grievancesTable).where(eq(grievancesTable.id, id));
   if (!g) return null;
-  const defaultPrompt = `You are an assistant for the constituency office of D. Sarath Kumar, Minister (TVK party), MLA of Tambaram Constituency, Chengalpattu District. Classify citizen grievances and gauge the citizen's sentiment toward the administration from the complaint text. Respond ONLY with strict JSON matching this shape: {"category": one of [${TRIAGE_CATEGORIES.map((c) => `"${c}"`).join(", ")}], "priority": one of ["Low","Medium","High","Urgent"], "summary_en": <50-word English summary>, "summary_ta": <50-word Tamil summary>, "suggested_route": <short suggestion for which department/officer should handle this>, "sentiment": one of ["positive","neutral","negative"], "sentiment_score": <integer -100..100, negative = angry/distressed, positive = appreciative>}. Use "Urgent" only for safety, health, or active danger. Tamil text must be in Tamil script.`;
+  const leaderDesc = await getLeaderDesc();
+  const defaultPrompt = `You are an assistant for the constituency office of ${leaderDesc}. Classify citizen grievances and gauge the citizen's sentiment toward the administration from the complaint text. Respond ONLY with strict JSON matching this shape: {"category": one of [${TRIAGE_CATEGORIES.map((c) => `"${c}"`).join(", ")}], "priority": one of ["Low","Medium","High","Urgent"], "summary_en": <50-word English summary>, "summary_ta": <50-word Tamil summary>, "suggested_route": <short suggestion for which department/officer should handle this>, "sentiment": one of ["positive","neutral","negative"], "sentiment_score": <integer -100..100, negative = angry/distressed, positive = appreciative>}. Use "Urgent" only for safety, health, or active danger. Tamil text must be in Tamil script.`;
   const systemMsg: ChatMessage = { role: "system", content: resolvePrompt(settings.promptTemplates.triage, defaultPrompt) };
   const userMsg: ChatMessage = {
     role: "user",
@@ -225,7 +256,8 @@ router.post("/admin/ai/press-release", requireMedia, async (req: AuthRequest, re
   const { bullets, tone, audience } = parsed.data;
   const settings = await loadAiSettings();
   if (!settings.featureToggles.pressRelease) return res.status(403).json({ error: "Press release generator is disabled in AI settings." });
-  const defaultPrompt = `You write press releases for D. Sarath Kumar, Minister for Human Resources Management and Ex-Servicemen Welfare (TVK party), MLA of Tambaram Constituency, Chengalpattu District, Tamil Nadu. Respond ONLY with strict JSON {"title_en":"…","title_ta":"…","body_en":"…","body_ta":"…"}. Body should be 4-6 short paragraphs, ${tone} tone${audience ? `, written for ${audience}` : ""}. Use proper Tamil script for Tamil fields. End the body with a quote attributed to the Minister.`;
+  const leaderDesc = await getLeaderDesc();
+  const defaultPrompt = `You write press releases for ${leaderDesc}. Respond ONLY with strict JSON {"title_en":"…","title_ta":"…","body_en":"…","body_ta":"…"}. Body should be 4-6 short paragraphs, ${tone} tone${audience ? `, written for ${audience}` : ""}. Use proper Tamil script for Tamil fields. End the body with a quote attributed to the Minister.`;
   try {
     const result = await chatJson<{ title_en: string; title_ta: string; body_en: string; body_ta: string }>([
       { role: "system", content: resolvePrompt(settings.promptTemplates.pressRelease, defaultPrompt) },
@@ -246,13 +278,14 @@ router.post("/admin/ai/sentiment", requireMedia, async (req: AuthRequest, res: R
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Invalid payload" });
   const aSettings = await loadAiSettings();
+  const leaderDesc = await getLeaderDesc();
   try {
     const result = await chatJson<{
       sentiment: "positive" | "neutral" | "negative" | "mixed";
       score: number; topics: string[]; summary: string;
       suggested_reply_en: string; suggested_reply_ta: string;
     }>([
-      { role: "system", content: `Analyze a social media comment about D. Sarath Kumar, Minister and MLA of Tambaram Constituency. Return strict JSON: {"sentiment":"positive|neutral|negative|mixed","score":-100..100,"topics":[…short tags],"summary":"<1-sentence English>","suggested_reply_en":"<polite, factual reply in English>","suggested_reply_ta":"<polite Tamil reply in Tamil script>"}. Replies should be brief (≤ 2 sentences), de-escalating if negative, gracious if positive.` },
+      { role: "system", content: `Analyze a social media comment about ${leaderDesc}. Return strict JSON: {"sentiment":"positive|neutral|negative|mixed","score":-100..100,"topics":[…short tags],"summary":"<1-sentence English>","suggested_reply_en":"<polite, factual reply in English>","suggested_reply_ta":"<polite Tamil reply in Tamil script>"}. Replies should be brief (≤ 2 sentences), de-escalating if negative, gracious if positive.` },
       { role: "user", content: parsed.data.text },
     ], { model: aSettings.modelName, temperature: aSettings.temperature, maxTokens: aSettings.maxTokens });
     res.json({ analysis: result });
@@ -364,11 +397,12 @@ router.post("/chat", async (req: Request, res: Response) => {
   if (!parsed.success) return res.status(400).json({ error: "Invalid payload" });
   const { message, history = [], lang } = parsed.data;
   const settings = await loadAiSettings();
+  const leaderDesc = await getLeaderDesc();
   try {
     const ctx = await buildSiteContext();
     const sys: ChatMessage = {
       role: "system",
-      content: `You are the friendly assistant for the official website of D. Sarath Kumar — Minister for Human Resources Management and Ex-Servicemen Welfare (TVK party), MLA of Tambaram Constituency, Chengalpattu District, Tamil Nadu.
+      content: `You are the friendly assistant for the official website of ${leaderDesc}.
 
 Default to ${lang === "ta" ? "Tamil (Tamil script)" : "English"}, but mirror the user's language if they switch. Keep replies short (2-4 sentences). Be warm and respectful.
 
@@ -419,7 +453,8 @@ router.post("/admin/press-coverage/refresh", requireMedia, async (req: AuthReque
   const schema = z.object({ query: z.string().min(2).max(200).optional() });
   const parsed = schema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ error: "Invalid payload" });
-  const q = parsed.data.query || "\"Sarath Kumar\" OR \"Tambaram MLA\" OR TVK";
+  const lc = await getLeaderConfig();
+  const q = parsed.data.query || (lc ? `"${lc.nameEn}" OR "${lc.constituencyEn} MLA" OR TVK` : "TVK Tamil Nadu");
   const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-IN&gl=IN&ceid=IN:en`;
   const settings = await loadAiSettings();
   try {
@@ -527,7 +562,8 @@ router.post("/admin/grievances/:id/suggest-resolution", requireContent, async (r
   const remarks = await db.select({ remark: grievanceRemarksTable.remark })
     .from(grievanceRemarksTable).where(eq(grievanceRemarksTable.grievanceId, id))
     .orderBy(desc(grievanceRemarksTable.createdAt)).limit(5);
-  const defaultPrompt = `You are an expert assistant for the constituency office of D. Sarath Kumar, Minister and MLA of Tambaram Constituency, Chengalpattu District. Suggest a concrete resolution plan for a citizen grievance. Respond ONLY with strict JSON: {"resolution_en":"<concise English plan>","resolution_ta":"<same in Tamil script>","steps":["<action 1>","<action 2>",…],"department":"<responsible government dept>","expected_days":<estimated calendar days>}. Tamil must use proper Tamil script. Keep steps short and actionable.`;
+  const leaderDesc = await getLeaderDesc();
+  const defaultPrompt = `You are an expert assistant for the constituency office of ${leaderDesc}. Suggest a concrete resolution plan for a citizen grievance. Respond ONLY with strict JSON: {"resolution_en":"<concise English plan>","resolution_ta":"<same in Tamil script>","steps":["<action 1>","<action 2>",…],"department":"<responsible government dept>","expected_days":<estimated calendar days>}. Tamil must use proper Tamil script. Keep steps short and actionable.`;
   const t0 = Date.now();
   try {
     const result = await chatJson<{ resolution_en: string; resolution_ta: string; steps: string[]; department: string; expected_days: number }>([
@@ -603,7 +639,8 @@ router.post("/admin/ai/social-post", requireMedia, async (req: AuthRequest, res:
   if (!settings.featureToggles.postGenerator) return res.status(403).json({ error: "Social post generator is disabled in AI settings." });
   const limits: Record<string, number> = { twitter: 280, facebook: 2000, instagram: 2200, youtube: 5000 };
   const charLimit = platform ? (limits[platform] ?? 500) : 500;
-  const defaultPrompt = `You are a social media manager for D. Sarath Kumar, Minister (TVK party), MLA of Tambaram Constituency, Chengalpattu District. Write an engaging ${platform ?? "social media"} post in a ${tone} tone. Keep English under ${charLimit} chars and Tamil under ${charLimit} chars. Include 3-5 relevant hashtags. Respond ONLY with strict JSON: {"content_en":"…","content_ta":"…","hashtags":["#tag1",…]}. Tamil must use proper Tamil script.`;
+  const leaderDesc = await getLeaderDesc();
+  const defaultPrompt = `You are a social media manager for ${leaderDesc}. Write an engaging ${platform ?? "social media"} post in a ${tone} tone. Keep English under ${charLimit} chars and Tamil under ${charLimit} chars. Include 3-5 relevant hashtags. Respond ONLY with strict JSON: {"content_en":"…","content_ta":"…","hashtags":["#tag1",…]}. Tamil must use proper Tamil script.`;
   const t0 = Date.now();
   try {
     const result = await chatJson<{ content_en: string; content_ta: string; hashtags: string[] }>([
@@ -630,7 +667,9 @@ router.post("/admin/ai/headline-suggestions", requireMedia, async (req: AuthRequ
   if (!parsed.success) return res.status(400).json({ error: "Invalid payload" });
   const settings = await loadAiSettings();
   if (!settings.featureToggles.headlineSuggestion) return res.status(403).json({ error: "Headline suggestions are disabled in AI settings." });
-  const defaultPrompt = `You are an editor for D. Sarath Kumar MLA's official news portal. Generate 5 headline options for the given article. Respond ONLY with strict JSON: {"headlines":[{"en":"<English headline>","ta":"<Tamil headline in Tamil script>"},…]}. Headlines must be under 12 words, factual, and engaging.`;
+  const lc = await getLeaderConfig();
+  const leaderName = lc?.nameEn ?? "the";
+  const defaultPrompt = `You are an editor for ${leaderName} MLA's official news portal. Generate 5 headline options for the given article. Respond ONLY with strict JSON: {"headlines":[{"en":"<English headline>","ta":"<Tamil headline in Tamil script>"},…]}. Headlines must be under 12 words, factual, and engaging.`;
   const t0 = Date.now();
   try {
     const result = await chatJson<{ headlines: Array<{ en: string; ta: string }> }>([
@@ -658,7 +697,9 @@ router.post("/admin/ai/expand-activity", requireMedia, async (req: AuthRequest, 
   if (!parsed.success) return res.status(400).json({ error: "Invalid payload" });
   const { title, draft, category } = parsed.data;
   const settings = await loadAiSettings();
-  const defaultPrompt = `You are a content writer for D. Sarath Kumar MLA's official website. Expand a brief activity note into a well-written bilingual description. Write 2-3 warm, factual paragraphs. Respond ONLY with strict JSON: {"description_en":"…","description_ta":"…"}. Tamil must use proper Tamil script.`;
+  const lc = await getLeaderConfig();
+  const leaderName = lc?.nameEn ?? "the";
+  const defaultPrompt = `You are a content writer for ${leaderName} MLA's official website. Expand a brief activity note into a well-written bilingual description. Write 2-3 warm, factual paragraphs. Respond ONLY with strict JSON: {"description_en":"…","description_ta":"…"}. Tamil must use proper Tamil script.`;
   const t0 = Date.now();
   try {
     const result = await chatJson<{ description_en: string; description_ta: string }>([
@@ -702,7 +743,7 @@ router.post("/admin/ai/ask", requireStaff, async (req: AuthRequest, res: Respons
   const t0 = Date.now();
   try {
     const reply = await chat([
-      { role: "system", content: `You are an AI assistant for the constituency office of D. Sarath Kumar MLA (Tambaram, Chengalpattu District, TVK party). Answer questions about constituency management, governance, and operations concisely and helpfully. Mirror the user's language (Tamil or English).${ctxData}` },
+      { role: "system", content: `You are an AI assistant for the constituency office of ${await getLeaderDesc()}. Answer questions about constituency management, governance, and operations concisely and helpfully. Mirror the user's language (Tamil or English).${ctxData}` },
       { role: "user", content: question },
     ], { model: settings.modelName, temperature: settings.temperature, maxTokens: settings.maxTokens });
     logUsage("admin-ask", question.length, reply.length, Date.now() - t0);
@@ -722,7 +763,8 @@ export async function scoreAppointment(id: number): Promise<void> {
     if (!settings.featureToggles.appointmentScoring) return;
     const [appt] = await db.select().from(appointmentsTable).where(eq(appointmentsTable.id, id));
     if (!appt) return;
-    const defaultPrompt = `You are a scheduling assistant for the constituency office of D. Sarath Kumar MLA (Tambaram, Chengalpattu District). Score the urgency/priority of an appointment request from 1 to 5 (5 = most urgent, needs immediate attention; 1 = routine). Consider category (Grievance Hearing → higher), subject seriousness, description, and party size. Respond ONLY with strict JSON: {"score":<1-5>,"reason":"<brief 1-line English reason>"}`;
+    const leaderDesc = await getLeaderDesc();
+    const defaultPrompt = `You are a scheduling assistant for the constituency office of ${leaderDesc}. Score the urgency/priority of an appointment request from 1 to 5 (5 = most urgent, needs immediate attention; 1 = routine). Consider category (Grievance Hearing → higher), subject seriousness, description, and party size. Respond ONLY with strict JSON: {"score":<1-5>,"reason":"<brief 1-line English reason>"}`;
     const result = await chatJson<{ score: number; reason: string }>([
       { role: "system", content: resolvePrompt(settings.promptTemplates.appointmentScore, defaultPrompt) },
       { role: "user", content: `Category: ${appt.category}\nSubject: ${appt.subject}\nDescription: ${appt.description ?? "n/a"}\nParty size: ${appt.partySize}` },
