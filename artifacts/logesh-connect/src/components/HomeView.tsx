@@ -202,185 +202,101 @@ export function HomeView({
   return (
     <div>
       {/* Hero Section */}
-      <section className={`relative ${heroMinH} flex items-center overflow-hidden tvk-hero-gradient`}>
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-yellow-400 blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-red-400 blur-3xl" />
+      <section
+        className={`relative ${heroMinH} flex items-center overflow-hidden`}
+        style={{ background: "radial-gradient(ellipse 120% 90% at 50% 0%, #b71519 0%, #840f13 45%, #3a0708 100%)" }}
+      >
+        {/* warm glow accents */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[640px] h-[320px] rounded-full bg-orange-500/15 blur-3xl" />
+          <div className="absolute bottom-0 left-10 w-72 h-72 rounded-full bg-yellow-400/10 blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-80 h-80 rounded-full bg-red-500/10 blur-3xl" />
         </div>
 
-        <div className={`relative ${embedded ? "w-full" : "max-w-7xl mx-auto"} w-full px-4 py-8 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center`}>
-          <div className="text-white text-center lg:text-left">
-            {/* Mobile-only portrait — keeps the leader visible above the fold
-                on phones (desktop shows the richer card on the right). */}
-            <div className="lg:hidden flex justify-center mb-5">
-              <div className="relative">
-                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/20 bg-primary/60 flex items-center justify-center">
-                  {photoSrc ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" /> : <span className="text-4xl font-bold text-yellow-400">{(tx(config.headline, config.headlineTa) || "D").trim().charAt(0).toUpperCase()}</span>}
+        <div className={`relative ${embedded ? "w-full" : "max-w-7xl mx-auto"} w-full px-4 py-10 md:py-16`}>
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(190px,250px)_1fr_minmax(190px,250px)] gap-10 lg:gap-6 items-center">
+
+            {/* CM — left */}
+            <div className="order-2 lg:order-1 flex flex-col items-center">
+              <div className="relative w-full max-w-[210px] lg:max-w-none">
+                <div className="rounded-2xl p-[3px] shadow-2xl shadow-black/50" style={{ background: "linear-gradient(160deg,#FFE08A 0%,#FFB300 45%,#C9181E 100%)" }}>
+                  <div className="rounded-[14px] overflow-hidden bg-slate-900 aspect-[4/5]">
+                    <img src="/cm_vijay.jpg" alt={tx("C. Joseph Vijay – Chief Minister", "C. ஜோசப் விஜய் – முதலமைச்சர்")} className="w-full h-full object-cover object-top" />
+                  </div>
                 </div>
-                <span className="absolute -bottom-1 -right-1 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
-                  Minister
-                </span>
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap shadow-lg" style={{ background: "#FFB300", color: "#5c0a0a" }}>
+                  {tx("Chief Minister · Tamil Nadu", "முதலமைச்சர் · தமிழ்நாடு")}
+                </div>
+              </div>
+              <div className="mt-6 text-center text-white">
+                <p className="font-bold text-sm md:text-base leading-tight">{tx("C. Joseph Vijay", "திரு. C. ஜோசப் விஜய்")}</p>
+                <p className="text-white/60 text-[11px] md:text-xs mt-1">{tx("TVK Party Leader", "தமிழக வெற்றி கழகம் தலைவர்")}</p>
               </div>
             </div>
 
-            <Badge className="mb-3 md:mb-4 bg-yellow-400/20 text-yellow-300 border-yellow-400/30 text-[11px] md:text-xs font-medium px-3 py-1">
-              {tx(config.badge, config.badgeTa)}
-            </Badge>
-            <h1 className="text-[34px] sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-3 md:mb-4">
-              {tx(config.headline, config.headlineTa)}
-            </h1>
-            <p className="text-base sm:text-lg md:text-2xl text-yellow-300 font-semibold mb-3 md:mb-6 leading-snug">
-              {tx(config.subheadline, config.subheadlineTa)}
-            </p>
-            <p className="text-white/80 text-sm md:text-lg max-w-lg mx-auto lg:mx-0 mb-6 md:mb-8 leading-relaxed">
-              {tx(config.description, config.descriptionTa)}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:flex-wrap sm:justify-center lg:justify-start">
-              <Link href={config.primaryCtaHref || "/grievance"}>
-                <Button data-testid="hero-grievance-btn" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white h-12 px-6 text-base font-semibold shadow-lg">
-                  {tx(config.primaryCtaLabel, config.primaryCtaLabelTa)}
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
-              <Link href={config.secondaryCtaHref || "/volunteer"}>
-                <Button data-testid="hero-volunteer-btn" variant="outline" className="w-full sm:w-auto border-white/40 text-white hover:bg-white/10 h-12 px-6 text-base">
-                  {tx(config.secondaryCtaLabel, config.secondaryCtaLabelTa)}
-                </Button>
-              </Link>
-            </div>
-
-            {/* Mobile-only quick stats strip — reuses the desktop card data
-                in a horizontal layout so phones aren't bare below the CTAs. */}
-            <div className="lg:hidden mt-7 grid grid-cols-3 gap-2 text-center">
-              <div className="glass-card rounded-xl py-3 px-1">
-                <div className="text-xl font-bold text-yellow-400 leading-none">
-                  {summary?.totalVolunteers?.toLocaleString() ?? "—"}
-                </div>
-                <div className="text-[10px] text-white/75 mt-1 leading-tight">
-                  {tx("Volunteers", "தன்னார்வலர்கள்")}
-                </div>
+            {/* Center content */}
+            <div className="order-1 lg:order-2 text-center text-white px-0 md:px-2">
+              <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-5 border border-yellow-300/30" style={{ background: "rgba(255,179,0,0.15)" }}>
+                <span className="text-[11px] md:text-xs font-semibold tracking-wide text-yellow-200">{tx(config.badge, config.badgeTa)}</span>
               </div>
-              <div className="glass-card rounded-xl py-3 px-1">
-                <div className="text-xl font-bold text-yellow-400 leading-none">
-                  {summary?.totalEvents?.toLocaleString() ?? "—"}
-                </div>
-                <div className="text-[10px] text-white/75 mt-1 leading-tight">
-                  {tx("Events", "நிகழ்வுகள்")}
-                </div>
+              <h1 className="text-[32px] sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.1] mb-4">
+                {tx(config.headline, config.headlineTa)}
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl text-yellow-300 font-semibold mb-4 leading-snug max-w-xl mx-auto">
+                {tx(config.subheadline, config.subheadlineTa)}
+              </p>
+              <p className="text-white/85 text-sm md:text-base max-w-xl mx-auto mb-7 leading-relaxed">
+                {tx(config.description, config.descriptionTa)}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
+                <Link href={config.primaryCtaHref || "/grievance"}>
+                  <Button data-testid="hero-grievance-btn" className="w-full sm:w-auto h-12 px-7 text-base font-bold shadow-lg border-0 hover:opacity-90" style={{ background: "linear-gradient(135deg,#FFC02E,#FF9D00)", color: "#5c0a0a" }}>
+                    {tx(config.primaryCtaLabel, config.primaryCtaLabelTa)}
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link href={config.secondaryCtaHref || "/volunteer"}>
+                  <Button data-testid="hero-volunteer-btn" variant="outline" className="w-full sm:w-auto h-12 px-7 text-base font-semibold bg-white/5 border-white/40 text-white hover:bg-white/15">
+                    {tx(config.secondaryCtaLabel, config.secondaryCtaLabelTa)}
+                  </Button>
+                </Link>
               </div>
-              <div className="glass-card rounded-xl py-3 px-1">
-                <div className="text-xl font-bold text-yellow-400 leading-none">
-                  {summary?.totalNews?.toLocaleString() ?? "—"}
-                </div>
-                <div className="text-[10px] text-white/75 mt-1 leading-tight">
-                  {tx("News", "செய்திகள்")}
-                </div>
+              <div className="flex justify-center gap-3 sm:gap-4">
+                {[
+                  { val: summary?.totalVolunteers != null ? `${summary.totalVolunteers}+` : "0+", label: tx("Volunteers", "தன்னார்வலர்கள்") },
+                  { val: summary?.totalEvents ?? "—", label: tx("Events", "நிகழ்வுகள்") },
+                  { val: summary?.totalNews ?? "—", label: tx("News", "செய்திகள்") },
+                ].map(({ val, label }) => (
+                  <div key={label} className="rounded-xl px-4 py-2.5 min-w-[78px] border border-white/10" style={{ background: "rgba(255,255,255,0.07)" }}>
+                    <div className="text-xl md:text-2xl font-extrabold leading-none" style={{ color: "#FFB300" }}>{val}</div>
+                    <div className="text-[10px] md:text-[11px] text-white/70 mt-1 leading-tight">{label}</div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
 
-          <div className={`${embedded ? "flex" : "hidden lg:flex"} justify-center`}>
-            {/* Premium Leader Card */}
-            <div className="relative w-[340px] rounded-3xl overflow-hidden shadow-2xl shadow-black/40 border border-white/10">
-              {/* Card background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-800/90 via-slate-900/95 to-slate-950" />
-              {/* TVK red top accent bar */}
-              <div className="relative h-1.5 w-full" style={{ background: "linear-gradient(90deg, #C9181E 0%, #FFB300 100%)" }} />
-
-              <div className="relative p-5">
-                {/* Party badge */}
-                <div className="flex items-center justify-center mb-4">
-                  <div className="flex items-center gap-2 rounded-full px-4 py-1 border border-white/10" style={{ background: "rgba(201,24,30,0.15)" }}>
-                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#C9181E" }} />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/80">
-                      {tx("Tamilaga Vettri Kazhagam", "தமிழக வெற்றி கழகம்")}
-                    </span>
-                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#FFB300" }} />
+            {/* Leader — right */}
+            <div className="order-3 lg:order-3 flex flex-col items-center">
+              <div className="relative w-full max-w-[210px] lg:max-w-none">
+                <div className="rounded-2xl p-[3px] shadow-2xl shadow-black/50" style={{ background: "linear-gradient(160deg,#FFE08A 0%,#FFB300 45%,#C9181E 100%)" }}>
+                  <div className="rounded-[14px] overflow-hidden bg-slate-900 aspect-[4/5]">
+                    {photoSrc
+                      ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)} className="w-full h-full object-cover object-top" />
+                      : <span className="w-full h-full flex items-center justify-center text-5xl font-bold text-yellow-400">{(tx(config.headline, config.headlineTa) || "R").trim().charAt(0).toUpperCase()}</span>}
                   </div>
                 </div>
-
-                {/* Photos row */}
-                <div className="flex items-end justify-center gap-0 mb-5">
-                  {/* CM — left */}
-                  <div className="flex flex-col items-center" style={{ zIndex: 2 }}>
-                    <div className="relative">
-                      <div className="w-[136px] h-[168px] rounded-2xl overflow-hidden shadow-xl flex-shrink-0"
-                        style={{ border: "2.5px solid #C9181E", boxShadow: "0 8px 32px rgba(201,24,30,0.35)" }}>
-                        <img src="/cm_vijay.jpg" alt="C. Joseph Vijay – Chief Minister"
-                          className="w-full h-full object-cover object-top" />
-                      </div>
-                      {/* CM red badge */}
-                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-white text-[9px] font-black px-3 py-0.5 rounded-full whitespace-nowrap uppercase tracking-wider shadow-lg"
-                        style={{ background: "#C9181E" }}>
-                        {tx("Chief Minister", "முதலமைச்சர்")}
-                      </div>
-                    </div>
-                    <div className="mt-5 text-center">
-                      <p className="text-white/85 text-[12px] font-semibold leading-tight">
-                        {tx("C. Joseph Vijay", "C. ஜோசப் விஜய்")}
-                      </p>
-                      <p className="text-white/45 text-[10px] mt-0.5">
-                        {tx("Tamil Nadu", "தமிழ்நாடு")}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Gold star divider */}
-                  <div className="flex flex-col items-center pb-8 flex-shrink-0 mx-1" style={{ zIndex: 3 }}>
-                    <div className="w-px h-10 bg-gradient-to-b from-transparent via-yellow-400/50 to-transparent" />
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center my-1"
-                      style={{ background: "linear-gradient(135deg,#FFB300,#FF8C00)", boxShadow: "0 0 12px rgba(255,179,0,0.5)" }}>
-                      <span className="text-white text-xs font-black">★</span>
-                    </div>
-                    <div className="w-px h-10 bg-gradient-to-b from-transparent via-yellow-400/50 to-transparent" />
-                  </div>
-
-                  {/* Minister — right */}
-                  <div className="flex flex-col items-center" style={{ zIndex: 2 }}>
-                    <div className="relative">
-                      <div className="w-[136px] h-[168px] rounded-2xl overflow-hidden shadow-xl flex-shrink-0"
-                        style={{ border: "2.5px solid #FFB300", boxShadow: "0 8px 32px rgba(255,179,0,0.25)" }}>
-                        {photoSrc
-                          ? <img src={photoSrc} alt={tx(config.headline, config.headlineTa)}
-                              className="w-full h-full object-cover object-top" />
-                          : <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-yellow-400 bg-slate-700">R</span>
-                        }
-                      </div>
-                      {/* Minister gold badge */}
-                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[9px] font-black px-3 py-0.5 rounded-full whitespace-nowrap uppercase tracking-wider shadow-lg"
-                        style={{ background: "#FFB300", color: "#1a1a1a" }}>
-                        {tx("Minister & MLA", "அமைச்சர் & MLA")}
-                      </div>
-                    </div>
-                    <div className="mt-5 text-center">
-                      <p className="text-white/85 text-[12px] font-semibold leading-tight">
-                        {tx(config.headline, config.headlineTa)}
-                      </p>
-                      <p className="text-yellow-400/70 text-[10px] mt-0.5 leading-tight max-w-[120px] mx-auto">
-                        {tx("Environment & Climate", "சுற்றுச்சூழல் & காலநிலை")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Divider */}
-                <div className="h-px w-full mb-4" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)" }} />
-
-                {/* Stats strip */}
-                <div className="grid grid-cols-3 gap-1 text-center">
-                  {[
-                    { val: summary?.totalVolunteers != null ? `${summary.totalVolunteers}+` : "—", label: tx("Volunteers", "தன்னார்வலர்") },
-                    { val: summary?.totalEvents ?? "—", label: tx("Events", "நிகழ்வுகள்") },
-                    { val: summary?.totalNews ?? "—", label: tx("News", "செய்திகள்") },
-                  ].map(({ val, label }) => (
-                    <div key={label} className="rounded-xl py-2 px-1" style={{ background: "rgba(255,255,255,0.05)" }}>
-                      <div className="font-black text-lg leading-none" style={{ color: "#FFB300" }}>{val}</div>
-                      <div className="text-[9px] text-white/50 mt-0.5 uppercase tracking-wide">{label}</div>
-                    </div>
-                  ))}
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap shadow-lg" style={{ background: "#FFB300", color: "#5c0a0a" }}>
+                  {tx("MLA · Thiruvadanai", "சட்டமன்ற உறுப்பினர் · திருவாடானை")}
                 </div>
               </div>
+              <div className="mt-6 text-center text-white">
+                <p className="font-bold text-sm md:text-base leading-tight">{tx(config.headline, config.headlineTa)}</p>
+                <p className="text-yellow-300/80 text-[11px] md:text-xs mt-1 leading-tight max-w-[200px] mx-auto">
+                  {tx(`${leader.titleEn} – ${leader.constituencyEn}`, `${leader.titleTa} – ${leader.constituencyTa} தொகுதி`)}
+                </p>
+              </div>
             </div>
+
           </div>
         </div>
       </section>
