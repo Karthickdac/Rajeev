@@ -19,7 +19,7 @@ URL config is needed behind the proxy.
 **How to apply:**
 - Deploy tooling lives at repo root: `deploy.sh`, `ecosystem.config.cjs`, `.env.example`,
   `nginx.conf.example`. `deploy.sh` builds api-server (esbuild) + frontend (vite), runs
-  `@workspace/db run push`, then PM2 (re)starts.
+  `@workspace/db run baseline` then `migrate` (versioned migrations), then PM2 (re)starts.
 - Secrets are NOT committed: `ecosystem.config.cjs` reads them from `process.env`; `deploy.sh`
   loads a gitignored `.env`. `.env` and `logs/` are in `.gitignore`.
 - PM2 `cwd` is set to `artifacts/api-server` so runtime `./uploads` and `../../attached_assets`
@@ -28,6 +28,10 @@ URL config is needed behind the proxy.
 - The static-serving branch only activates when `dist/public/index.html` exists; otherwise the
   server logs "API-only mode" and still serves `/api`.
 
-**Known caveat:** production schema sync uses drizzle `push` (no versioned migration files
-exist). It is schema-sync, not migration — review drift before running on a populated DB, or
-`SKIP_DB_PUSH=1 bash deploy.sh`.
+**Schema changes use versioned migrations** (not in-place `push`): edit schema, run
+`@workspace/db run generate`, review + commit the `.sql` in `lib/db/migrations/`. Prod applies
+them via `migrate`. `scripts/baseline.mjs` (idempotent, runs first in deploy) marks the `0000`
+baseline as already-applied on legacy push'd DBs so existing tables/data are never re-created.
+The drizzle migrator skips a migration when `drizzle.__drizzle_migrations.created_at >= journal
+`when`; baseline just inserts that row (sha256 of the .sql + the journal `when`). Skip the whole
+step with `SKIP_DB_MIGRATE=1 bash deploy.sh`.

@@ -10,7 +10,7 @@
 #   3. Make sure pnpm + PM2 are installed:  npm i -g pnpm pm2
 #
 # Flags:
-#   SKIP_DB_PUSH=1 bash deploy.sh   # skip the schema sync step (see step 5)
+#   SKIP_DB_MIGRATE=1 bash deploy.sh   # skip the migration step (see step 5)
 #
 # Every deploy after that:
 #   bash deploy.sh
@@ -62,16 +62,22 @@ pnpm --filter @workspace/api-server run build
 echo "▶ Building frontend..."
 pnpm --filter @workspace/logesh-connect run build
 
-# ── 5. Sync database schema ───────────────────────────────────
-# Uses drizzle "push" (schema-sync). It compares the schema to the live DB and
-# applies changes in place. On a fresh DB this creates all tables; on an
-# existing DB review changes first if you have manual edits. Skip with
-# SKIP_DB_PUSH=1 if you manage the schema yourself.
-if [ "${SKIP_DB_PUSH:-0}" = "1" ]; then
-  echo "▶ Skipping database schema push (SKIP_DB_PUSH=1)."
+# ── 5. Apply database migrations ──────────────────────────────
+# Applies committed, versioned migration files (lib/db/migrations) with
+# drizzle "migrate" — a reviewable, repeatable history instead of in-place
+# schema-sync ("push"). To change the schema: edit lib/db/src/schema/, run
+# `pnpm --filter @workspace/db run generate`, review + commit the new .sql,
+# then deploy. The baseline step makes this safe on databases that predate
+# migrations (created with the old "push"): it marks the first migration as
+# already-applied so its SQL is not re-run. Skip everything with
+# SKIP_DB_MIGRATE=1 if you manage the schema yourself.
+if [ "${SKIP_DB_MIGRATE:-0}" = "1" ]; then
+  echo "▶ Skipping database migrations (SKIP_DB_MIGRATE=1)."
 else
-  echo "▶ Syncing database schema (drizzle push)..."
-  pnpm --filter @workspace/db run push
+  echo "▶ Baselining migration history (no-op unless this is a legacy DB)..."
+  pnpm --filter @workspace/db run baseline
+  echo "▶ Applying database migrations (drizzle migrate)..."
+  pnpm --filter @workspace/db run migrate
 fi
 
 # ── 6. (Re)start the PM2 process ──────────────────────────────

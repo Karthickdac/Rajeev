@@ -6,7 +6,9 @@ Bilingual (Tamil-default) political leader website + grievance management platfo
 
 - `pnpm --filter @workspace/api-server run dev` — API server (port 8080)
 - `pnpm --filter @workspace/logesh-connect run dev` — web frontend
-- `pnpm --filter @workspace/db run push` — push DB schema (dev only)
+- `pnpm --filter @workspace/db run push` — push DB schema in place (dev only, no migration files)
+- `pnpm --filter @workspace/db run generate` — generate a versioned migration from schema changes
+- `pnpm --filter @workspace/db run migrate` — apply committed migrations (used by `deploy.sh` in prod)
 - `npx tsx lib/db/src/seed.ts` — seed sample content. Logins: super_admin `admin@logeshconnect.in / Admin@2026`, minister `minister@logeshconnect.in / Minister@2026`, PA `pa@logeshconnect.in / PaStaff@2026`
 - `pnpm --filter @workspace/api-spec run codegen` — regen API hooks + Zod from OpenAPI
 - `cd lib/db && npx tsc -p tsconfig.json` — must run after adding new schema tables
@@ -50,6 +52,7 @@ Bilingual (Tamil-default) political leader website + grievance management platfo
 - CMS-editable content stored in `site_config` table as JSON key-value pairs (keys: `about`, `social_links`, `contact_info`, `emergency_contacts`).
 - Audit log table (`admin_audit_log`) records all admin CREATE/UPDATE/DELETE with actor + target.
 - After new schema tables: run `cd lib/db && npx tsc -p tsconfig.json` to regenerate `.d.ts` for api-server typecheck.
+- Schema changes use **versioned migrations**, not in-place push: edit `lib/db/src/schema/`, run `pnpm --filter @workspace/db run generate` (writes a new `.sql` to `lib/db/migrations/`), review and commit it. `deploy.sh` runs `migrate` (apply committed migrations) in prod — never `push`. `0000_*` is the baseline snapshot of the whole schema; `scripts/baseline.mjs` marks it already-applied on legacy DBs created with the old `push` so existing data is never re-created. `push` remains for fast dev-only iteration.
 
 ## Product
 
