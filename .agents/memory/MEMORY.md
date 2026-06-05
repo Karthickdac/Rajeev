@@ -1,4 +1,5 @@
 - [Leader config is CMS-driven](leader-config-cms.md) — never hardcode leader/constituency/brand strings; derive from useLeaderConfig()/lc; re-seed to update DB row.
 - [VPS deployment is single-port](vps-deployment.md) — on CloudPanel the API server also serves the built SPA; one PM2 process, secrets from gitignored .env, deploy.sh at repo root.
+- [Bilingual admin convention](bilingual-admin.md) — all admin UI text uses lc(lang,en,ta) + shared useLanguage() (default ta); never translate testids/enum values/map keys.
 - [drizzle-kit abs out-path bug](drizzle-kit-abs-out-path.md) — `generate` errors on `.//abs` snapshot path; run from lib/db with explicit `--out ./migrations`; `push` needs `--config` for DATABASE_URL.
 - [Constituency hierarchy re-seeding](constituency-reseed.md) — delete pincodeWards→pollingStations→wards→pincodes→zones before inserting new hierarchy; skip onConflictDoNothing or old rows from the previous constituency remain alongside new ones.
